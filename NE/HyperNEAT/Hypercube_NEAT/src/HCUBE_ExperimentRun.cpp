@@ -5,6 +5,7 @@
 #include "Experiments/HCUBE_Experiment.h"
 
 #include "Experiments/HCUBE_XorExperiment.h"
+#include "Experiments/HCUBE_AtariExperiment.h"
 #ifdef EPLEX_INTERNAL
 #include "Experiments/HCUBE_XorCoExperiment.h"
 #include "Experiments/HCUBE_SimpleImageExperiment.h"
@@ -40,6 +41,7 @@
 #endif
 #include "Experiments/HCUBE_CheckersExperimentSubstrateGeom.h"
 
+
 #ifndef HCUBE_NOGUI
 #include "HCUBE_MainFrame.h"
 #include "HCUBE_UserEvaluationFrame.h"
@@ -59,6 +61,7 @@ namespace HCUBE
         populationMutex(new mutex()),
         frame(NULL)
     {
+      cout << "Creating experiment run" << endl;
     }
 
     ExperimentRun::~ExperimentRun()
@@ -104,6 +107,9 @@ namespace HCUBE
 #endif
             case EXPERIMENT_XOR:
                 experiments.push_back(shared_ptr<Experiment>(new XorExperiment("",a)));
+                break;
+            case EXPERIMENT_ATARI:
+                experiments.push_back(shared_ptr<Experiment>(new AtariExperiment("",a)));
                 break;
 #ifdef EPLEX_INTERNAL
             case EXPERIMENT_COXOR:

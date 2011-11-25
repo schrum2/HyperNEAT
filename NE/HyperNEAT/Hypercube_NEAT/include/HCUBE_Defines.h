@@ -163,6 +163,7 @@ enum ExperimentType
 #ifdef EPLEX_INTERNAL
     EXPERIMENT_BINARY_COMPRESSION=29,                   //29
 #endif
+    EXPERIMENT_ATARI=30,                                //30
     EXPERIMENT_END
 };
 
