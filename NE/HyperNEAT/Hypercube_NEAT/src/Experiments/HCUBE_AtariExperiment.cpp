@@ -109,8 +109,11 @@ namespace HCUBE
     }
 
     // Run simulation for t timesteps
-    int num_timesteps = 10000;
-    for (int t=0; t<num_timesteps; t++) {
+    int max_num_episodes = 100;
+    int episode = 0;
+    int curr_time = 0, max_timesteps = 100;
+    while (episode < max_num_episodes) {
+      curr_time++;
       substrate.getNetwork()->reinitialize();
       substrate.getNetwork()->dummyActivation();
 
@@ -213,19 +216,25 @@ namespace HCUBE
       chic_y += action;
 
       // Compute reward
-      if (chic_y == 0 || collision) {
-        if (collision)
-          total_reward = max(0.0f,total_reward-1.0f);
-        if (chic_y == 0)
-          total_reward += 100.0;
+      if (chic_y == 0 || collision || curr_time >= max_timesteps) {
+        episode++;
+        
+        if (chic_y == 0) {
+          total_reward += 50;
+        } else if (collision) {
+          total_reward += screen_height - chic_y;
+        }
+        
+        curr_time = 0;
         // Reset the sim
         if (gameState[chic_x][chic_y] != VEHICLE) gameState[chic_x][chic_y] = EMPTY;
         gameState[chic_x][screen_height-1] = CHICKEN;
         chic_y = screen_height-1;
       }
     }
+    float avg_reward = total_reward / max_num_episodes;
     //cout << "Got total reward: " << total_reward << endl;
-    individual->reward(total_reward);
+    individual->reward(avg_reward);
   }
 
   void AtariExperiment::preprocessIndividual(shared_ptr<NEAT::GeneticGeneration> generation,
