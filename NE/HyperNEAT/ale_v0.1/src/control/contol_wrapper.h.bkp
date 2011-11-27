@@ -1,0 +1,9 @@
+/* ***************************************************************************
+ *  contol_wrapper.h
+ *  This is an interface that gives us access to control the game by an external
+ *  agent.  
+ * The method control_update() is called on very iteration of the game loop.
+ * ***************************************************************************/
+
+
+void control_update(int* frame_buffer, int width, int height);

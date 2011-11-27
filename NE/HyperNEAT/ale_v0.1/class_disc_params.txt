@@ -1,0 +1,12 @@
+; The Class-Discoevry parameters are stored here
+bg_detect_frames_num = 1000
+cls_disc_frames_num = 5000
+plot_region_matrix_pre_merge = false
+plot_region_matrix_post_merge = false
+plot_pre_filter_classes = false
+plot_post_filter_classes = true
+max_perc_difference = 0.1
+max_shape_area_dif = 1.2
+min_on_frame_ratio = 0.2
+min_boundary_length = 0.3
+max_num_classes = 10

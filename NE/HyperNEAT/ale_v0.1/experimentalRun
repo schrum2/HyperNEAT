@@ -1,0 +1,28 @@
+#!/bin/bash
+LOG="expr.log"
+date > $LOG
+echo "Starting Experimental Runs..."
+echo "Writing to logfile $LOG"
+echo "Starting Experimental Runs..." >> $LOG
+echo "Current Git CheckPt: " >> $LOG
+git rev-parse HEAD >> $LOG
+echo "" >> $LOG
+
+# Experiments Here
+for i in {1..5}
+do
+    let TRAIN=$i*5000
+    ./ale -player_agent model_agent  -num_block_per_row 16 -num_block_per_col 21 -display_screen false -end_training_time $TRAIN -eval_frames 1000 -model_type logistic -save_model decision$TRAIN.ser ../roms/freeway.bin    
+done
+
+echo "Experiments Finished!"
+echo "Experiments Finished!" >> $LOG
+date >> $LOG
+
+# Send email
+# SUBJECT="Experiments Finished"
+# EMAIL="matthew.hausknecht@gmail.com"
+# /usr/bin/mail -s "$SUBJECT" "$EMAIL" < $LOG
+
+
+
