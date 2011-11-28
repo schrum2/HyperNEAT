@@ -53,7 +53,7 @@ void initializeEmulator() {
   strcpy(argv[10],"5000");
   strcpy(argv[11],"-eval_frames");
   strcpy(argv[12],"1000");
-  strcpy(argv[13],"/home/el/projects/p0/external/roms/freeway.bin");  
+  strcpy(argv[13],"./roms/freeway.bin");  
 
   cout << str_welcome << endl;
   theOSystem = new OSystemUNIX();
