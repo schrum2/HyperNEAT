@@ -117,7 +117,7 @@ float Blob::get_aggregate_blob_match(const Blob& other) {
 
 long Blob::find_matching_blob(map<long,Blob>& blobs, set<long>& excluded) {
   long best_match_id = -1;
-  float best_match_score;
+  float best_match_score = 0;
   for (map<long,Blob>::iterator it=blobs.begin(); it!=blobs.end(); ++it) {
     Blob& b = it->second;
     if (excluded.find(b.id) != excluded.end())
@@ -185,7 +185,7 @@ Prototype::Prototype (CompositeObject& obj, map<long,Blob>& blob_map) {
 
 
 float Prototype::get_pixel_match(CompositeObject& obj, map<long,Blob>& blob_map) {
-  int overlap, total = 0;
+  int overlap = 0, total = 0;
   for (set<long>::iterator it=obj.blob_ids.begin(); it!=obj.blob_ids.end(); ++it) {
     long b_id = *it;
     assert(blob_map.find(b_id) != blob_map.end());
@@ -737,7 +737,7 @@ void SelfDetectionAgent::update_existing_objs() {
 
 long SelfDetectionAgent::identify_self() {
   float max_info_gain = -1;
-  long best_blob_id;
+  long best_blob_id = -1;
   for (map<long,Blob>::iterator it=curr_blobs.begin(); it!=curr_blobs.end(); ++it) {
     long b_id = it->first;
 

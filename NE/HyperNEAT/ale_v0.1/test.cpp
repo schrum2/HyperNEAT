@@ -23,6 +23,10 @@ string str_welcome = "A.L.E: Atari 2600 Learning Environment (version " + str_ve
 OSystem* theOSystem = (OSystem*) NULL;
 GameController* p_game_controllr  = NULL;
 
+static size_t time_start; 
+static size_t time_end; 
+
+
 void cleanup() {
   // Does general Cleanup in case any operation failed (or at end of program)
   if(theOSystem) {
@@ -35,7 +39,7 @@ void cleanup() {
 }
 
 void initializeEmulator() {
-  int argc = 14;
+  int argc = 6;
   char** argv = new char*[argc];
   for (int i=0; i<=argc; i++) {
     argv[i] = new char(200);
@@ -43,17 +47,9 @@ void initializeEmulator() {
   strcpy(argv[0],"./ale");
   strcpy(argv[1],"-player_agent");
   strcpy(argv[2],"self_detection_agent");
-  strcpy(argv[3],"-num_block_per_row");
-  strcpy(argv[4],"16");
-  strcpy(argv[5],"-num_block_per_col");
-  strcpy(argv[6],"21");
-  strcpy(argv[7],"-display_screen");
-  strcpy(argv[8],"true");
-  strcpy(argv[9],"-end_training_time");
-  strcpy(argv[10],"5000");
-  strcpy(argv[11],"-eval_frames");
-  strcpy(argv[12],"1000");
-  strcpy(argv[13],"./roms/freeway.bin");  
+  strcpy(argv[3],"-display_screen");
+  strcpy(argv[4],"true");
+  strcpy(argv[5],"./roms/freeway.bin");  
 
   cout << str_welcome << endl;
   theOSystem = new OSystemUNIX();
@@ -166,32 +162,46 @@ int main(int argc, char* argv[]) {
 
   InternalController* controller = (InternalController*) theOSystem->getGameController();
   SelfDetectionAgent* self_detection_agent = (SelfDetectionAgent*) controller->getPlayerAgentLeft();
-  Action action = PLAYER_A_UP;
+  GameSettings* game_settings = controller->getGameSettings();
 
   // Main Loop
+  int skip_frames_num = game_settings->i_skip_frames_num;
+  int frame_skip_ctr = 0;
+  Action action = RESET;
+  time_start = time(NULL);
   for (int frame=0; frame<100000; frame++) {
+    if (frame_skip_ctr++ >= skip_frames_num) {
+      frame_skip_ctr = 0;
+      
+      // Get the latest screen
+      int ind_i, ind_j;
+      uInt8* pi_curr_frame_buffer = mediasrc.currentFrameBuffer();
+      for (int i = 0; i < screen_width * screen_height; i++) {
+        uInt8 v = pi_curr_frame_buffer[i];
+        ind_i = i / screen_width;
+        ind_j = i - (ind_i * screen_width);
+        pm_screen_matrix[ind_i][ind_j] = v;
+      }
 
-    // Get the latest screen
-    int ind_i, ind_j;
-    uInt8* pi_curr_frame_buffer = mediasrc.currentFrameBuffer();
-    for (int i = 0; i < screen_width * screen_height; i++) {
-      uInt8 v = pi_curr_frame_buffer[i];
-      ind_i = i / screen_width;
-      ind_j = i - (ind_i * screen_width);
-      pm_screen_matrix[ind_i][ind_j] = v;
+      // Get the object representation
+      self_detection_agent->process_image(&pm_screen_matrix, action);
+
+      // Choose Action
+      if (frame <5) action = RESET;
+      else action = PLAYER_A_UP;
+
+      // Display the screen
+      display_screen(pm_screen_matrix);
     }
-
-    // Get the object representation
-    self_detection_agent->process_image(&pm_screen_matrix, action);
-
-    // Choose Action
-    if (frame <5) action = RESET;
-    else action = PLAYER_A_UP;
 
     // Apply action to simulator and update the simulator
     theOSystem->applyAction(action);
     
-    display_screen(pm_screen_matrix);
+    if (frame % 1000 == 0) {
+      time_end = time(NULL);
+      double avg = ((double)frame)/(time_end - time_start);
+      cerr << "Average main loop iterations per sec = " << avg << endl;
+    }
   }
 
   cleanup();

@@ -59,6 +59,7 @@ class InternalController : public GameController {
         virtual void update();
 
         inline PlayerAgent* getPlayerAgentLeft(void) {return p_player_agent_left;};
+        inline GameSettings* getGameSettings(void) {return p_game_settings;};
 
     protected:
         /* *********************************************************************
