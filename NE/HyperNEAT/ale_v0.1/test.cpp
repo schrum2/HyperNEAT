@@ -42,7 +42,7 @@ void initializeEmulator() {
   int argc = 6;
   char** argv = new char*[argc];
   for (int i=0; i<=argc; i++) {
-    argv[i] = new char(200);
+    argv[i] = new char[200];
   }
   strcpy(argv[0],"./ale");
   strcpy(argv[1],"-player_agent");

@@ -18,7 +18,7 @@
 #include "class_agent.h"
 #include "grid_screen_agent.h"
 #include "bass_agent.h"
-#include "model_agent.h"
+//#include "model_agent.h"
 #include "search_agent.h"
 #include "single_action_agent.h"
 #include "actions_summary_agent.h"
@@ -413,9 +413,9 @@ PlayerAgent* PlayerAgent::generate_agent_instance(
   } else if (player_agent == "bass_agent") {
     cout << "Game will be controlled by bass agent" << endl;
     new_agent = new BassAgent(_game_settings, _osystem);
-  } else if (player_agent == "model_agent") {
-    cout << "Game will be controlled by model agent" << endl;
-    new_agent = new ModelAgent(_game_settings, _osystem);
+  // } else if (player_agent == "model_agent") {
+  //   cout << "Game will be controlled by model agent" << endl;
+  //   new_agent = new ModelAgent(_game_settings, _osystem);
   } else if (player_agent == "search_agent") {
     cout << "Game will be controlled by Search-Agent" << endl;
     new_agent = new SearchAgent(_game_settings, _osystem);

@@ -5,7 +5,7 @@
 
 srcdir      ?= .
 DEFINES     := -DRLGENV_NOMAINLOOP
-LDFLAGS     := 
+LDFLAGS     :=  
 INCLUDES    := -Isrc/control -Isrc/os_dependent -I/usr/include 
 LIBS	    := 
 OBJS	    :=
@@ -47,10 +47,10 @@ PROFILE :=
 HAVE_GCC3 = 1
 HAVE_NASM = 1
 
-INCLUDES += -Isrc/emucore -Isrc/emucore/m6502/src -Isrc/emucore/m6502/src/bspf/src -Isrc/common -Isrc/control -Isrc/player_agents -I/usr/include/ -I/usr/include/c++/4.3 -I/usr/include/c++/4.3/i486-linux-gnu/ -I/usr/include/c++/4.3/backward -I/usr/include
-OBJS += 
+INCLUDES += -Isrc/emucore -Isrc/emucore/m6502/src -Isrc/emucore/m6502/src/bspf/src -Isrc/common -Isrc/control -Isrc/player_agents -I/usr/include/ -I/usr/include/c++/4.4 -I/usr/include/c++/4.4/i486-linux-gnu/ -I/usr/include/c++/4.4/backward -I/usr/include
+OBJS +=  
 DEFINES +=  -DUNIX -DHAS_ALTIVEC -DUSE_NASM -DBSPF_UNIX -DHAVE_INTTYPES -DWINDOWED_SUPPORT  -DHAVE_GETTIMEOFDAY -DSNAPSHOT_SUPPORT 
-LDFLAGS += -lSDL -lSDL_gfx -lSDL_image -llbfgs -lboost_thread-mt -lboost_serialization -lcrfsuite -lncurses
+LDFLAGS += -L/u/mhauskn/local/lib -lSDL -lSDL_gfx -lSDL_image -lboost_thread-mt -lboost_serialization -lncurses
 
 
 # Uncomment this for stricter compile time code verification
