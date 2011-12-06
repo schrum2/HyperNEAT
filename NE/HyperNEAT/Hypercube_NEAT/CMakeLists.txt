@@ -204,6 +204,20 @@ INCLUDE_DIRECTORIES(
 )
 ENDIF(WIN32)
 
+INCLUDE_DIRECTORIES(
+/u/mhauskn/projects/HyperNEAT/NE/HyperNEAT/ale_v0.1/src/emucore
+/u/mhauskn/projects/HyperNEAT/NE/HyperNEAT/ale_v0.1/src/emucore/m6502/src
+/u/mhauskn/projects/HyperNEAT/NE/HyperNEAT/ale_v0.1/src/emucore/m6502/src/bspf/src
+/u/mhauskn/projects/HyperNEAT/NE/HyperNEAT/ale_v0.1/src/common
+/u/mhauskn/projects/HyperNEAT/NE/HyperNEAT/ale_v0.1/src/control
+/u/mhauskn/projects/HyperNEAT/NE/HyperNEAT/ale_v0.1/src/player_agents
+/u/mhauskn/projects/HyperNEAT/NE/HyperNEAT/ale_v0.1/src/os_dependent
+)
+#/usr/include/
+#/usr/include/c++/4.4
+#/usr/include/c++/4.4/i486-linux-gnu/
+#/usr/include/c++/4.4/backward
+#/usr/include
 IF(CYGWIN)
 
 	SET(
@@ -299,6 +313,10 @@ LINK_DIRECTORIES(
 	${BOARD_LIB}
 	${OPENCL_LIB}
 	)
+
+LINK_DIRECTORIES(
+	/u/mhauskn/local/lib
+)
 
 SOURCE_GROUP("Experiment Header Files" REGULAR_EXPRESSION include/Experiments/)
 SOURCE_GROUP("Experiment Source Files" REGULAR_EXPRESSION src/Experiments/)
@@ -420,14 +438,221 @@ ADD_DEPENDENCIES(Hypercube_NEAT_Base NEATLib CakeFixedDepthLib ClicheLib)
 
 SET_TARGET_PROPERTIES(Hypercube_NEAT_Base PROPERTIES DEBUG_POSTFIX _d)
 
-ADD_EXECUTABLE(
-	Hypercube_NEAT
-	MACOSX_BUNDLE
+#ADD_EXECUTABLE(
+#	Hypercube_NEAT
+#	MACOSX_BUNDLE
+#
+#	src/main.cpp
+#	)
 
-	src/main.cpp
+ADD_EXECUTABLE(
+	atari_generate
+  ../ale_v0.1/src/emucore/AtariVox.o
+  ../ale_v0.1/src/emucore/Booster.o
+  ../ale_v0.1/src/emucore/Cart2K.o
+  ../ale_v0.1/src/emucore/Cart3F.o
+  ../ale_v0.1/src/emucore/Cart3E.o
+  ../ale_v0.1/src/emucore/Cart4A50.o
+  ../ale_v0.1/src/emucore/Cart4K.o
+  ../ale_v0.1/src/emucore/CartAR.o
+  ../ale_v0.1/src/emucore/CartCV.o
+  ../ale_v0.1/src/emucore/Cart.o
+  ../ale_v0.1/src/emucore/CartDPC.o
+  ../ale_v0.1/src/emucore/CartE0.o
+  ../ale_v0.1/src/emucore/CartE7.o
+  ../ale_v0.1/src/emucore/CartF4.o
+  ../ale_v0.1/src/emucore/CartF4SC.o
+  ../ale_v0.1/src/emucore/CartF6.o
+  ../ale_v0.1/src/emucore/CartF6SC.o
+  ../ale_v0.1/src/emucore/CartF8.o
+  ../ale_v0.1/src/emucore/CartF8SC.o
+  ../ale_v0.1/src/emucore/CartFASC.o
+  ../ale_v0.1/src/emucore/CartFE.o
+  ../ale_v0.1/src/emucore/CartMB.o
+  ../ale_v0.1/src/emucore/CartMC.o
+  ../ale_v0.1/src/emucore/CartUA.o
+  ../ale_v0.1/src/emucore/Cart0840.o
+  ../ale_v0.1/src/emucore/Console.o
+  ../ale_v0.1/src/emucore/Control.o
+  ../ale_v0.1/src/emucore/Deserializer.o
+  ../ale_v0.1/src/emucore/Driving.o
+  ../ale_v0.1/src/emucore/Event.o
+  ../ale_v0.1/src/emucore/FSNode.o
+  ../ale_v0.1/src/emucore/Joystick.o
+  ../ale_v0.1/src/emucore/Keyboard.o
+  ../ale_v0.1/src/emucore/M6532.o
+  ../ale_v0.1/src/emucore/MD5.o
+  ../ale_v0.1/src/emucore/MediaSrc.o
+  ../ale_v0.1/src/emucore/OSystem.o
+  ../ale_v0.1/src/emucore/Paddles.o
+  ../ale_v0.1/src/emucore/Props.o
+  ../ale_v0.1/src/emucore/PropsSet.o
+  ../ale_v0.1/src/emucore/Random.o
+  ../ale_v0.1/src/emucore/Serializer.o
+  ../ale_v0.1/src/emucore/Settings.o
+  ../ale_v0.1/src/emucore/SpeakJet.o
+  ../ale_v0.1/src/emucore/Switches.o
+  ../ale_v0.1/src/emucore/TIA.o
+  ../ale_v0.1/src/emucore/TIASnd.o
+  ../ale_v0.1/src/emucore/unzip.o
+  ../ale_v0.1/src/emucore/m6502/src/Device.o
+  ../ale_v0.1/src/emucore/m6502/src/M6502.o
+  ../ale_v0.1/src/emucore/m6502/src/M6502Low.o
+  ../ale_v0.1/src/emucore/m6502/src/M6502Hi.o
+  ../ale_v0.1/src/emucore/m6502/src/NullDev.o
+  ../ale_v0.1/src/emucore/m6502/src/System.o
+  ../ale_v0.1/src/common/SoundNull.o
+  ../ale_v0.1/src/common/export_screen.o
+  ../ale_v0.1/src/common/display_screen.o
+  ../ale_v0.1/src/common/vector_matrix_tools.o
+  ../ale_v0.1/src/control/fifo_controller.o
+  ../ale_v0.1/src/control/game_controller.o
+  ../ale_v0.1/src/control/internal_controller.o
+  ../ale_v0.1/src/os_dependent/FSNodePOSIX.o
+  ../ale_v0.1/src/os_dependent/OSystemUNIX.o
+  ../ale_v0.1/src/os_dependent/SettingsUNIX.o
+  ../ale_v0.1/src/player_agents/game_settings.o
+  ../ale_v0.1/src/player_agents/player_agent.o
+  ../ale_v0.1/src/player_agents/random_agent.o
+  ../ale_v0.1/src/player_agents/rl_sarsa_lambda.o
+  ../ale_v0.1/src/player_agents/tiles2.o
+  ../ale_v0.1/src/player_agents/mountain_car_test.o
+  ../ale_v0.1/src/player_agents/ram_agent.o
+  ../ale_v0.1/src/player_agents/class_agent.o
+  ../ale_v0.1/src/player_agents/blob_object.o
+  ../ale_v0.1/src/player_agents/class_shape.o
+  ../ale_v0.1/src/player_agents/single_action_agent.o
+  ../ale_v0.1/src/player_agents/common_constants.o
+  ../ale_v0.1/src/player_agents/freeway_agent.o
+  ../ale_v0.1/src/player_agents/background_detector.o
+  ../ale_v0.1/src/player_agents/class_discovery.o
+  ../ale_v0.1/src/player_agents/region_manager.o
+  ../ale_v0.1/src/player_agents/shape_tools.o
+  ../ale_v0.1/src/player_agents/blob_class.o
+  ../ale_v0.1/src/player_agents/grid_screen_agent.o
+  ../ale_v0.1/src/player_agents/search_agent.o
+  ../ale_v0.1/src/player_agents/tree_node.o
+  ../ale_v0.1/src/player_agents/search_tree.o
+  ../ale_v0.1/src/player_agents/full_search_tree.o
+  ../ale_v0.1/src/player_agents/uct_search_tree.o
+  ../ale_v0.1/src/player_agents/actions_summary_agent.o
+  ../ale_v0.1/src/player_agents/bass_agent.o
+  ../ale_v0.1/src/player_agents/self_detection_agent.o
+  ../ale_v0.1/src/player_agents/models/model.o
+  ../ale_v0.1/src/player_agents/models/baseline_model.o
+  ../ale_v0.1/src/player_agents/models/block_grid.o
+  ../ale_v0.1/src/player_agents/models/freeway_model.o
+  ../ale_v0.1/src/player_agents/models/basic_dbn.o
+  ../ale_v0.1/src/player_agents/planners/node.o
+  ../ale_v0.1/src/player_agents/planners/uct.o
+	src/setup.cpp
+	)
+ADD_EXECUTABLE(
+	atari_evaluate
+  ../ale_v0.1/src/emucore/AtariVox.o
+  ../ale_v0.1/src/emucore/Booster.o
+  ../ale_v0.1/src/emucore/Cart2K.o
+  ../ale_v0.1/src/emucore/Cart3F.o
+  ../ale_v0.1/src/emucore/Cart3E.o
+  ../ale_v0.1/src/emucore/Cart4A50.o
+  ../ale_v0.1/src/emucore/Cart4K.o
+  ../ale_v0.1/src/emucore/CartAR.o
+  ../ale_v0.1/src/emucore/CartCV.o
+  ../ale_v0.1/src/emucore/Cart.o
+  ../ale_v0.1/src/emucore/CartDPC.o
+  ../ale_v0.1/src/emucore/CartE0.o
+  ../ale_v0.1/src/emucore/CartE7.o
+  ../ale_v0.1/src/emucore/CartF4.o
+  ../ale_v0.1/src/emucore/CartF4SC.o
+  ../ale_v0.1/src/emucore/CartF6.o
+  ../ale_v0.1/src/emucore/CartF6SC.o
+  ../ale_v0.1/src/emucore/CartF8.o
+  ../ale_v0.1/src/emucore/CartF8SC.o
+  ../ale_v0.1/src/emucore/CartFASC.o
+  ../ale_v0.1/src/emucore/CartFE.o
+  ../ale_v0.1/src/emucore/CartMB.o
+  ../ale_v0.1/src/emucore/CartMC.o
+  ../ale_v0.1/src/emucore/CartUA.o
+  ../ale_v0.1/src/emucore/Cart0840.o
+  ../ale_v0.1/src/emucore/Console.o
+  ../ale_v0.1/src/emucore/Control.o
+  ../ale_v0.1/src/emucore/Deserializer.o
+  ../ale_v0.1/src/emucore/Driving.o
+  ../ale_v0.1/src/emucore/Event.o
+  ../ale_v0.1/src/emucore/FSNode.o
+  ../ale_v0.1/src/emucore/Joystick.o
+  ../ale_v0.1/src/emucore/Keyboard.o
+  ../ale_v0.1/src/emucore/M6532.o
+  ../ale_v0.1/src/emucore/MD5.o
+  ../ale_v0.1/src/emucore/MediaSrc.o
+  ../ale_v0.1/src/emucore/OSystem.o
+  ../ale_v0.1/src/emucore/Paddles.o
+  ../ale_v0.1/src/emucore/Props.o
+  ../ale_v0.1/src/emucore/PropsSet.o
+  ../ale_v0.1/src/emucore/Random.o
+  ../ale_v0.1/src/emucore/Serializer.o
+  ../ale_v0.1/src/emucore/Settings.o
+  ../ale_v0.1/src/emucore/SpeakJet.o
+  ../ale_v0.1/src/emucore/Switches.o
+  ../ale_v0.1/src/emucore/TIA.o
+  ../ale_v0.1/src/emucore/TIASnd.o
+  ../ale_v0.1/src/emucore/unzip.o
+  ../ale_v0.1/src/emucore/m6502/src/Device.o
+  ../ale_v0.1/src/emucore/m6502/src/M6502.o
+  ../ale_v0.1/src/emucore/m6502/src/M6502Low.o
+  ../ale_v0.1/src/emucore/m6502/src/M6502Hi.o
+  ../ale_v0.1/src/emucore/m6502/src/NullDev.o
+  ../ale_v0.1/src/emucore/m6502/src/System.o
+  ../ale_v0.1/src/common/SoundNull.o
+  ../ale_v0.1/src/common/export_screen.o
+  ../ale_v0.1/src/common/display_screen.o
+  ../ale_v0.1/src/common/vector_matrix_tools.o
+  ../ale_v0.1/src/control/fifo_controller.o
+  ../ale_v0.1/src/control/game_controller.o
+  ../ale_v0.1/src/control/internal_controller.o
+  ../ale_v0.1/src/os_dependent/FSNodePOSIX.o
+  ../ale_v0.1/src/os_dependent/OSystemUNIX.o
+  ../ale_v0.1/src/os_dependent/SettingsUNIX.o
+  ../ale_v0.1/src/player_agents/game_settings.o
+  ../ale_v0.1/src/player_agents/player_agent.o
+  ../ale_v0.1/src/player_agents/random_agent.o
+  ../ale_v0.1/src/player_agents/rl_sarsa_lambda.o
+  ../ale_v0.1/src/player_agents/tiles2.o
+  ../ale_v0.1/src/player_agents/mountain_car_test.o
+  ../ale_v0.1/src/player_agents/ram_agent.o
+  ../ale_v0.1/src/player_agents/class_agent.o
+  ../ale_v0.1/src/player_agents/blob_object.o
+  ../ale_v0.1/src/player_agents/class_shape.o
+  ../ale_v0.1/src/player_agents/single_action_agent.o
+  ../ale_v0.1/src/player_agents/common_constants.o
+  ../ale_v0.1/src/player_agents/freeway_agent.o
+  ../ale_v0.1/src/player_agents/background_detector.o
+  ../ale_v0.1/src/player_agents/class_discovery.o
+  ../ale_v0.1/src/player_agents/region_manager.o
+  ../ale_v0.1/src/player_agents/shape_tools.o
+  ../ale_v0.1/src/player_agents/blob_class.o
+  ../ale_v0.1/src/player_agents/grid_screen_agent.o
+  ../ale_v0.1/src/player_agents/search_agent.o
+  ../ale_v0.1/src/player_agents/tree_node.o
+  ../ale_v0.1/src/player_agents/search_tree.o
+  ../ale_v0.1/src/player_agents/full_search_tree.o
+  ../ale_v0.1/src/player_agents/uct_search_tree.o
+  ../ale_v0.1/src/player_agents/actions_summary_agent.o
+  ../ale_v0.1/src/player_agents/bass_agent.o
+  ../ale_v0.1/src/player_agents/self_detection_agent.o
+  ../ale_v0.1/src/player_agents/models/model.o
+  ../ale_v0.1/src/player_agents/models/baseline_model.o
+  ../ale_v0.1/src/player_agents/models/block_grid.o
+  ../ale_v0.1/src/player_agents/models/freeway_model.o
+  ../ale_v0.1/src/player_agents/models/basic_dbn.o
+  ../ale_v0.1/src/player_agents/planners/node.o
+  ../ale_v0.1/src/player_agents/planners/uct.o
+	src/evaluate.cpp
 	)
 
-SET_TARGET_PROPERTIES(Hypercube_NEAT PROPERTIES DEBUG_POSTFIX _d)
+#SET_TARGET_PROPERTIES(Hypercube_NEAT PROPERTIES DEBUG_POSTFIX _d)
+SET_TARGET_PROPERTIES(atari_generate PROPERTIES DEBUG_POSTFIX _d)
+SET_TARGET_PROPERTIES(atari_evaluate PROPERTIES DEBUG_POSTFIX _d)
 
 SET(
 	BOOST_LIB_EXT_NAME_DEBUG
@@ -463,7 +688,7 @@ SET(
 ENDIF(WIN32)
 
 TARGET_LINK_LIBRARIES(
-	Hypercube_NEAT 
+	atari_generate 
 
 	debug
 	Hypercube_NEAT_Base_d
@@ -532,205 +757,44 @@ TARGET_LINK_LIBRARIES(
 	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_RELEASE}
 )
 
-IF(USE_GUI)
-	IF(CYGWIN)
-		TARGET_LINK_LIBRARIES(
-			Hypercube_NEAT
-
-			debug
-			wx_based-2.8
-
-			optimized
-			wx_base-2.8
-
-			debug
-			wx_mswd_core-2.8
-
-			optimized
-			wx_msw_core-2.8
-
-			debug
-			wx_mswd_adv-2.8
-
-			optimized
-			wx_msw_adv-2.8
-			)
-	ELSE(CYGWIN)
-		IF(WIN32)
-			TARGET_LINK_LIBRARIES(
-				Hypercube_NEAT 
-
-				debug
-				wxbase28d
-
-				optimized
-				wxbase28
-
-				debug
-				wxmsw28d_core
-
-				optimized
-				wxmsw28_core
-
-				debug
-				wxmsw28d_adv
-
-				optimized
-				wxmsw28_adv
-				)
-		ELSE(WIN32)
-			IF(APPLE)
-			TARGET_LINK_LIBRARIES(
-				Hypercube_NEAT 
-
-				general
-				"-framework Carbon"
-		
-				debug
-				wx_macud_adv-2.8
-
-				optimized
-				wx_macu_adv-2.8
-
-				debug
-				wx_macud_aui-2.8
-
-				optimized
-				wx_macu_aui-2.8
-
-				debug
-				wx_macud_qa-2.8
-
-				optimized
-				wx_macu_qa-2.8
-
-				debug
-				wx_macud_core-2.8
-
-				optimized
-				wx_macu_core-2.8
-
-				debug
-				wx_base_carbonud-2.8
-
-				optimized
-				wx_base_carbonu-2.8
-				)
-			ELSE(APPLE)
-			TARGET_LINK_LIBRARIES(
-				Hypercube_NEAT 
-
-				debug
-				wx_baseud-2.8
-
-				optimized
-				wx_baseu-2.8
-
-				debug
-				wx_gtk2ud_core-2.8
-
-				optimized
-				wx_gtk2u_core-2.8
-
-				debug
-				wx_gtk2ud_adv-2.8
-
-				optimized
-				wx_gtk2u_adv-2.8
-				)
-			ENDIF(APPLE)
-		ENDIF(WIN32)
-	ENDIF(CYGWIN)
-ENDIF(USE_GUI)
-
-IF(BUILD_GPU)
-	IF(APPLE)
-	TARGET_LINK_LIBRARIES(
-		Hypercube_NEAT
-	
-		general
-		"-framework OpenCL"
-	)
-	ELSE(APPLE)
-	TARGET_LINK_LIBRARIES(
-		Hypercube_NEAT
-	
-		general
-		OpenCL
-	)
-	ENDIF(APPLE)
-ENDIF(BUILD_GPU)
-
-IF(NOT WIN32)
 TARGET_LINK_LIBRARIES(
-Hypercube_NEAT
+	atari_evaluate 
 
-general
-pthread
-)
-ENDIF(NOT WIN32)
+	debug
+	Hypercube_NEAT_Base_d
 
-ADD_DEPENDENCIES(Hypercube_NEAT NEATLib Hypercube_NEAT_Base)
+	optimized
+	Hypercube_NEAT_Base
+		
+	debug
+	ClicheLib_d
+		
+	optimized
+	ClicheLib
 
-IF(BUILD_MPI)
-
-	ADD_EXECUTABLE(
-		Hypercube_NEAT_MPI
-
-		src/HCUBE_MPIExperimentRun.cpp
-		src/HCUBE_MPIEvaluationSet.cpp
-		src/mpimain.cpp
-
-		include/HCUBE_MPIExperimentRun.h
-		include/HCUBE_MPIEvaluationSet.h
-
-		)
-
-	SET_TARGET_PROPERTIES(
-		Hypercube_NEAT_MPI 
-		PROPERTIES DEBUG_POSTFIX _d
-		#COMPILE_FLAGS "-DHCUBE_NOGUI -DHCUBE_USEMPI -DUSE_STDARG -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_UNISTD_H=1 -DHAVE_STDARG_H=1 -DUSE_STDARG=1 -DMALLOC_RET_VOID=1"
-		COMPILE_FLAGS "-DHCUBE_USEMPI"
-		)
-
-		TARGET_LINK_LIBRARIES(
-			Hypercube_NEAT_MPI
-
-			debug
-			Hypercube_NEAT_Base_d
-
-			optimized
-			Hypercube_NEAT_Base
-
-			debug
-			CakeFixedDepthLib_d
+	debug
+	CakeFixedDepthLib_d
 	
-			optimized
-			CakeFixedDepthLib
-		
-    		debug
-		   ClicheLib_d
-		
-		   optimized
-		   ClicheLib
+	optimized
+	CakeFixedDepthLib
 
-			debug
-			NEATLib_d
+	debug
+	NEATLib_d
 
-			optimized
-			NEATLib
+	optimized
+	NEATLib
+	
+	debug
+	tinyxmlpluslib_d
 
-			debug
-			tinyxmlpluslib_d
+	optimized
+	tinyxmlpluslib
 
-			optimized
-			tinyxmlpluslib
-			
-			debug
-			zlib_d
-			
-			optimized
-			zlib
+	debug
+	zlib_d
+	
+	optimized
+	zlib
 
 	debug
 	board_d
@@ -738,212 +802,536 @@ IF(BUILD_MPI)
 	optimized
 	board
 
-	        debug
-	        FuegoLib_d
-        	
-	        optimized
-	        FuegoLib
+	debug
+	FuegoLib_d
+	
+	optimized
+	FuegoLib
 
-			debug
-			${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_DEBUG}
+	debug
+	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_DEBUG}
 
-			optimized
-			${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_RELEASE}
+	optimized
+	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_RELEASE}
 
-			debug
-			${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_DEBUG}
+	debug
+	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_DEBUG}
 
-			optimized
-			${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_RELEASE}
+	optimized
+	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_RELEASE}
 
-			debug
-			${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_DEBUG}
+	debug
+	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_DEBUG}
 
-			optimized
-			${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_RELEASE}
-	    )
+	optimized
+	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_RELEASE}
+)
 
-	IF(WIN32)
-		TARGET_LINK_LIBRARIES(
-			Hypercube_NEAT_MPI
+TARGET_LINK_LIBRARIES(
+	atari_generate
 
-			debug
-			libmpid
+	SDL
+	SDL_gfx
+	SDL_image
+	boost_thread-mt
+	boost_serialization
+	ncurses
+)
 
-			optimized
-			libmpi
-			
-			debug
-			libmpi_cxxd
+TARGET_LINK_LIBRARIES(
+	atari_evaluate
 
-			optimized
-			libmpi_cxx
+	SDL
+	SDL_gfx
+	SDL_image
+	boost_thread-mt
+	boost_serialization
+	ncurses
+)
 
-			debug
-			libopen-pald
 
-			optimized
-			libopen-pal
+#TARGET_LINK_LIBRARIES(
+#	Hypercube_NEAT 
+#
+#	debug
+#	Hypercube_NEAT_Base_d
+#
+#	optimized
+#	Hypercube_NEAT_Base
+#		
+#	debug
+#	ClicheLib_d
+#		
+#	optimized
+#	ClicheLib
+#
+#	debug
+#	CakeFixedDepthLib_d
+#	
+#	optimized
+#	CakeFixedDepthLib
+#
+#	debug
+#	NEATLib_d
+#
+#	optimized
+#	NEATLib
+#	
+#	debug
+#	tinyxmlpluslib_d
+#
+#	optimized
+#	tinyxmlpluslib
+#
+#	debug
+#	zlib_d
+#	
+#	optimized
+#	zlib
+#
+#	debug
+#	board_d
+#
+#	optimized
+#	board
+#
+#	debug
+#	FuegoLib_d
+#	
+#	optimized
+#	FuegoLib
+#
+#	debug
+#	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_DEBUG}
+#
+#	optimized
+#	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_RELEASE}
+#
+#	debug
+#	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_DEBUG}
+#
+#	optimized
+#	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_RELEASE}
+#
+#	debug
+#	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_DEBUG}
+#
+#	optimized
+#	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_RELEASE}
+#)
 
-			debug
-			libopen-rted
-
-			optimized
-			libopen-rte
-			
-			general
-			ws2_32
-			)
-	ELSE(WIN32)
-		TARGET_LINK_LIBRARIES(
-			Hypercube_NEAT_MPI
-
-			general
-			mpi_cxx
-
-			general
-			mpi
-			)
-	ENDIF(WIN32)
-
-	IF(USE_GUI)
-		IF(CYGWIN)
-			TARGET_LINK_LIBRARIES(
-				Hypercube_NEAT_MPI
-
-				debug
-				wx_based-2.8
-
-				optimized
-				wx_base-2.8
-
-				debug
-				wx_mswd_core-2.8
-
-				optimized
-				wx_msw_core-2.8
-
-				debug
-				wx_mswd_adv-2.8
-
-				optimized
-				wx_msw_adv-2.8
-				)
-		ELSE(CYGWIN)
-			IF(WIN32)
-				TARGET_LINK_LIBRARIES(
-					Hypercube_NEAT_MPI
-
-					debug
-					wxbase28d
-
-					optimized
-					wxbase28
-
-					debug
-					wxmsw28d_core
-
-					optimized
-					wxmsw28_core
-
-					debug
-					wxmsw28d_adv
-
-					optimized
-					wxmsw28_adv
-					)
-			ELSE(WIN32)
-			IF(APPLE)
-			TARGET_LINK_LIBRARIES(
-				Hypercube_NEAT_MPI
-
-				general
-				"-framework Carbon"
-		
-				debug
-				wx_macud_adv-2.8
-
-				optimized
-				wx_macu_adv-2.8
-
-				debug
-				wx_macud_aui-2.8
-
-				optimized
-				wx_macu_aui-2.8
-
-				debug
-				wx_macud_qa-2.8
-
-				optimized
-				wx_macu_qa-2.8
-
-				debug
-				wx_macud_core-2.8
-
-				optimized
-				wx_macu_core-2.8
-
-				debug
-				wx_base_carbonud-2.8
-
-				optimized
-				wx_base_carbonu-2.8
-				)
-			ELSE(APPLE)
-			TARGET_LINK_LIBRARIES(
-				Hypercube_NEAT_MPI
-
-				debug
-				wx_baseud-2.8
-
-				optimized
-				wx_baseu-2.8
-
-				debug
-				wx_gtk2ud_core-2.8
-
-				optimized
-				wx_gtk2u_core-2.8
-
-				debug
-				wx_gtk2ud_adv-2.8
-
-				optimized
-				wx_gtk2u_adv-2.8
-				)
-			ENDIF(APPLE)
-			ENDIF(WIN32)
-		ENDIF(CYGWIN)
-	ENDIF(USE_GUI)
-
-	IF(BUILD_GPU)
-		IF(APPLE)
-		TARGET_LINK_LIBRARIES(
-			Hypercube_NEAT_MPI
-		
-			general
-			"-framework OpenCL"
-		)
-		ELSE(APPLE)
-		TARGET_LINK_LIBRARIES(
-			Hypercube_NEAT_MPI
-		
-			general
-			OpenCL
-		)
-		ENDIF(APPLE)
-	ENDIF(BUILD_GPU)
-
-	IF(NOT WIN32)
-		TARGET_LINK_LIBRARIES(
-		Hypercube_NEAT_MPI
-		
-		general
-		pthread
-		)
-	ENDIF(NOT WIN32)
-
-	ADD_DEPENDENCIES(Hypercube_NEAT_MPI NEATLib Hypercube_NEAT_Base)
-
-ENDIF(BUILD_MPI)
+#IF(USE_GUI)
+#	IF(CYGWIN)
+#		TARGET_LINK_LIBRARIES(
+#			Hypercube_NEAT
+#
+#			debug
+#			wx_based-2.8
+#
+#			optimized
+#			wx_base-2.8
+#
+#			debug
+#			wx_mswd_core-2.8
+#
+#			optimized
+#			wx_msw_core-2.8
+#
+#			debug
+#			wx_mswd_adv-2.8
+#
+#			optimized
+#			wx_msw_adv-2.8
+#			)
+#	ELSE(CYGWIN)
+#		IF(WIN32)
+#			TARGET_LINK_LIBRARIES(
+#				Hypercube_NEAT 
+#
+#				debug
+#				wxbase28d
+#
+#				optimized
+#				wxbase28
+#
+#				debug
+#				wxmsw28d_core
+#
+#				optimized
+#				wxmsw28_core
+#
+#				debug
+#				wxmsw28d_adv
+#
+#				optimized
+#				wxmsw28_adv
+#				)
+#		ELSE(WIN32)
+#			IF(APPLE)
+#			TARGET_LINK_LIBRARIES(
+#				Hypercube_NEAT 
+#
+#				general
+#				"-framework Carbon"
+#		
+#				debug
+#				wx_macud_adv-2.8
+#
+#				optimized
+#				wx_macu_adv-2.8
+#
+#				debug
+#				wx_macud_aui-2.8
+#
+#				optimized
+#				wx_macu_aui-2.8
+#
+#				debug
+#				wx_macud_qa-2.8
+#
+#				optimized
+#				wx_macu_qa-2.8
+#
+#				debug
+#				wx_macud_core-2.8
+#
+#				optimized
+#				wx_macu_core-2.8
+#
+#				debug
+#				wx_base_carbonud-2.8
+#
+#				optimized
+#				wx_base_carbonu-2.8
+#				)
+#			ELSE(APPLE)
+#			TARGET_LINK_LIBRARIES(
+#				Hypercube_NEAT 
+#
+#				debug
+#				wx_baseud-2.8
+#
+#				optimized
+#				wx_baseu-2.8
+#
+#				debug
+#				wx_gtk2ud_core-2.8
+#
+#				optimized
+#				wx_gtk2u_core-2.8
+#
+#				debug
+#				wx_gtk2ud_adv-2.8
+#
+#				optimized
+#				wx_gtk2u_adv-2.8
+#				)
+#			ENDIF(APPLE)
+#		ENDIF(WIN32)
+#	ENDIF(CYGWIN)
+#ENDIF(USE_GUI)
+#
+#IF(BUILD_GPU)
+#	IF(APPLE)
+#	TARGET_LINK_LIBRARIES(
+#		Hypercube_NEAT
+#	
+#		general
+#		"-framework OpenCL"
+#	)
+#	ELSE(APPLE)
+#	TARGET_LINK_LIBRARIES(
+#		Hypercube_NEAT
+#	
+#		general
+#		OpenCL
+#	)
+#	ENDIF(APPLE)
+#ENDIF(BUILD_GPU)
+#
+#IF(NOT WIN32)
+#TARGET_LINK_LIBRARIES(
+#Hypercube_NEAT
+#
+#general
+#pthread
+#)
+#ENDIF(NOT WIN32)
+#
+#ADD_DEPENDENCIES(Hypercube_NEAT NEATLib Hypercube_NEAT_Base)
+#
+#IF(BUILD_MPI)
+#
+#	ADD_EXECUTABLE(
+#		Hypercube_NEAT_MPI
+#
+#		src/HCUBE_MPIExperimentRun.cpp
+#		src/HCUBE_MPIEvaluationSet.cpp
+#		src/mpimain.cpp
+#
+#		include/HCUBE_MPIExperimentRun.h
+#		include/HCUBE_MPIEvaluationSet.h
+#
+#		)
+#
+#	SET_TARGET_PROPERTIES(
+#		Hypercube_NEAT_MPI 
+#		PROPERTIES DEBUG_POSTFIX _d
+#		#COMPILE_FLAGS "-DHCUBE_NOGUI -DHCUBE_USEMPI -DUSE_STDARG -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_UNISTD_H=1 -DHAVE_STDARG_H=1 -DUSE_STDARG=1 -DMALLOC_RET_VOID=1"
+#		COMPILE_FLAGS "-DHCUBE_USEMPI"
+#		)
+#
+#		TARGET_LINK_LIBRARIES(
+#			Hypercube_NEAT_MPI
+#
+#			debug
+#			Hypercube_NEAT_Base_d
+#
+#			optimized
+#			Hypercube_NEAT_Base
+#
+#			debug
+#			CakeFixedDepthLib_d
+#	
+#			optimized
+#			CakeFixedDepthLib
+#		
+#    		debug
+#		   ClicheLib_d
+#		
+#		   optimized
+#		   ClicheLib
+#
+#			debug
+#			NEATLib_d
+#
+#			optimized
+#			NEATLib
+#
+#			debug
+#			tinyxmlpluslib_d
+#
+#			optimized
+#			tinyxmlpluslib
+#			
+#			debug
+#			zlib_d
+#			
+#			optimized
+#			zlib
+#
+#	debug
+#	board_d
+#
+#	optimized
+#	board
+#
+#	        debug
+#	        FuegoLib_d
+#        	
+#	        optimized
+#	        FuegoLib
+#
+#			debug
+#			${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_DEBUG}
+#
+#			optimized
+#			${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_RELEASE}
+#
+#			debug
+#			${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_DEBUG}
+#
+#			optimized
+#			${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_RELEASE}
+#
+#			debug
+#			${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_DEBUG}
+#
+#			optimized
+#			${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_RELEASE}
+#	    )
+#
+#	IF(WIN32)
+#		TARGET_LINK_LIBRARIES(
+#			Hypercube_NEAT_MPI
+#
+#			debug
+#			libmpid
+#
+#			optimized
+#			libmpi
+#			
+#			debug
+#			libmpi_cxxd
+#
+#			optimized
+#			libmpi_cxx
+#
+#			debug
+#			libopen-pald
+#
+#			optimized
+#			libopen-pal
+#
+#			debug
+#			libopen-rted
+#
+#			optimized
+#			libopen-rte
+#			
+#			general
+#			ws2_32
+#			)
+#	ELSE(WIN32)
+#		TARGET_LINK_LIBRARIES(
+#			Hypercube_NEAT_MPI
+#
+#			general
+#			mpi_cxx
+#
+#			general
+#			mpi
+#			)
+#	ENDIF(WIN32)
+#
+#	IF(USE_GUI)
+#		IF(CYGWIN)
+#			TARGET_LINK_LIBRARIES(
+#				Hypercube_NEAT_MPI
+#
+#				debug
+#				wx_based-2.8
+#
+#				optimized
+#				wx_base-2.8
+#
+#				debug
+#				wx_mswd_core-2.8
+#
+#				optimized
+#				wx_msw_core-2.8
+#
+#				debug
+#				wx_mswd_adv-2.8
+#
+#				optimized
+#				wx_msw_adv-2.8
+#				)
+#		ELSE(CYGWIN)
+#			IF(WIN32)
+#				TARGET_LINK_LIBRARIES(
+#					Hypercube_NEAT_MPI
+#
+#					debug
+#					wxbase28d
+#
+#					optimized
+#					wxbase28
+#
+#					debug
+#					wxmsw28d_core
+#
+#					optimized
+#					wxmsw28_core
+#
+#					debug
+#					wxmsw28d_adv
+#
+#					optimized
+#					wxmsw28_adv
+#					)
+#			ELSE(WIN32)
+#			IF(APPLE)
+#			TARGET_LINK_LIBRARIES(
+#				Hypercube_NEAT_MPI
+#
+#				general
+#				"-framework Carbon"
+#		
+#				debug
+#				wx_macud_adv-2.8
+#
+#				optimized
+#				wx_macu_adv-2.8
+#
+#				debug
+#				wx_macud_aui-2.8
+#
+#				optimized
+#				wx_macu_aui-2.8
+#
+#				debug
+#				wx_macud_qa-2.8
+#
+#				optimized
+#				wx_macu_qa-2.8
+#
+#				debug
+#				wx_macud_core-2.8
+#
+#				optimized
+#				wx_macu_core-2.8
+#
+#				debug
+#				wx_base_carbonud-2.8
+#
+#				optimized
+#				wx_base_carbonu-2.8
+#				)
+#			ELSE(APPLE)
+#			TARGET_LINK_LIBRARIES(
+#				Hypercube_NEAT_MPI
+#
+#				debug
+#				wx_baseud-2.8
+#
+#				optimized
+#				wx_baseu-2.8
+#
+#				debug
+#				wx_gtk2ud_core-2.8
+#
+#				optimized
+#				wx_gtk2u_core-2.8
+#
+#				debug
+#				wx_gtk2ud_adv-2.8
+#
+#				optimized
+#				wx_gtk2u_adv-2.8
+#				)
+#			ENDIF(APPLE)
+#			ENDIF(WIN32)
+#		ENDIF(CYGWIN)
+#	ENDIF(USE_GUI)
+#
+#	IF(BUILD_GPU)
+#		IF(APPLE)
+#		TARGET_LINK_LIBRARIES(
+#			Hypercube_NEAT_MPI
+#		
+#			general
+#			"-framework OpenCL"
+#		)
+#		ELSE(APPLE)
+#		TARGET_LINK_LIBRARIES(
+#			Hypercube_NEAT_MPI
+#		
+#			general
+#			OpenCL
+#		)
+#		ENDIF(APPLE)
+#	ENDIF(BUILD_GPU)
+#
+#	IF(NOT WIN32)
+#		TARGET_LINK_LIBRARIES(
+#		Hypercube_NEAT_MPI
+#		
+#		general
+#		pthread
+#		)
+#	ENDIF(NOT WIN32)
+#
+#	ADD_DEPENDENCIES(Hypercube_NEAT_MPI NEATLib Hypercube_NEAT_Base)
+#
+#ENDIF(BUILD_MPI)

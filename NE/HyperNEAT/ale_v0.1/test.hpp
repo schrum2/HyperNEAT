@@ -1,38 +1,21 @@
-#include <cstdlib>
-#include <ctime> 
-#include "bspf.hxx"
-#include "Console.hxx"
-#include "Event.hxx"
-#include "PropsSet.hxx"
-#include "Settings.hxx"
-#include "FSNode.hxx"
-#include "OSystem.hxx"
-#include "SettingsUNIX.hxx"
-#include "OSystemUNIX.hxx"
-#include "fifo_controller.h"
-#include "internal_controller.h"
-#include "common_constants.h"
-#include "game_settings.h"
-#include "player_agent.h"
-#include "self_detection_agent.h"
+#include "test.h"
 
 string str_ver = "0.1";
 string str_welcome = "A.L.E: Atari 2600 Learning Environment (version " + str_ver + ")\n"
-  + "[Powered by Stella]\n"
-  + "Use -help for help screen.";
++ "[Powered by Stella]\n"
++ "Use -help for help screen.";
 OSystem* theOSystem = (OSystem*) NULL;
 GameController* p_game_controllr  = NULL;
 
 static size_t time_start; 
 static size_t time_end; 
 
-
 void cleanup() {
   // Does general Cleanup in case any operation failed (or at end of program)
   if(theOSystem) {
     delete theOSystem;
   }
-    
+
   if(p_game_controllr) {
     delete p_game_controllr;
   }
@@ -48,14 +31,14 @@ void initializeEmulator() {
   strcpy(argv[1],"-player_agent");
   strcpy(argv[2],"self_detection_agent");
   strcpy(argv[3],"-display_screen");
-  strcpy(argv[4],"true");
-  strcpy(argv[5],"./roms/freeway.bin");  
+  strcpy(argv[4],"false");
+  strcpy(argv[5],"/u/mhauskn/projects/HyperNEAT/NE/HyperNEAT/ale_v0.1/roms/freeway.bin");  
 
   cout << str_welcome << endl;
   theOSystem = new OSystemUNIX();
   SettingsUNIX settings(theOSystem);
   theOSystem->settings().loadConfig();
-		
+
   // Load the RL parameters
   string rl_params_loc = theOSystem->settings().getString("working_dir") +
     theOSystem->settings().getString("rl_params_file");
@@ -82,11 +65,11 @@ void initializeEmulator() {
   // Finally, make sure the settings are valid
   // We do it once here, so the rest of the program can assume valid settings
   theOSystem->settings().validate();
-					
+
   // Create the full OSystem after the settings, since settings are
   // probably needed for defaults
   theOSystem->create();
-	
+
   //// Main loop ////
   // First we check if a ROM is specified on the commandline.  If so, and if
   //   the ROM actually exists, use it to create a new console.
@@ -102,7 +85,7 @@ void initializeEmulator() {
     cleanup();
     return;
   }
-    
+
   // Seed the Random number generator
   if (theOSystem->settings().getString("random_seed") == "time") {
     cout << "Random Seed: Time" << endl;
@@ -115,7 +98,7 @@ void initializeEmulator() {
     srand((unsigned)seed); 
     srand48((unsigned)seed);
   }
-    
+
   // Generate the GameController
   if (theOSystem->settings().getString("game_controller") == "fifo") {
     p_game_controllr = new FIFOController(theOSystem);
@@ -136,7 +119,7 @@ void display_screen(const IntMatrix& pm_screen_matrix) {
   static int frame = 0;
   ostringstream filename;
   char buffer [50];
-  
+
   sprintf (buffer, "%09lld", frame++);
   filename << "exported_screens/toDisplay_frame_" << buffer << ".png";
 
@@ -145,7 +128,7 @@ void display_screen(const IntMatrix& pm_screen_matrix) {
   remove(filename.str().c_str());
 };
 
-int main(int argc, char* argv[]) {
+int test(int argc, char* argv[]) {
   initializeEmulator();
 
   // Media assets
@@ -172,7 +155,7 @@ int main(int argc, char* argv[]) {
   for (int frame=0; frame<100000; frame++) {
     if (frame_skip_ctr++ >= skip_frames_num) {
       frame_skip_ctr = 0;
-      
+
       // Get the latest screen
       int ind_i, ind_j;
       uInt8* pi_curr_frame_buffer = mediasrc.currentFrameBuffer();
@@ -196,7 +179,7 @@ int main(int argc, char* argv[]) {
 
     // Apply action to simulator and update the simulator
     theOSystem->applyAction(action);
-    
+
     if (frame % 1000 == 0) {
       time_end = time(NULL);
       double avg = ((double)frame)/(time_end - time_start);

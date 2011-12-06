@@ -365,12 +365,13 @@ namespace NEAT
         }
 #endif
 
-        cout << "In produce next generation loop...\n";
+        cout << "[HyperNEAT Core - Genetic Population] In produce next generation loop...\n";
         //This clears the link history so future links with the same toNode and fromNode will have different IDs
         Globals::getSingleton()->clearLinkHistory();
 
         int numParents = int(generations[onGeneration]->getIndividualCount());
 
+        cout << "[HyperNEAT Core - Genetic Population] numParents: " << numParents << ", speciesSize: " << species.size() << endl;
         for(int a=0;a<numParents;a++)
         {
             if(generations[onGeneration]->getIndividual(a)->getFitness() < 1e-6)
@@ -379,12 +380,14 @@ namespace NEAT
             }
         }
 
+        cout << "[HyperNEAT Core - Genetic Population] Bad parents thrown out\n";
         double totalFitness=0;
 
         for (int a=0;a<(int)species.size();a++)
         {
             totalFitness += species[a]->getAdjustedFitness();
         }
+        cout << "[HyperNEAT Core - Genetic Population] Did some other stuff: totalFit: " << totalFitness << endl;
         int totalOffspring=0;
         for (int a=0;a<(int)species.size();a++)
         {
@@ -396,10 +399,13 @@ namespace NEAT
         //cout << "Pausing\n";
         //system("PAUSE");
         //Some offspring were truncated.  Give these to the best individuals
+        cout << "[HyperNEAT Core - Genetic Population] Did some other stuff: totalOff: " << totalOffspring << endl;
         while (totalOffspring<numParents)
         {
+            //cout << "[HyperNEAT Core - Genetic Population] In the loop, totalOff: " << totalOffspring << ", nP: " << numParents << endl;
             for (int a=0;totalOffspring<numParents&&a<generations[onGeneration]->getIndividualCount();a++)
             {
+                //cout << "  [HyperNEAT Core - Genetic Population] In the second loop\n";
                 shared_ptr<GeneticIndividual> ind = generations[onGeneration]->getIndividual(a);
                 shared_ptr<GeneticSpecies> gs = getSpecies(ind->getSpeciesID());
                 gs->setOffspringCount(gs->getOffspringCount()+1);

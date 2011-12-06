@@ -18,6 +18,7 @@ namespace HCUBE
         bool started;
         bool cleanup;
         int experimentType;
+        bool allowGenerationProduction;
 
         shared_ptr<NEAT::GeneticPopulation> population;
 
@@ -108,6 +109,7 @@ namespace HCUBE
          * until the experiment has completed, so ideally it should be run from
          * a thread.
          */
+        void startCondor();
         void start();
 
         /**
@@ -123,6 +125,7 @@ namespace HCUBE
         * This function creates a population.  This is typically called after setupExperiment
         * to create the initial population for the run.
         */
+        void createPopulationFromCondorRun(string populationFile, string fitnessFunctionFile, string evaluationFile);
         void createPopulation(string populationString="");
 
         /**
@@ -135,6 +138,7 @@ namespace HCUBE
         /**
         * This function evaluates all individuals in the population
         */
+        virtual float evaluateIndividual(unsigned int individualId);
         virtual void evaluatePopulation();
 
         /**

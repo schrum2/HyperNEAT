@@ -1,0 +1,17 @@
+; Parameters regarding running an experiment
+random_seed = 100
+;max_num_frames = 18000000
+max_num_frames_per_episode = 1800000
+num_episodes_to_avg_results = 1000
+export_weights_frq = 5000
+export_rewards_frq = 2000
+init_act_explor_count = 0
+minus_one_zero_reward = false 
+;export_screens_on_last_n_screens = 0
+;export_screens_on_last_n_episodes = 0
+
+; Model agent params
+end_training_time = 1500
+eval_frames = 500
+expr_filename = ""
+model_type = logistic

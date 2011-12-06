@@ -2,7 +2,6 @@
 #define HCUBE_ATARIEXPERIMENT_H_INCLUDED
 
 #include "HCUBE_Experiment.h"
-#include "../../../ale_v0.1/test.h"
 
 namespace HCUBE
 {
@@ -10,11 +9,6 @@ namespace HCUBE
   {
   protected:
     int screen_width, screen_height;
-    IntMatrix pm_screen_matrix;
-    
-    InternalController* controller;
-    SelfDetectionAgent* self_detection_agent;
-    GameSettings* game_settings;
 
   public:
     NEAT::LayeredSubstrate<float> substrate;

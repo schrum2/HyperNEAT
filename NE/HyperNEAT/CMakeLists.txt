@@ -113,7 +113,7 @@ ENDIF(BUILD_GPU)
 #subdirs(cake-1.20)
 subdirs(cake_fixeddepth)
 subdirs(cliche-1.2 NEAT Hypercube_NEAT)
-subdirs(GoPlayer)
+#subdirs(GoPlayer)
 
 IF(BUILD_PYTHON)
 subdirs(PyHyperNEAT)

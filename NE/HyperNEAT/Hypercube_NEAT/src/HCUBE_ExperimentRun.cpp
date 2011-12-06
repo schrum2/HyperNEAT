@@ -197,10 +197,59 @@ namespace HCUBE
 
     }
 
+    void ExperimentRun::createPopulationFromCondorRun(string populationFile, string fitnessFunctionFile,
+        string evaluationFile) {
+      cout << "[HyperNEAT core] Creating population from file...\n";
+      createPopulation(populationFile);
+
+      cout << "[HyperNEAT core] Obtaining fitness values...\n";
+
+      map<int, float> fitness;
+      ifstream fin(fitnessFunctionFile.c_str());
+      while (!fin.eof()) {
+        int individualId;
+        float individualFitness;
+        fin >> individualId >> individualFitness;
+        fitness[individualId] = individualFitness;     
+      }
+      fin.close();
+      for (int a = 0; a < population->getIndividualCount(); a++) {
+        if (fitness.find(a) == fitness.end())
+          fitness[a] = 10;
+      } 
+      
+      cout << "[HyperNEAT core] Setting fitness values...\n";
+
+      // Iterate all individuals to set fitness values
+      vector<shared_ptr<NEAT::GeneticIndividual> >::iterator tmpIterator =
+         population->getIndividualIterator(0);
+
+      for (int a = 0; a < population->getIndividualCount(); a++, tmpIterator++) {
+        (*tmpIterator)->setFitness(fitness[a]);
+      }
+      
+      cout << "[HyperNEAT core] Adjusting fitness values...\n";
+      population->adjustFitness();
+
+      population->dumpBest(evaluationFile, true, true);
+
+      cout << "[HyperNEAT core] Resetting generation data...\n";
+      shared_ptr<NEAT::GeneticGeneration> generation = population->getGeneration();
+      experiments[0]->resetGenerationData(generation);
+
+      for (int a=0;a<population->getIndividualCount();a++) {
+        experiments[0]->addGenerationData(generation,population->getIndividual(a));
+      }
+
+      allowGenerationProduction = true;
+
+    }
+
     void ExperimentRun::createPopulation(string populationString)
     {
         if (iequals(populationString,""))
         {
+            allowGenerationProduction = false;
             int popSize = (int)NEAT::Globals::getSingleton()->getParameterValue("PopulationSize");
             population = shared_ptr<NEAT::GeneticPopulation>(
                 experiments[0]->createInitialPopulation(popSize)
@@ -278,6 +327,16 @@ namespace HCUBE
         createPopulation(populationFileName);
 
         cout << "Population Created\n";
+    }
+
+    void ExperimentRun::startCondor() {
+      started = running = true;
+      int generation = (population->getGenerationCount()-1);
+      cout << "[HyperNEAT core] Starting experiment on generation: " << generation << endl;
+      if (allowGenerationProduction) {
+        produceNextGeneration();
+      }
+      population->dumpBest(outputFileName, true, true);
     }
 
     void ExperimentRun::start()
@@ -380,6 +439,15 @@ namespace HCUBE
 		}
 	}
 
+    float ExperimentRun::evaluateIndividual(unsigned int individualId) {
+      shared_ptr<NEAT::GeneticGeneration> generation = population->getGeneration();
+      experiments[0]->preprocessIndividual(generation, generation->getIndividual(individualId));
+      experiments[0]->clearGroup();
+      experiments[0]->addIndividualToGroup(generation->getIndividual(individualId));
+      experiments[0]->processGroup(generation);
+      return generation->getIndividual(individualId)->getFitness();
+    }
+ 
     void ExperimentRun::evaluatePopulation()
     {
         shared_ptr<NEAT::GeneticGeneration> generation = population->getGeneration();
@@ -519,8 +587,8 @@ namespace HCUBE
         }
         catch (const std::exception &ex)
         {
-            cout << "EXCEPTION DURING POPULATION REPRODUCTION: " << endl;
-            CREATE_PAUSE(ex.what());
+            cout << "EXCEPTION DURING POPULATION REPRODUCTION: " << ex.what() << endl;
+            exit(1);
         }
         catch (...)
         {

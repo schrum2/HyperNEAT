@@ -2,6 +2,72 @@
 
 #include "Experiments/HCUBE_AtariExperiment.h"
 #include <boost/foreach.hpp>
+#include "../../../ale_v0.1/test.hpp"
+
+/*
+int test(int argc, char* argv[]) {
+  initializeEmulator();
+
+  // Media assets
+  MediaSource& mediasrc = theOSystem->console().mediaSource();
+  int screen_width = mediasrc.width();
+  int screen_height = mediasrc.height();
+  IntMatrix pm_screen_matrix; // 2D Matrix containing screen pixel colors
+  for (int i=0; i<screen_height; ++i) { // Initialize our matrix
+    IntVect row;
+    for (int j=0; j<screen_width; ++j)
+      row.push_back(-1);
+    pm_screen_matrix.push_back(row);
+  }
+
+  InternalController* controller = (InternalController*) theOSystem->getGameController();
+  SelfDetectionAgent* self_detection_agent = (SelfDetectionAgent*) controller->getPlayerAgentLeft();
+  GameSettings* game_settings = controller->getGameSettings();
+
+  // Main Loop
+  int skip_frames_num = game_settings->i_skip_frames_num;
+  int frame_skip_ctr = 0;
+  Action action = RESET;
+  time_start = time(NULL);
+  for (int frame=0; frame<100000; frame++) {
+    if (frame_skip_ctr++ >= skip_frames_num) {
+      frame_skip_ctr = 0;
+      
+      // Get the latest screen
+      int ind_i, ind_j;
+      uInt8* pi_curr_frame_buffer = mediasrc.currentFrameBuffer();
+      for (int i = 0; i < screen_width * screen_height; i++) {
+        uInt8 v = pi_curr_frame_buffer[i];
+        ind_i = i / screen_width;
+        ind_j = i - (ind_i * screen_width);
+        pm_screen_matrix[ind_i][ind_j] = v;
+      }
+
+      // Get the object representation
+      self_detection_agent->process_image(&pm_screen_matrix, action);
+
+      // Choose Action
+      if (frame <5) action = RESET;
+      else action = PLAYER_A_UP;
+
+      // Display the screen
+      display_screen(pm_screen_matrix);
+    }
+
+    // Apply action to simulator and update the simulator
+    theOSystem->applyAction(action);
+    
+    if (frame % 1000 == 0) {
+      time_end = time(NULL);
+      double avg = ((double)frame)/(time_end - time_start);
+      cerr << "Average main loop iterations per sec = " << avg << endl;
+    }
+  }
+
+  cleanup();
+  return 0;
+}
+*/
 
 using namespace NEAT;
 
@@ -14,9 +80,11 @@ enum GamePositionValue {
 namespace HCUBE
 {
   AtariExperiment::AtariExperiment(string _experimentName,int _threadID):
-    Experiment(_experimentName,_threadID),
-    screen_width(5), screen_height(19)
+    Experiment(_experimentName,_threadID)
   {
+    screen_width = 16;
+    screen_height = 19;
+
     layerInfo = NEAT::LayeredSubstrateInfo();
     layerInfo.layerSizes.push_back(Vector2<int>(screen_width,screen_height));
     layerInfo.layerIsInput.push_back(true);
@@ -36,6 +104,7 @@ namespace HCUBE
 
     substrate = NEAT::LayeredSubstrate<float>();
     substrate.setLayerInfo(layerInfo);
+
   }
 
   NEAT::GeneticPopulation* AtariExperiment::createInitialPopulation(int populationSize) {
@@ -85,156 +154,89 @@ namespace HCUBE
   }
 
   void AtariExperiment::runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual) {
-    GamePositionValue gameState[screen_width][screen_height];
-
-    int chic_x = screen_width/2, chic_y = screen_height-1;
-    float total_reward = 0.0;
-    
-    // Initialize Game
-    for (int x=0;x<screen_width;x++) {
-      for (int y=0;y<screen_height;y++) {
-        gameState[x][y] = EMPTY;
-      }
+   
+    // Initialize Atari Stuff 
+    initializeEmulator();
+    MediaSource &mediasrc = theOSystem->console().mediaSource();
+    int pixel_screen_width = mediasrc.width();
+    int pixel_screen_height = mediasrc.height();
+    for (int i=0; i<pixel_screen_height; ++i) { // Initialize our matrix
+      IntVect row;
+      for (int j=0; j<pixel_screen_width; ++j)
+        row.push_back(-1);
+      pm_screen_matrix.push_back(row);
     }
+  
+    controller = (InternalController*) theOSystem->getGameController();
+    self_detection_agent = (SelfDetectionAgent*) controller->getPlayerAgentLeft();
+    game_settings = controller->getGameSettings();
+    // Initialize Atari Stuff - fin
 
-    // Initialize Chicken
-    gameState[chic_x][chic_y] = CHICKEN;
-
-    // Initialize Cars
-    for (int y=2; y<=screen_height-2; y+=2) {
-      if (y < screen_height/2)
-        gameState[screen_width-1][y] = VEHICLE;
-      else
-        gameState[0][y] = VEHICLE;
-    }
-
-    // Run simulation for t timesteps
-    int max_num_episodes = 100;
-    int episode = 0;
-    int curr_time = 0, max_timesteps = 100;
-    while (episode < max_num_episodes) {
-      curr_time++;
-      substrate.getNetwork()->reinitialize();
-      substrate.getNetwork()->dummyActivation();
-
-      // Print Game Screen
-      // if (threadID == 0) {
-      //   printf("Timestep %d Individual Species ID %d\n",t,individual->getSpeciesID());
-      //   for (int x=0; x<screen_width+2; ++x)
-      //     printf("-");
-      //   printf("\n");
-      //   for (int y=0; y<screen_height; ++y) {
-      //     for (int x=0; x<screen_width; ++x) {
-      //       if (x==0) printf("|");
-      //       if (gameState[x][y] == CHICKEN) {
-      //         printf("x");
-      //       } else if (gameState[x][y] == VEHICLE) {
-      //         printf("o");
-      //       } else {
-      //         printf(" ");
-      //       }
-      //     }
-      //     printf("|\n");
-      //   }
-      //   for (int x=0; x<screen_width+2; ++x)
-      //     printf("-");
-      //   printf("\n");
-      //   cin.get();
-      // }
-
-      // Set substrate values
-      for (int x=0; x<screen_width; ++x) {
-        for (int y=0; y<screen_height; ++y) {
-          if (gameState[x][y] == CHICKEN) {
-            substrate.setValue((Node(x,y,0)), 1.0);
-          } else if (gameState[x][y] == VEHICLE) {
-            // Highlight regions that the car is going to move into
-            // for (int x2=max(0,x-2); x2<min(screen_width,x+3); x2++) {
-            //   if (gameState[x2][y] == CHICKEN) continue;
-            //   substrate.setValue((Node(x2,y,0)), -.5);
-            // }
-            substrate.setValue((Node(x,y,0)), -1.0);
-          } else {
-            substrate.setValue((Node(x,y,0)), 0.0);            
-          }
+    // Main Loop
+    int skip_frames_num = game_settings->i_skip_frames_num;
+    int frame_skip_ctr = 0;
+    Action action = RESET;
+    time_start = time(NULL);
+    for (int frame=0; frame<2000; frame++) {
+      if (frame_skip_ctr++ >= skip_frames_num) {
+        frame_skip_ctr = 0;
+        
+        // Get the latest screen
+        int ind_i, ind_j;
+        uInt8* pi_curr_frame_buffer = mediasrc.currentFrameBuffer();
+        for (int i = 0; i < pixel_screen_width * pixel_screen_height; i++) {
+          uInt8 v = pi_curr_frame_buffer[i];
+          ind_i = i / pixel_screen_width;
+          ind_j = i - (ind_i * pixel_screen_width);
+          pm_screen_matrix[ind_i][ind_j] = v;
         }
-      }
 
-      substrate.getNetwork()->update();
+        // Get the object representation
+        self_detection_agent->process_image(&pm_screen_matrix, action);
 
-      float chicken_val = substrate.getValue((Node(chic_x,chic_y,1)));
-      float down_val = (chic_y >= screen_height-1) ? chicken_val : substrate.getValue((Node(chic_x,chic_y+1,1)));
-      float up_val = (chic_y <= 0) ? chicken_val : substrate.getValue((Node(chic_x,chic_y-1,1)));
+        substrate.getNetwork()->reinitialize();
+        substrate.getNetwork()->dummyActivation();
 
-      int action;
-      if (chicken_val >= up_val) {
-        if (chicken_val >= down_val) {
-          action = 0;
-        } else {
-          action = 1;
-        }
-      } else {
-        if (up_val >= down_val) {
-          action = -1;
-        } else {
-          action = 1;
-        }
-      }
-      //action = -1;
-      
-      // Update game state with action
-      bool collision = false;
-
-      // Move cars
-      for (int y=0; y<screen_height; ++y) {
+        // TODO Set substrate values
         for (int x=0; x<screen_width; ++x) {
-          if (gameState[x][y] == VEHICLE) {
-            int velocity = rand()%2;
-            int carx;
-            if (y < screen_height/2) { // Top half cars go left
-              if (x == 0) // reset car if it has reached the end
-                carx = screen_width-1; 
-              else
-                carx = max(0, x-velocity);
-            } else {
-              if (x == screen_width-1)
-                carx = 0;
-              else
-                carx = min(screen_width-1, x+velocity);
-            }
-            gameState[x][y] = EMPTY;
-            gameState[carx][y] = VEHICLE;
-            break;
+          for (int y=0; y<screen_height; ++y) {
+            substrate.setValue((Node(x,y,0)), 0.5 * (rand() % 3));
           }
         }
+
+        substrate.getNetwork()->update();
+
+        // TODO Choose action here NONTRIVIAL
+        //float chicken_val = substrate.getValue((Node(chic_x,chic_y,1)));
+        //float down_val = (chic_y >= screen_height-1) ? chicken_val : substrate.getValue((Node(chic_x,chic_y+1,1)));
+        //float up_val = (chic_y <= 0) ? chicken_val : substrate.getValue((Node(chic_x,chic_y-1,1)));
+
+        // TODO Choose Action - This should go away
+        if (frame <5) action = RESET;
+        else action = PLAYER_A_UP;
+
+        // Display the screen
+        // display_screen(pm_screen_matrix);
       }
 
-      // Move chicken
-      if (gameState[chic_x][chic_y] != VEHICLE) gameState[chic_x][chic_y] = EMPTY;
-      if (gameState[chic_x][chic_y+action] != VEHICLE) gameState[chic_x][chic_y+action] = CHICKEN;
-      else collision = true;
-      chic_y += action;
-
-      // Compute reward
-      if (chic_y == 0 || collision || curr_time >= max_timesteps) {
-        episode++;
-        
-        if (chic_y == 0) {
-          total_reward += 50;
-        } else if (collision) {
-          total_reward += screen_height - chic_y;
-        }
-        
-        curr_time = 0;
-        // Reset the sim
-        if (gameState[chic_x][chic_y] != VEHICLE) gameState[chic_x][chic_y] = EMPTY;
-        gameState[chic_x][screen_height-1] = CHICKEN;
-        chic_y = screen_height-1;
+      // Apply action to simulator and update the simulator
+      theOSystem->applyAction(action);
+       
+      if (frame % 1000 == 0) {
+        time_end = time(NULL);
+        double avg = ((double)frame)/(time_end - time_start);
+        cerr << "Average main loop iterations per sec = " << avg << endl;
       }
+      
     }
-    float avg_reward = total_reward / max_num_episodes;
-    //cout << "Got total reward: " << total_reward << endl;
-    individual->reward(avg_reward);
+
+    cout << "[Atari] Attempting to cleanup" << endl << flush;
+    //cleanup();
+    cout << "[Atari] Finished cleanup" << endl << flush;
+
+    // TODO Give reward to the agent - change here
+    individual->reward(rand() % 10);
+    cout << "[Atari] Gave reward" << endl << flush;
   }
 
   void AtariExperiment::preprocessIndividual(shared_ptr<NEAT::GeneticGeneration> generation,
