@@ -127,6 +127,14 @@ SET(
 	"Fuego include directory"
 	)
 
+SET(
+	ALE_INCLUDE
+	"../ale_v0.1"
+	CACHE
+	PATH 
+	"Ale include directory"
+	)
+
 IF(CYGWIN)
 	SET(
 		WXWIDGETS_BUILD_INCLUDE_DEBUG
@@ -205,13 +213,13 @@ INCLUDE_DIRECTORIES(
 ENDIF(WIN32)
 
 INCLUDE_DIRECTORIES(
-/u/mhauskn/projects/HyperNEAT/NE/HyperNEAT/ale_v0.1/src/emucore
-/u/mhauskn/projects/HyperNEAT/NE/HyperNEAT/ale_v0.1/src/emucore/m6502/src
-/u/mhauskn/projects/HyperNEAT/NE/HyperNEAT/ale_v0.1/src/emucore/m6502/src/bspf/src
-/u/mhauskn/projects/HyperNEAT/NE/HyperNEAT/ale_v0.1/src/common
-/u/mhauskn/projects/HyperNEAT/NE/HyperNEAT/ale_v0.1/src/control
-/u/mhauskn/projects/HyperNEAT/NE/HyperNEAT/ale_v0.1/src/player_agents
-/u/mhauskn/projects/HyperNEAT/NE/HyperNEAT/ale_v0.1/src/os_dependent
+${ALE_INCLUDE}/src/emucore
+${ALE_INCLUDE}/src/emucore/m6502/src
+${ALE_INCLUDE}/src/emucore/m6502/src/bspf/src
+${ALE_INCLUDE}/src/common
+${ALE_INCLUDE}/src/control
+${ALE_INCLUDE}/src/player_agents
+${ALE_INCLUDE}/src/os_dependent
 )
 #/usr/include/
 #/usr/include/c++/4.4

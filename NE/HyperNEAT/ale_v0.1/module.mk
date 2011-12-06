@@ -1,7 +1,7 @@
 MODULE := src/
 
 MODULE_OBJS := \
-	test.o
+#	test.o
 	
 MODULE_DIRS += \
 

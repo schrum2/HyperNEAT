@@ -14,15 +14,16 @@ In this work we apply HyperNeat to the problem of learning how to play Atari gam
 \section{Introduction}
 Games have long been considered a fruitful domain for the study of AI. Seminal work on game playing includes Samuel's checkers playing program\cite{samuel_59} and Tesauro's TD-Gammon\cite{tesauro_94}. Games represent problems challenging enough to interest people yet abstract enough to be captured and modeled inside of computer programs. 
 
-Common amoung many games is a representation of physical space. Board games as well as Atari games generally employ a 2-D overhead representation. More sophisticated computer games (as well as a few Atari games) use 3-D
+Common amoung many games is a representation of physical space. Board games as well as Atari games generally employ a 2-D overhead representation, with objects or pieces occupying distinct regions of space. Additionally, the dynamics of a given game, that is the movements and interactions of pieces, are often independent of the absolute locations. That is to say, when moving a knight in chess, the relative movement remains constant regardless of the absolute position. This suggests that it may be an easier problem to learn to the dynamics of a game and then reuse these dynamics across the space of the board than to relearn the dynamics of the game at each possible position. In other words, we hope to exploit the geometric regularities in many domains in order to simplify the learning task.
 
-\section{Background}
+\section{Background and Related Work}
+%% ALE and naddaf
+Previous work on Atari games includes a masters thesis by Yavar Naddaf\cite{naddaf10} at the University of Alberta. Modifying the popular Atari 2600 emulator, Stella, Naddaf quantifies the performance of several classes of learning agents on 50 different Atari games. Learning agents include 
+%% BEV and keepaway
 
 \section{HyperNeat}
 
 \section{Results}
-
-\section{Related Work}
 
 \section{Conclusion}
 
