@@ -9,8 +9,9 @@ namespace HCUBE
   class AtariExperiment : public Experiment
   {
   protected:
-    int screen_width, screen_height;
-    IntMatrix pm_screen_matrix;
+    int substrate_width, substrate_height;
+    IntMatrix screen_matrix;
+    IntVect ram_content;
     
     InternalController* controller;
     SelfDetectionAgent* self_detection_agent;

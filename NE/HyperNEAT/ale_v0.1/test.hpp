@@ -32,7 +32,7 @@ void initializeEmulator() {
   strcpy(argv[2],"self_detection_agent");
   strcpy(argv[3],"-display_screen");
   strcpy(argv[4],"false");
-  strcpy(argv[5],"/u/mhauskn/projects/HyperNEAT/NE/HyperNEAT/ale_v0.1/roms/freeway.bin");  
+  strcpy(argv[5],"../ale_v0.1/roms/freeway.bin");  
 
   cout << str_welcome << endl;
   theOSystem = new OSystemUNIX();
@@ -116,7 +116,7 @@ void initializeEmulator() {
 
 void display_screen(const IntMatrix& pm_screen_matrix) {
   // Display screen
-  static int frame = 0;
+  static long long int frame = 0;
   ostringstream filename;
   char buffer [50];
 

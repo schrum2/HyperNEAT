@@ -4,71 +4,6 @@
 #include <boost/foreach.hpp>
 #include "../../../ale_v0.1/test.hpp"
 
-/*
-int test(int argc, char* argv[]) {
-  initializeEmulator();
-
-  // Media assets
-  MediaSource& mediasrc = theOSystem->console().mediaSource();
-  int screen_width = mediasrc.width();
-  int screen_height = mediasrc.height();
-  IntMatrix pm_screen_matrix; // 2D Matrix containing screen pixel colors
-  for (int i=0; i<screen_height; ++i) { // Initialize our matrix
-    IntVect row;
-    for (int j=0; j<screen_width; ++j)
-      row.push_back(-1);
-    pm_screen_matrix.push_back(row);
-  }
-
-  InternalController* controller = (InternalController*) theOSystem->getGameController();
-  SelfDetectionAgent* self_detection_agent = (SelfDetectionAgent*) controller->getPlayerAgentLeft();
-  GameSettings* game_settings = controller->getGameSettings();
-
-  // Main Loop
-  int skip_frames_num = game_settings->i_skip_frames_num;
-  int frame_skip_ctr = 0;
-  Action action = RESET;
-  time_start = time(NULL);
-  for (int frame=0; frame<100000; frame++) {
-    if (frame_skip_ctr++ >= skip_frames_num) {
-      frame_skip_ctr = 0;
-      
-      // Get the latest screen
-      int ind_i, ind_j;
-      uInt8* pi_curr_frame_buffer = mediasrc.currentFrameBuffer();
-      for (int i = 0; i < screen_width * screen_height; i++) {
-        uInt8 v = pi_curr_frame_buffer[i];
-        ind_i = i / screen_width;
-        ind_j = i - (ind_i * screen_width);
-        pm_screen_matrix[ind_i][ind_j] = v;
-      }
-
-      // Get the object representation
-      self_detection_agent->process_image(&pm_screen_matrix, action);
-
-      // Choose Action
-      if (frame <5) action = RESET;
-      else action = PLAYER_A_UP;
-
-      // Display the screen
-      display_screen(pm_screen_matrix);
-    }
-
-    // Apply action to simulator and update the simulator
-    theOSystem->applyAction(action);
-    
-    if (frame % 1000 == 0) {
-      time_end = time(NULL);
-      double avg = ((double)frame)/(time_end - time_start);
-      cerr << "Average main loop iterations per sec = " << avg << endl;
-    }
-  }
-
-  cleanup();
-  return 0;
-}
-*/
-
 using namespace NEAT;
 
 enum GamePositionValue {
@@ -82,16 +17,16 @@ namespace HCUBE
   AtariExperiment::AtariExperiment(string _experimentName,int _threadID):
     Experiment(_experimentName,_threadID)
   {
-    screen_width = 16;
-    screen_height = 19;
+    substrate_width = 16;
+    substrate_height = 21;
 
     layerInfo = NEAT::LayeredSubstrateInfo();
-    layerInfo.layerSizes.push_back(Vector2<int>(screen_width,screen_height));
+    layerInfo.layerSizes.push_back(Vector2<int>(substrate_width,substrate_height));
     layerInfo.layerIsInput.push_back(true);
     layerInfo.layerLocations.push_back(Vector3<float>(0,0,0));
     layerInfo.layerNames.push_back("Input");
 
-    layerInfo.layerSizes.push_back(Vector2<int>(screen_width,screen_height));
+    layerInfo.layerSizes.push_back(Vector2<int>(substrate_width,substrate_height));
     layerInfo.layerIsInput.push_back(false);
     layerInfo.layerLocations.push_back(Vector3<float>(0,4,0));
     layerInfo.layerNames.push_back("Output");
@@ -154,19 +89,22 @@ namespace HCUBE
   }
 
   void AtariExperiment::runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual) {
-   
     // Initialize Atari Stuff 
     initializeEmulator();
     MediaSource &mediasrc = theOSystem->console().mediaSource();
     int pixel_screen_width = mediasrc.width();
     int pixel_screen_height = mediasrc.height();
-    for (int i=0; i<pixel_screen_height; ++i) { // Initialize our matrix
+    for (int i=0; i<pixel_screen_height; ++i) { // Initialize our screen matrix
       IntVect row;
       for (int j=0; j<pixel_screen_width; ++j)
         row.push_back(-1);
-      pm_screen_matrix.push_back(row);
+      screen_matrix.push_back(row);
     }
-  
+    // Intialize our ram array
+    for (int i=0; i<RAM_LENGTH; i++)
+      ram_content.push_back(0);
+
+    System* emulator_system = &theOSystem->console().system();
     controller = (InternalController*) theOSystem->getGameController();
     self_detection_agent = (SelfDetectionAgent*) controller->getPlayerAgentLeft();
     game_settings = controller->getGameSettings();
@@ -176,9 +114,17 @@ namespace HCUBE
     int skip_frames_num = game_settings->i_skip_frames_num;
     int frame_skip_ctr = 0;
     Action action = RESET;
+    theOSystem->applyAction(action); // Reset the game
     time_start = time(NULL);
-    for (int frame=0; frame<2000; frame++) {
-      if (frame_skip_ctr++ >= skip_frames_num) {
+    bool game_ended = false;
+    int frame = 0;
+    float episode_reward = 0;
+    while (!game_ended) {
+      frame++;
+
+      // Should we take an action this turn?
+      bool take_action = frame_skip_ctr++ >= skip_frames_num;
+      if (take_action) {
         frame_skip_ctr = 0;
         
         // Get the latest screen
@@ -188,35 +134,77 @@ namespace HCUBE
           uInt8 v = pi_curr_frame_buffer[i];
           ind_i = i / pixel_screen_width;
           ind_j = i - (ind_i * pixel_screen_width);
-          pm_screen_matrix[ind_i][ind_j] = v;
+          screen_matrix[ind_i][ind_j] = v;
         }
 
-        // Get the object representation
-        self_detection_agent->process_image(&pm_screen_matrix, action);
+        // Get the latest ram content
+        for(int i = 0; i<RAM_LENGTH; i++) {
+          int offset = i;
+          offset &= 0x7f; // there are only 128 bytes
+          ram_content[i] = emulator_system->peek(offset + 0x80);
+        }
 
-        substrate.getNetwork()->reinitialize();
+        float reward = game_settings->get_reward(&screen_matrix,&ram_content);
+        episode_reward += reward;
+
+        // Check if game has ended
+        game_ended = game_settings->is_end_of_game(&screen_matrix,&ram_content,frame);
+
+        // Get the object representation
+        self_detection_agent->process_image(&screen_matrix, action);
+
+        substrate.getNetwork()->reinitialize(); // Set value of all nodes to zero
         substrate.getNetwork()->dummyActivation();
 
-        // TODO Set substrate values
-        for (int x=0; x<screen_width; ++x) {
-          for (int y=0; y<screen_height; ++y) {
-            substrate.setValue((Node(x,y,0)), 0.5 * (rand() % 3));
+        // Set substrate value for all objects (of a certain size)
+        for (int i=0; i<self_detection_agent->obj_classes.size(); i++) {
+          Prototype& proto = self_detection_agent->obj_classes[i];
+          if (proto.obj_ids.size() == 0)
+            continue;
+          // Screen for cars here TODO: Remove hack
+          if (proto.mask.size() == 70) {
+            for (set<long>::iterator it=proto.obj_ids.begin(); it!=proto.obj_ids.end(); it++) {
+              long obj_id = *it;
+              assert(self_detection_agent->composite_objs.find(obj_id) != self_detection_agent->composite_objs.end());
+              point obj_centroid = self_detection_agent->composite_objs[obj_id].get_centroid();
+              int adj_x = obj_centroid.x * substrate_width / pixel_screen_width;
+              int adj_y = obj_centroid.y * substrate_height / pixel_screen_height;
+              substrate.setValue((Node(adj_x,adj_y,0)),-1.0);
+            }
           }
+        }
+
+        // Set substrate value for self
+        point self_centroid = self_detection_agent->get_self_centroid();
+        int self_x = -1, self_y = -1;
+        if (self_centroid.x >= 0 && self_centroid.y >= 0) {
+          self_x = self_centroid.x * substrate_width / pixel_screen_width;
+          self_y = self_centroid.y * substrate_height / pixel_screen_height;
+          substrate.setValue((Node(self_x,self_y,0)),1.0);
         }
 
         substrate.getNetwork()->update();
 
-        // TODO Choose action here NONTRIVIAL
-        //float chicken_val = substrate.getValue((Node(chic_x,chic_y,1)));
-        //float down_val = (chic_y >= screen_height-1) ? chicken_val : substrate.getValue((Node(chic_x,chic_y+1,1)));
-        //float up_val = (chic_y <= 0) ? chicken_val : substrate.getValue((Node(chic_x,chic_y-1,1)));
+        // Choose which action to take
+        if (self_x < 0 || self_y < 0) {
+          action = PLAYER_A_NOOP;
+        } else {
+          float noop_val = substrate.getValue((Node(self_x,self_y,1)));
+          float down_val = (self_y >= substrate_height-1) ? noop_val : substrate.getValue((Node(self_x,self_y+1,1)));
+          float up_val   = (self_y <= 0) ? noop_val : substrate.getValue((Node(self_x,self_y-1,1)));
 
-        // TODO Choose Action - This should go away
-        if (frame <5) action = RESET;
-        else action = PLAYER_A_UP;
+          if (noop_val >= down_val && noop_val >= up_val)
+            action = PLAYER_A_NOOP;
+          else if (up_val >= noop_val && up_val >= down_val)
+            action = PLAYER_A_UP;
+          else if (down_val >= noop_val && down_val >= up_val)
+            action = PLAYER_A_DOWN;
+          else
+            assert(false);
+        }
 
         // Display the screen
-        // display_screen(pm_screen_matrix);
+        //display_screen(screen_matrix);
       }
 
       // Apply action to simulator and update the simulator
@@ -227,16 +215,10 @@ namespace HCUBE
         double avg = ((double)frame)/(time_end - time_start);
         cerr << "Average main loop iterations per sec = " << avg << endl;
       }
-      
     }
 
-    cout << "[Atari] Attempting to cleanup" << endl << flush;
-    //cleanup();
-    cout << "[Atari] Finished cleanup" << endl << flush;
-
-    // TODO Give reward to the agent - change here
-    individual->reward(rand() % 10);
-    cout << "[Atari] Gave reward" << endl << flush;
+    // Give the reward to the agent
+    individual->reward(episode_reward);
   }
 
   void AtariExperiment::preprocessIndividual(shared_ptr<NEAT::GeneticGeneration> generation,

@@ -68,6 +68,7 @@ struct Blob {
   void update_minmax(int x, int y);
   void add_pixel(int x, int y);
   void add_neighbor(long neighbor_id);
+  point get_centroid();
 
   // Capture all the points associated with another blob
   void consume(const Blob& other);
@@ -117,6 +118,7 @@ struct CompositeObject {
 
   void update_minmax(const Blob& b);
   void add_blob(const Blob& b);
+  point get_centroid() { return point((x_max+x_min)/2,(y_max+y_min)/2); };
 
   // Computes the bounding box based on all the current objects.
   void compute_boundingbox(map<long,Blob>& blob_map);
@@ -174,7 +176,11 @@ class SelfDetectionAgent : public PlayerAgent {
   void merge_objects(float similarity_threshold);
 
   // Looks through objects attempting to find one that we are controlling
-  long identify_self();
+  void identify_self();
+
+  // Gives a point corresponding to the location of the self on the screen.
+  // Assumes identify self has already been called.
+  point get_self_centroid();
 
   int get_num_regions(IntMatrix& regions);
   virtual void plot_regions(IntMatrix& screen_matrix);
@@ -194,6 +200,7 @@ class SelfDetectionAgent : public PlayerAgent {
   map<long,Blob>            curr_blobs;      // Map of blob ids to blobs for the current frame
   map<long,CompositeObject> composite_objs;  // Map of obj ids to objs for the current frame
   vector<Prototype>         obj_classes;     // Classes of objects
+  long self_id; // ID of the blob in curr_blobs which corresponds to the "self"
 
   deque<map<long,Blob> >  blob_hist;
   deque<RegionObjectList> raw_object_hist;

@@ -45,6 +45,10 @@ void Blob::add_neighbor(long neighbor_id) {
   neighbors.insert(neighbor_id);
 };
 
+point Blob::get_centroid() {
+  return point((x_min+x_max)/2,(y_min+y_max)/2);
+};
+
 void Blob::consume(const Blob& other) {
   mask.insert(other.mask.begin(), other.mask.end());
   neighbors.insert(other.neighbors.begin(), other.neighbors.end());
@@ -324,7 +328,7 @@ float CompositeObject::get_pixel_match(const CompositeObject& other) {
 SelfDetectionAgent::SelfDetectionAgent(GameSettings* _game_settings, OSystem* _osystem) : 
   PlayerAgent(_game_settings, _osystem),
   max_history_len(50), //numeric_limits<int>::max()),
-  curr_num_regions(0), prev_num_regions(0), blob_ids(0), obj_ids(0)
+  curr_num_regions(0), prev_num_regions(0), blob_ids(0), obj_ids(0), self_id(-1)
 {
 
   // Get the height and width of the screen
@@ -371,7 +375,7 @@ Action SelfDetectionAgent::agent_step(const IntMatrix* screen_matrix,
     merge_objects(.96);
 
     // Identify which object we are
-    long self_id = identify_self();
+    identify_self();
     assert(curr_blobs.find(self_id) != curr_blobs.end());
     Blob& self_blob = curr_blobs[self_id];
 
@@ -466,9 +470,8 @@ void SelfDetectionAgent::process_image(const IntMatrix* screen_matrix, Action ac
     merge_objects(.96);
 
     // Identify which object we are
-    long self_id = identify_self();
+    identify_self();
     assert(curr_blobs.find(self_id) != curr_blobs.end());
-    Blob& self_blob = curr_blobs[self_id];
   }
 
   // Save State and action history
@@ -482,7 +485,6 @@ void SelfDetectionAgent::process_image(const IntMatrix* screen_matrix, Action ac
     screen_hist.pop_front();
     blob_hist.pop_front();
   }
-  
 };
 
 void SelfDetectionAgent::find_connected_components(const IntMatrix& screen_matrix, map<long,Blob>& blob_map) {
@@ -672,6 +674,7 @@ void SelfDetectionAgent::merge_blobs(map<long,Blob>& blobs) {
 
 // Update the current blobs that we already have
 void SelfDetectionAgent::update_existing_objs() {
+  set<long> used_blob_ids; // A blob becomes used when it is integrated into an existing object
   set<long> new_blob_ids; // Blobs who have children in the current timestep
   vector<long> to_remove;
   map<long,Blob>& old_blobs = blob_hist.back();
@@ -686,8 +689,10 @@ void SelfDetectionAgent::update_existing_objs() {
       assert(old_blobs.find(b_id) != old_blobs.end());
       Blob& b = old_blobs[b_id];
 
-      if (b.child_id >= 0)
+      // If b has a valid child and we havent already allocated the child
+      if (b.child_id >= 0 && used_blob_ids.find(b.child_id) == used_blob_ids.end()) {
         new_blob_ids.insert(b.child_id);
+      }
     }
 
     // If no new blobs were found for this object, remove it
@@ -721,6 +726,7 @@ void SelfDetectionAgent::update_existing_objs() {
       if (obj.x_velocity != 0 || obj.y_velocity != 0)
         obj.expand(curr_blobs);
       obj.compute_boundingbox(curr_blobs); // Recompute bounding box
+      used_blob_ids.insert(obj.blob_ids.begin(), obj.blob_ids.end());
     } else {
       // This object is no longer legitimate. Decide what to do with it.
       to_remove.push_back(obj.id);
@@ -735,7 +741,7 @@ void SelfDetectionAgent::update_existing_objs() {
   }
 };
 
-long SelfDetectionAgent::identify_self() {
+void SelfDetectionAgent::identify_self() {
   float max_info_gain = -1;
   long best_blob_id = -1;
   for (map<long,Blob>::iterator it=curr_blobs.begin(); it!=curr_blobs.end(); ++it) {
@@ -805,7 +811,13 @@ long SelfDetectionAgent::identify_self() {
   }
   //printf("Max info gain: %f\n",max_info_gain);
   //best_blob->to_string();
-  return best_blob_id;
+  self_id = best_blob_id;
+};
+
+point SelfDetectionAgent::get_self_centroid() {
+  if (curr_blobs.find(self_id) == curr_blobs.end())
+    return point(-1,-1);
+  return curr_blobs[self_id].get_centroid();
 };
 
 
