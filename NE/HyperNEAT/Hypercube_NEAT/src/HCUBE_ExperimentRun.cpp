@@ -41,7 +41,6 @@
 #endif
 #include "Experiments/HCUBE_CheckersExperimentSubstrateGeom.h"
 
-
 #ifndef HCUBE_NOGUI
 #include "HCUBE_MainFrame.h"
 #include "HCUBE_UserEvaluationFrame.h"
@@ -50,6 +49,8 @@
 #endif
 
 #include "HCUBE_EvaluationSet.h"
+
+#include <boost/lexical_cast.hpp>
 
 namespace HCUBE
 {
@@ -197,11 +198,12 @@ namespace HCUBE
 
     }
 
-    void ExperimentRun::createPopulationFromCondorRun(string populationFile, string fitnessFunctionFile,
+    void ExperimentRun::createPopulationFromCondorRun(string populationFile, string fitnessFunctionPrefix,
         string evaluationFile) {
       cout << "[HyperNEAT core] Creating population from file...\n";
       createPopulation(populationFile);
 
+      /*
       cout << "[HyperNEAT core] Obtaining fitness values...\n";
 
       map<int, float> fitness;
@@ -217,6 +219,7 @@ namespace HCUBE
         if (fitness.find(a) == fitness.end())
           fitness[a] = 10;
       } 
+      */
       
       cout << "[HyperNEAT core] Setting fitness values...\n";
 
@@ -225,7 +228,16 @@ namespace HCUBE
          population->getIndividualIterator(0);
 
       for (int a = 0; a < population->getIndividualCount(); a++, tmpIterator++) {
-        (*tmpIterator)->setFitness(fitness[a]);
+        string individualFile =
+          fitnessFunctionPrefix + boost::lexical_cast<string>(a);
+        ifstream fin(individualFile.c_str());
+        if (fin.fail()) {
+          (*tmpIterator)->setFitness(10);
+        } else {
+          float fitness;
+          fin >> fitness;
+          (*tmpIterator)->setFitness(fitness);
+        }
       }
       
       cout << "[HyperNEAT core] Adjusting fitness values...\n";

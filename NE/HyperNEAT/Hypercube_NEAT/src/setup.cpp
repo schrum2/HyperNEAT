@@ -42,10 +42,10 @@ int HyperNEAT_main(int argc,char **argv) {
         commandLineParser.HasSwitch("-F") &&
         commandLineParser.HasSwitch("-E")) {
       string populationFile = commandLineParser.GetSafeArgument("-P",0,"population.xml");
-      string fitnessFunctionFile = commandLineParser.GetSafeArgument("-F",0,"fitness.txt");
+      string fitnessFunctionPrefix = commandLineParser.GetSafeArgument("-F",0,"fitness.0.");
       string evaluationFile = commandLineParser.GetSafeArgument("-E",0,"evaluation.xml");
       cout << "[HyperNEAT core] Population for existing generation created from: " << populationFile << endl;
-      experimentRun.createPopulationFromCondorRun(populationFile, fitnessFunctionFile, evaluationFile);
+      experimentRun.createPopulationFromCondorRun(populationFile, fitnessFunctionPrefix, evaluationFile);
     } else {
       cout << "[HyperNEAT core] Population for first generation created\n";
       experimentRun.createPopulation();

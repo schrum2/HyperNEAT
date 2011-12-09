@@ -125,7 +125,7 @@ namespace HCUBE
         * This function creates a population.  This is typically called after setupExperiment
         * to create the initial population for the run.
         */
-        void createPopulationFromCondorRun(string populationFile, string fitnessFunctionFile, string evaluationFile);
+        void createPopulationFromCondorRun(string populationFile, string fitnessFunctionPrefix, string evaluationFile);
         void createPopulation(string populationString="");
 
         /**

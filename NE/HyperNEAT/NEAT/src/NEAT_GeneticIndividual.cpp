@@ -596,7 +596,7 @@ namespace NEAT
             int curID = nodes[a].getID();
             if (curID==nodeID)
 			{
-                throw CREATE_LOCATEDEXCEPTION_INFO("Oops, tried to add a node when it already existed!");
+                //throw CREATE_LOCATEDEXCEPTION_INFO("Oops, tried to add a node when it already existed!");
 			}
             else if (curID>nodeID)
             {
@@ -682,7 +682,7 @@ namespace NEAT
             int curID = links[a].getID();
             if (curID==linkID)
             {
-                throw CREATE_LOCATEDEXCEPTION_INFO("Oops, tried to add a link when it already existed!");
+                //throw CREATE_LOCATEDEXCEPTION_INFO("Oops, tried to add a link when it already existed!");
             }
 
             else if (curID>linkID)

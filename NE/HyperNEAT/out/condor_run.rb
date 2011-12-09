@@ -17,7 +17,7 @@
 
 # Parse command line arguments 
 
-if (ARGV.size < 4)
+if (ARGV.size < 3)
   STDERR.print "Usage: #{$0} <experiment_path> <iters> <pop_size> [config_file_path]\n"
   exit(1)
 end
@@ -30,7 +30,7 @@ $maxIter = ARGV[1].to_i
 # number of policies to try per iteration
 $numInds = ARGV[2].to_i
 
-if (ARGV.size >= 5)
+if (ARGV.size >= 4)
   $configpath = File.expand_path(ARGV[4])
 else
   $configpath = File.dirname(__FILE__) + "/localconfig.rb"
@@ -76,7 +76,7 @@ $hostname = Socket.gethostname
 system("condor_rm #{$user}")
 
 #Insecure, but I don't know a way around this:
-system("xhost +")
+#system("xhost +")
 
 # parameters:
 #   gen:      integer representing the iteration number, starting with 1
@@ -96,7 +96,7 @@ Executable = #{$run_path}
 Universe = vanilla
 Environment = ONCONDOR=true
 Getenv = true
-Requirements = Lucid
+Requirements = Memory>2000 && OpSys=="LINUX" && Arch=="X86_64"
 
 +Group = "GRAD"
 +Project = "AI_ROBOTICS"
@@ -112,23 +112,23 @@ END_OF_CONDORFILE
     dataFile = $experimentbase + "/data/AtariExperiment.dat"
     populationFile = $experimentbase + "/results/generation#{gen}.xml.gz"
     fitnessFile = $experimentbase + "/results/fitness.#{gen}.#{i}";
-    individualId = $experimentbase + "/results/fitness.#{gen}.#{i}";
+    individualId = "#{i}";
    
     condorContents = condorContents + "\n"
 
     if ($logEnabled)
        condorContents = condorContents + 
-       "Error = #{$experimentbase}/process/error-#{gen}-#{i}-#{retries}.err\n" +
-       "Output = #{$experimentbase}/process/out-#{gen}-#{i}-#{retries}.out\n" + 
-       "Log = #{$experimentbase}/process/log-#{gen}-#{i}-#{retries}.log\n"
+       "Error = #{$experimentbase}/process/error-#{gen}-#{i}-#{retries}\n" +
+       "Output = #{$experimentbase}/process/out-#{gen}-#{i}-#{retries}\n" + 
+       "Log = #{$experimentbase}/process/log-#{gen}-#{i}-#{retries}\n"
     else 
        condorContents = condorContents +
       "Error = /dev/null\n" + 
       "Output = /dev/null\n" + 
       "Log = /dev/null\n"
     end
-    condorContents = condorContents + "arguments = #{paramsFile} #{valueFileRun}\n" + 
-      "Queue 1";
+    condorContents = condorContents + "arguments = -I #{dataFile} -P #{populationFile} -N #{individualId} -F #{fitnessFile}\n" + 
+      "Queue 1"
   end
 
     
@@ -144,11 +144,13 @@ END_OF_CONDORFILE
   runlocal.each do |i|
     print "\nRunning #{i} locally:\n"
     # Run the ones that need to be run locally locally
-    localParamsFile = $experimentbase + "/results/params_#{gen}_i_#{i}.txt";
-    localValueFileRun = $experimentbase + "/results/run_#{gen}_i_#{i}_r_#{run}.txt";
+    dataFile = $experimentbase + "/data/AtariExperiment.dat"
+    populationFile = $experimentbase + "/results/generation#{gen}.xml.gz"
+    fitnessFile = $experimentbase + "/results/fitness.#{gen}.#{i}";
+    individualId = "#{i}";
     
     # run our local one while we wait
-    system("#{$run_path} #{localParamsFile} #{localValueFileRun}")
+    system("#{$run_path} -I #{dataFile} -P #{populationFile} -I #{individualId} -F #{fitnessFile}")
   end
   
   #wait for jobs to return
@@ -181,78 +183,48 @@ end
 
 #make sure that the 'process' and 'results' directories exist under $experimentbase
 Dir.mkdir($experimentbase) unless File.exists?($experimentbase)
-
-Dir.mkdir($experimentbase + "/process") unless File.exists?($experimentbase + "/process")
 Dir.mkdir($experimentbase + "/results") unless File.exists?($experimentbase + "/results")
+Dir.mkdir($experimentbase + "/process") unless File.exists?($experimentbase + "/process")
 
 #generate initial pop first:
-system("#{$path_to_generator} #{$experimentbase}/results 0 #{$numInds}")
-until(File.exists?("#{$experimentbase}/results/paramswritten_1.txt")) 
- print "Waiting on paramswritten_1.txt\n"
- sleep 1 
+print "Executing command: #{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results/generation0.xml\n"
+generate_result = system("#{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results/generation0.xml")
+#until(File.exists?("#{$experimentbase}/results/generation0.xml.gz")) 
+# print "Waiting on #{$experimentbase}/results/generation0.xml.gz\n"
+# sleep 1 
+#end
+while generate_result == false
+  print "\n****\ngenerate failed....\nRUNNING GENERATE AGAIN\n......\n****\n\n"
+  generate_result = system("#{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results/generation0.xml")
 end
 
-(1..$maxIter).each do |gen|
-  $numAvgRuns.times do |r|  
-    print "\n\n"
-  
-    inds = (0...$numInds).to_a
-    run_on_condor(gen, inds, r, 0, inds.slice(0, $localCount))
-  
-    # next, see if all values files have been created, if not, re-run until they are!
-    found = []
-    remaining = []
-    retries = 0
+(0..$maxIter).each do |gen|
+  print "\n\n"
 
-    while (found.size == 0 || remaining.size > $minJobs)
-      retries = retries + 1
-      Dir[$experimentbase + "/results/run_#{gen}_i_*_r_#{r}.txt"].each do |file|
-        foo = false 
-        file =~ /i_([0-9]+)_r_([0-9]+).txt$/
-        found << $1.to_i
-      end
-      remaining = ((0..$numInds-1).to_a - found)
-      
-      if (remaining.size>$minJobs)
-        print "Re-running #{remaining.size} failed policies: [" + remaining.join(" ") + "]:\n"
-        local = remaining.slice(0,$localCount)
-        run_on_condor(gen, remaining, r, retries, local)
-      end
+  inds = (0...$numInds).to_a
+  run_on_condor(gen, inds, 0, 0, inds.slice(0, $localCount))
+
+  # next, see if all values files have been created, if not, re-run until they are!
+  found = []
+  remaining = []
+  retries = 0
+
+  while (found.size == 0 || remaining.size > $minJobs)
+    retries = retries + 1
+    Dir[$experimentbase + "/results/fitness.#{gen}.*"].each do |file|
+      foo = false 
+      file =~ /.([0-9]+)$/
+      found << $1.to_i
+    end
+    remaining = ((0..$numInds-1).to_a - found)
+    
+    if (remaining.size>$minJobs)
+      print "Re-running #{remaining.size} failed policies: [" + remaining.join(" ") + "]:\n"
+      local = remaining.slice(0,$localCount)
+      run_on_condor(gen, remaining, 0, retries, local)
     end
   end
 
-  ######################################
-  ######################################
-  # Code to average atomic fitness evaluations.
-
-  (0..$numInds-1).each do |i|
-
-    localValueFile = $experimentbase + "/results/value_#{gen}_i_#{i}.txt";
-
-    sum = 0
-    count = 0
-
-    $numAvgRuns.times do |r|			
-      localValueFileTemp = $experimentbase + "/results/run_#{gen}_i_#{i}_r_#{r}.txt";
-      if(File.exists?(localValueFileTemp)) then
-        v = File.new(localValueFileTemp).read.strip
-        unless (v.empty?) then
-          sum = sum + v.to_f
-          count = count + 1
-      else
-          print "Error: File #{localValueFileTemp} is empty!\n"
-        end
-      end
-    end
-
-    if(count >= 1) then
-      avg = sum / count
-      outFile = File.new(localValueFile, "w")
-      outFile.puts(avg)
-      outFile.close()
-    end
-
-  end
 
   ######################################
   ######################################
@@ -260,26 +232,21 @@ end
 
 
   #now generate a new pop:
-  system("#{$path_to_generator} #{$experimentbase}/results #{gen} #{$numInds}")
-  File.open("#{$experimentbase}/results/valuationdone_#{gen}.txt", "w") {|f| f.write("")}
+  generate_result = system("#{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results/generation#{gen+1}.xml -P #{$experimentbase}/results/generation#{gen}.xml.gz -F #{$experimentbase}/results/fitness.#{gen}. -E #{$experimentbase}/results/generation#{gen}.eval.xml")
   
   # now wait until next parameters are written before continuing
-  until(File.exists?("#{$experimentbase}/results/paramswritten_#{gen+1}.txt")) 
-    break if gen == $maxIter 
-    print "Waiting on paramswritten_#{gen+1}.txt\n"
-    sleep 1 
-  end 
+  #until(File.exists?("#{$experimentbase}/results/generation#{gen+1}.xml.gz")) 
+  #  break if gen == $maxIter 
+  #  print "Waiting on #{$experimentbase}/results/generation#{gen+1}.xml.gz\n"
+  #  sleep 1 
+  #end 
 
-  # for policy gradient, etc, evaluate the final policy for the iteration:
-  if $evaluateFinalPolicy
-    print "Evaluating finalpolicy_#{gen}:\n"
-    finalPolicyFile = "#{$experimentbase}/results/finalpolicy_#{gen}.txt"
-    finalPolicyValueFile = "#{$experimentbase}/results/finalpolicy_value_#{gen}.txt"
-    
-    system("#{$run_path} #{finalPolicyFile} #{finalPolicyValueFile}")
+  while generate_result == false
+    print "\n****\ngenerate failed....\nRUNNING GENERATE AGAIN\n......\n****\n\n"
+    generate_result = system("#{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results/generation#{gen+1}.xml -P #{$experimentbase}/results/generation#{gen}.xml.gz -F #{$experimentbase}/results/fitness.#{gen}. -E #{$experimentbase}/results/generation#{gen}.eval.xml")
   end
 end
 
-system("xhost -")
+#system("xhost -")
 #clean up before exiting
 system("condor_rm #{$user}")

@@ -324,6 +324,7 @@ LINK_DIRECTORIES(
 
 LINK_DIRECTORIES(
 	/u/mhauskn/local/lib
+	/usr/lib
 )
 
 SOURCE_GROUP("Experiment Header Files" REGULAR_EXPRESSION include/Experiments/)
