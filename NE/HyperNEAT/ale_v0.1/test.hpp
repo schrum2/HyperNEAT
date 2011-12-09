@@ -32,7 +32,7 @@ void initializeEmulator() {
   strcpy(argv[2],"self_detection_agent");
   strcpy(argv[3],"-display_screen");
   strcpy(argv[4],"false");
-  strcpy(argv[5],"../ale_v0.1/roms/freeway.bin");  
+  strcpy(argv[5],"../ale_v0.1/roms/asterix.bin");  
 
   cout << str_welcome << endl;
   theOSystem = new OSystemUNIX();

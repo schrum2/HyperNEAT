@@ -113,8 +113,15 @@ namespace HCUBE
     // Main Loop
     int skip_frames_num = game_settings->i_skip_frames_num;
     int frame_skip_ctr = 0;
-    Action action = RESET;
-    theOSystem->applyAction(action); // Reset the game
+
+    // Reset the game mutliple times
+    for (int i=0; i<5; i++)
+      theOSystem->applyAction(RESET); 
+    int delay_after_restart = game_settings->i_delay_after_restart;
+    Action action = game_settings->e_first_action;
+    if (action == UNDEFINED) action = PLAYER_A_NOOP;
+    for (int i=0; i<delay_after_restart; i++)
+      theOSystem->applyAction(action);
     time_start = time(NULL);
     bool game_ended = false;
     int frame = 0;
@@ -161,16 +168,23 @@ namespace HCUBE
           Prototype& proto = self_detection_agent->obj_classes[i];
           if (proto.obj_ids.size() == 0)
             continue;
-          // Screen for cars here TODO: Remove hack
-          if (proto.mask.size() == 70) {
-            for (set<long>::iterator it=proto.obj_ids.begin(); it!=proto.obj_ids.end(); it++) {
-              long obj_id = *it;
-              assert(self_detection_agent->composite_objs.find(obj_id) != self_detection_agent->composite_objs.end());
-              point obj_centroid = self_detection_agent->composite_objs[obj_id].get_centroid();
-              int adj_x = obj_centroid.x * substrate_width / pixel_screen_width;
-              int adj_y = obj_centroid.y * substrate_height / pixel_screen_height;
-              substrate.setValue((Node(adj_x,adj_y,0)),-1.0);
-            }
+
+          // Map object classes to values
+          float assigned_value = 0;
+          if (proto.mask.size() == 41) { // Boxing gloves -- we need to collect
+            assigned_value = 1.0;
+          } else if (proto.mask.size() == 42) { // Harps -- we need to avoid
+            assigned_value = -1.0;
+          }
+
+          // Assign values to each of the objects
+          for (set<long>::iterator it=proto.obj_ids.begin(); it!=proto.obj_ids.end(); it++) {
+            long obj_id = *it;
+            assert(self_detection_agent->composite_objs.find(obj_id) != self_detection_agent->composite_objs.end());
+            point obj_centroid = self_detection_agent->composite_objs[obj_id].get_centroid();
+            int adj_x = obj_centroid.x * substrate_width / pixel_screen_width;
+            int adj_y = obj_centroid.y * substrate_height / pixel_screen_height;
+            substrate.setValue((Node(adj_x,adj_y,0)),assigned_value);
           }
         }
 
@@ -190,17 +204,24 @@ namespace HCUBE
           action = PLAYER_A_NOOP;
         } else {
           float noop_val = substrate.getValue((Node(self_x,self_y,1)));
-          float down_val = (self_y >= substrate_height-1) ? noop_val : substrate.getValue((Node(self_x,self_y+1,1)));
           float up_val   = (self_y <= 0) ? noop_val : substrate.getValue((Node(self_x,self_y-1,1)));
+          float down_val = (self_y >= substrate_height-1) ? noop_val : substrate.getValue((Node(self_x,self_y+1,1)));
+          float left_val = (self_x <= 0) ? noop_val : substrate.getValue((Node(self_x-1,self_y,1)));
+          float right_val= (self_x >= substrate_width-1) ? noop_val : substrate.getValue((Node(self_x+1,self_y,1)));
 
-          if (noop_val >= down_val && noop_val >= up_val)
-            action = PLAYER_A_NOOP;
-          else if (up_val >= noop_val && up_val >= down_val)
-            action = PLAYER_A_UP;
-          else if (down_val >= noop_val && down_val >= up_val)
-            action = PLAYER_A_DOWN;
-          else
-            assert(false);
+          Action actionIds[] = {PLAYER_A_NOOP,PLAYER_A_UP,PLAYER_A_DOWN,PLAYER_A_LEFT,PLAYER_A_RIGHT};
+          float action_vals[] = {noop_val,up_val,down_val,left_val,right_val};
+
+          int max_id = 0;
+          float max_val = action_vals[0];
+          int size = sizeof(actionIds) / sizeof(Action);
+          for (int i=1; i<size; i++) {
+            if (action_vals[i] > max_val) {
+              max_val = action_vals[i];
+              max_id = i;
+            }
+          }
+          action = actionIds[max_id];
         }
 
         // Display the screen
