@@ -75,10 +75,10 @@ The self detection step is meant to identify the location of entity which is bei
   \STATE $ActionHistory \leftarrow \{a_0...a_n\}$ \COMMENT{Actions at time 0...n}
   \FOR{blob $b \in current\_blobs$}
   \STATE $vHistory_b \leftarrow \{v_0...v_n\}$ \COMMENT{Velocity of blob $b$ at each timestep in the history}
-  \STATE $H_b \leftarrow H(vHistory)}$ \COMMENT{Information entropy of $b$'s velocity history}
+  \STATE $H_b \leftarrow H(vHistory)$ \COMMENT{Information entropy of $b$'s velocity history}
   \FOR{action $a \in possible\_actions$}
   \STATE $vHistory_{(b|a)} \leftarrow \{vHistory_b[t] ~\forall_t: ActionHist[t] == a\}$ \COMMENT{set of $b$'s velocities for timesteps in which action $a$ was taken}
-  \STATE $H_{(b|a)} \leftarrow H(vHistory_{(b|a)})}$ \COMMENT{Information entropy of $b$'s velocity history given action $a$ was taken}
+  \STATE $H_{(b|a)} \leftarrow H(vHistory_{(b|a)})$ \COMMENT{Information entropy of $b$'s velocity history given action $a$ was taken}
   \ENDFOR
   \STATE $InfoGain_b \leftarrow H_b - sum(p_a * H_{(b|a)})$ \COMMENT{$p_a$ is probability of action $a$ based on observed frequency} 
   \ENDFOR
@@ -91,9 +91,62 @@ At a high level, we assume there is a blob on screen which corresponds to the se
 While this algorithm is generally successful in identifying the self blob, it has occasional problems with dynamics of certain environments. For example, in the Freeway game, after colliding with a car, the chicken (self blob) control is taken from the player and the chicken inadvertently moves down for several frames. The algorithm presented above has no way to know or account for periods of time in which the agent is out of the player's control and thus returns incorrect solutions when this is the case. 
 
 \subsection{Condor Parallel Processing Framework}
-This one is yours piyush.
+\label{sec:condor}
+Depending the game being played in the Atari simulator, a single evaluation of an individual (CPPN) can last from anything between a few seconds to 2 or 3 minutes. While keeping the evolution parameters to as low as 100 individuals and 300 generations, it is still not possible to obtain results in sufficient time on a single machine. To mitigate this problem, we exploit the embarassingly parallel nature of evaluating individuals. We have modifed the HyperNEAT codebase to run on the Condor cluster, by adapting the framework developed by Yinon Bentor and Patrick MacAlpine.\footnote{This framework was initially developed in a previous iteration of the CS394N class. Since then it has been used by the AustinVilla Robot Soccer team for optimizing policy parameters for various soccer related tasks using evolutionary strategies such as CMA-ES.}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[scale=.35]{figures/CondorHyperNEAT.jpg}
+\end{center}
+\caption{Procedure for using HyperNEAT on the condor framework. An initial Master process is responsible for running NEAT and prodcuding successive generations. Condor jobs are initialized with each job being provided the population file and the id of th individual it is responsible for evaluating. Each job starts an instance of the Atari emulator and proceeds to evaluate the individual by playing the game using the policy defined by that individual. A fitness value is calculated, corresponding to the score obtained in the game and written out to file. This is read back by the Master process which then proceeds to use the fitness values to produce the next generation.}
+\label{fig:condor}
+\end{figure}
+
+Figure \ref{fig:condor} goes over the basic procedure for using HyperNEAT over the Condor cluster. This procedure is similar to parallelizing the evaluations of any policy search algorithm. Some modifications were made due to practical constraints, and we outline the most significant one. On occasion jobs on condor would not complete, which would mean that those particular individuals need to be reevaluated. Doing so greatly greatly increases the evaluation time of a single generation. For this reason as long as a minimum number of jobs completed for each generation (90\%), the remaining jobs were terminated and given minimum score. This may not be ideal as certain strong candidates may have received bad fitness evaluations, but it is our belief that evolution would find a way around this constraint.
 
 \section{Results}
+
+In this section, we provide results obtained using HyperNEAT on two Atari games, namely \textit{Freeway} and \textit{Asterix}, and compare them with results obtained from using classical reinforcement learning.
+
+\subsection {Freeway}
+We provide a brief description of the game retrieved from \cite{naddaf10}. ``Freeway is an Atari 2600 video game, developed by David Crane and published by Activision in 1981. The gameplay is very similar to the popular arcade game Frogger. The player controls the yellow chicken, and the goal of the game is to reach the top of the highway while avoiding the passing cars. Once the chicken reaches the top of the highway, the player receives a score of one, and the chicken moves back to the bottom of the screen.'' In the mode we ran our experiments, the chicken gets pushed down a certain distance if hit by the car. ``The player character never dies, and the game only ends after two minutes of gameplay. There are three possible actions in the game: \textit{Up}, \textit{Down}, and \textit{No-Action}.''
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[scale=.35]{figures/freeway.jpg}
+\end{center}
+\caption{The average fitness of the population along with the champion at each generation in the Freeway game.}
+\label{fig:freeway-curve}
+\end{figure}
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+~       & BASS & DISCO & RAM & Random & Human & HyperNEAT \\ \hline
+Freeway & 0    & 0     & 0   & 0      & 25    & \textbf{29}        \\ \hline
+Asterix & 402  & 301   & 545 & 156    & 1550  & \textbf{750}       \\ 
+\hline
+\end{tabular}
+\end{center}
+\label{tab:results-table}
+\caption{Game scores obtained in the Freeway and Asterix games.}
+\end{table}
+
+Figure \ref{fig:freeway-curve} illustrates the learning curve for the champion at each generation using HyperNEAT. Table \ref{tab:results-table} contrasts the HyperNEAT based learning with reinforcement learning based techniques \cite{naddaf10}. One of the interesting results from this graph is that even the starting individuals perform extremely well, where on the other hand reinforcement learning is unable to find a solution to the problem. We attribute this to the power of CPPNs in representing geomtric information. It is our belief that with a population 100 individuals, one of individuals would represent a policy of consistently taking the \textit{up} action. As a result of this HyperNEAT based learning does extremely well from the start, and refines a bit over the period of 250 generations. Reinforcement learning has to perform a large number of exploratory before it can reach the goal state at the top, and succumbs to the highly delayed nature of the reward in this game.
+
+\subsection {Asterix}
+We provide a brief description of the game retrieved from \cite{naddaf10}. ``Asterix is an Atari 2600 video game, developed by Steve Woita and published by Atari in 1982. Released for the European market, the game is essentially a slightly modified version of the Atari 2600 game Tad. The player controls the Asterix’s character. The aim of the game is to collect the sprites resembling magic potions while avoiding the sprites resembling lyres. Each time Asterix collects a magic potion, the player receives a score of 50. The game is over when the player character is hit by a lyre. There are five possible actions in the game: \textit{Up}, \textit{Down}, \textit{Left}, \textit{Right}, and \textit{No-Action}.''
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[scale=.35]{figures/asterix.jpg}
+\end{center}
+\caption{The average fitness of the population along with the champion at each generation in the Asterix game.}
+\label{fig:asterix-curve}
+\end{figure}
+
+Results from the Asterix game are summarized in Figure \ref{fig:asterix-curve} and Table \ref{tab:results-table}. Unlike the Freeway game, the champion fitness curve shows significant improvement accross successive generations. Secondly, the champion fitness reaches a high of 750 before dropping down to around the 550 mark. We suspect that our Condor implementaion is responsible, and that the champion was lost to an incomplete Condor job (see Section \ref{sec:condor}. We hope to rectify this issue in the future by making our framework more robust. In contrast to the Freeway game, RL methods perform decently well in this domain. Initial exploration probably causes the agent to learn to stay away from the sprites much faster in this case. However HyperNEAT still outperforms TL based methods. On the other hand, HyperNEAT does not perform as well as a human player. We attribute this to the higher complexity of the game, as well as multiple object classes (which is something we are still working on). 
 
 \section{Future Work}
 There are many avenues of future work to explore. In general, we wish to extend the system presented here to work on a general and previously unknown games. One of the foremost difficulties we identified is dealing with multiple classes of objects. When providing input to the lowest substrate level in the HyperNEAT ANN, a floating point value much be provided for each substrate node. In Freeway, like in Robocup Keepaway, this is easily accomplished because there are only 2 different classes of objects -- cars and self for Freeway and takers and keepers for keepaway. This allows for an easy mapping from objects to substrate values -- for example, we assigned cars substrate values of -1 in order to encourage the agent to avoid them and gave the self a value of 1.0. In Keepaway, a similar thing is done in which takers get negative substrate values and keepers are given positives ones. 
