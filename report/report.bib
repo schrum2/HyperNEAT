@@ -92,3 +92,45 @@ pages={99-127},
 url="http://nn.cs.utexas.edu/?stanley:ec02",
 year={2002}
 }
+
+@InProceedings(stone01,
+	Author="Peter Stone and Richard S. Sutton",
+	Title="Scaling Reinforcement Learning toward {R}obo{C}up Soccer",
+	BookTitle="Proceedings of the Eighteenth International Conference on Machine Learning",
+    publisher = "Morgan Kaufmann, San Francisco, CA",
+    pages = "537--544",
+    year = "2001",
+    abstract={
+              RoboCup simulated soccer presents many challenges to
+              reinforcement learning methods, including a large state
+              space, hidden and uncertain state, multiple agents, and
+              long and variable delays in the effects of actions.  We
+              describe our application of episodic SMDP
+              Sarsa(lambda)with linear tile-coding function
+              approximation and variable lambda to learning
+              higher-level decisions in a keepaway subtask of RoboCup
+              soccer.  In keepaway, one team, ``the keepers,'' tries
+              to keep control of the ball for as long as possible
+              despite the efforts of ``the takers.''  The keepers
+              learn individually when to hold the ball and when to
+              pass to a teammate, while the takers learn when to
+              charge the ball-holder and when to cover possible
+              passing lanes.  Our agents learned policies that
+              significantly out-performed a range of benchmark
+              policies.  We demonstrate the generality of our approach
+              by applying it to a number of task variations including
+              different field sizes and different numbers of players
+              on each team.
+    },
+    wwwnote={<a href="http://www.ecn.purdue.edu/ICML2001/">ICML-2001</a><br>
+            Some <a href="http://www.cs.utexas.edu/users/AustinVilla/sim/keepaway/">simulations of keepaway</a> referenced in the paper.},
+)
+
+@ARTICLE{genesereth05,
+    author = {Michael Genesereth and Nathaniel Love},
+    title = {General game playing: Overview of the AAAI competition},
+    journal = {AI Magazine},
+    year = {2005},
+    volume = {26},
+    pages = {62--72}
+}
