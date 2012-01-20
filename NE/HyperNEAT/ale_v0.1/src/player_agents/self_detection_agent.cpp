@@ -828,6 +828,7 @@ void SelfDetectionAgent::merge_objects(float similarity_threshold) {
   // Check which of the prototype's objects are still valid
   for (int i=0; i<obj_classes.size(); ++i) {
     Prototype& p = obj_classes[i];
+    p.times_seen_this_frame = 0; //(piyushk)
     set<long> to_erase;
 
     for (set<long>::iterator it=p.obj_ids.begin(); it!=p.obj_ids.end(); it++) {
@@ -841,10 +842,12 @@ void SelfDetectionAgent::merge_objects(float similarity_threshold) {
 
       CompositeObject& obj = composite_objs[obj_id];
       float pixel_match = p.get_pixel_match(obj, curr_blobs);
-      if (pixel_match >= similarity_threshold)
+      if (pixel_match >= similarity_threshold) {
         checked_objs.insert(obj.id);
-      else
+        p.times_seen_this_frame++; //(piyushk)
+      } else {
         to_erase.insert(obj_id);
+      }
     }
 
     // Erase all the bad ids
@@ -865,6 +868,7 @@ void SelfDetectionAgent::merge_objects(float similarity_threshold) {
       float pixel_match = p.get_pixel_match(obj, curr_blobs);
       if (pixel_match > .99) {
         p.obj_ids.insert(obj.id);
+        p.times_seen_this_frame++; //(piyushk)
         found_match = true;
         break;
       }
@@ -872,9 +876,29 @@ void SelfDetectionAgent::merge_objects(float similarity_threshold) {
     
     if (!found_match) {
       Prototype p(obj,curr_blobs);
+      p.seen_count = p.frames_since_last_seen = 0; //(piyushk)
       obj_classes.push_back(p);
     }
   }
+
+  //(piyushk) remove bad prototypes here
+  vector<int> prototypes_to_erase;
+  for (int i=0; i<obj_classes.size(); ++i) {
+    Prototype& p = obj_classes[i];
+    if (!p.times_seen_this_frame)
+      p.frames_since_last_seen++;
+    else
+      p.frames_since_last_seen = 0;
+    if (p.seen_count < 5 && p.frames_since_last_seen > 3) {
+      prototypes_to_erase.push_back(i);
+    }
+  }
+  for (int i = prototypes_to_erase.size() - 1; i >= 0; --i) {
+    obj_classes.erase(obj_classes.begin() + i);
+  }
+
+  std::cout << "Active Prototypes: " << obj_classes.size() << std::endl;
+  
 };
 
 // Overrides the normal display screen method to alter our display
