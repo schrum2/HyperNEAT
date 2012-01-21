@@ -135,6 +135,7 @@ struct CompositeObject {
 
 /* A prototype represents a class of objects. */
 struct Prototype {
+  int id;
   set<long> obj_ids; // List of ids of objects belonging to this class
   set<point> mask;
   int x_min, x_max, y_min, y_max; // Bounding box
@@ -142,6 +143,7 @@ struct Prototype {
   long seen_count;
   int frames_since_last_seen;
   int times_seen_this_frame;
+  int color;
   
   Prototype (CompositeObject& obj, map<long,Blob>& blob_map);
 
@@ -214,6 +216,10 @@ class SelfDetectionAgent : public PlayerAgent {
   float f_max_perc_difference;
   int i_max_obj_velocity;
   float f_max_shape_area_dif;
+
+  //(piyushk)
+  int prototype_ids;
+  set<int> free_colors;
 };
 
 #endif

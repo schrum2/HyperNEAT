@@ -328,7 +328,8 @@ float CompositeObject::get_pixel_match(const CompositeObject& other) {
 SelfDetectionAgent::SelfDetectionAgent(GameSettings* _game_settings, OSystem* _osystem) : 
   PlayerAgent(_game_settings, _osystem),
   max_history_len(50), //numeric_limits<int>::max()),
-  curr_num_regions(0), prev_num_regions(0), blob_ids(0), obj_ids(0), self_id(-1)
+  curr_num_regions(0), prev_num_regions(0), blob_ids(0), obj_ids(0), self_id(-1),
+  prototype_ids(0) //(piyushk)
 {
 
   // Get the height and width of the screen
@@ -351,6 +352,12 @@ SelfDetectionAgent::SelfDetectionAgent(GameSettings* _game_settings, OSystem* _o
   f_max_perc_difference = p_osystem->settings().getFloat("max_perc_difference", true);
   i_max_obj_velocity = p_osystem->settings().getInt("max_obj_velocity", true);
   f_max_shape_area_dif = p_osystem->settings().getFloat("max_shape_area_dif", true);
+
+  // (piyushk) Initialize the free color set structure
+  for (int i = 257; i < 512; i++) {
+    free_colors.insert(i);
+  }
+
 };
 
 // Returns a random action from the set of possible actions
@@ -375,9 +382,9 @@ Action SelfDetectionAgent::agent_step(const IntMatrix* screen_matrix,
     merge_objects(.96);
 
     // Identify which object we are
-    identify_self();
-    assert(curr_blobs.find(self_id) != curr_blobs.end());
-    Blob& self_blob = curr_blobs[self_id];
+    //identify_self();
+    //assert(curr_blobs.find(self_id) != curr_blobs.end());
+    //Blob& self_blob = curr_blobs[self_id];
 
     // Graphical display stuff
     for (int y=0; y<screen_height; ++y) {
@@ -417,7 +424,7 @@ Action SelfDetectionAgent::agent_step(const IntMatrix* screen_matrix,
     int region_color = 256;
     for (int i=0; i<obj_classes.size(); ++i) {
       Prototype& p = obj_classes[i];
-      region_color++;
+      region_color = p.color;
       for (set<long>::iterator obj_it=p.obj_ids.begin(); obj_it!=p.obj_ids.end(); ++obj_it) {
         long o_id = *obj_it;
         assert(composite_objs.find(o_id) != composite_objs.end());
@@ -435,9 +442,9 @@ Action SelfDetectionAgent::agent_step(const IntMatrix* screen_matrix,
     }
 
     // Color the self blob
-    for (set<point>::iterator it=self_blob.mask.begin(); it!=self_blob.mask.end(); ++it) {
-      region_matrix[it->y][it->x] = 6;
-    }
+    //for (set<point>::iterator it=self_blob.mask.begin(); it!=self_blob.mask.end(); ++it) {
+      //region_matrix[it->y][it->x] = 6;
+    //}
   }
 
   // Save State and action history
@@ -877,6 +884,13 @@ void SelfDetectionAgent::merge_objects(float similarity_threshold) {
     if (!found_match) {
       Prototype p(obj,curr_blobs);
       p.seen_count = p.frames_since_last_seen = 0; //(piyushk)
+      if (free_colors.size() != 0) {
+        p.color = *(free_colors.begin()); //(piyushk)
+        free_colors.erase(p.color); //(piyushk)
+      } else {
+        p.color = 256;
+      }
+      p.id = prototype_ids++;
       obj_classes.push_back(p);
     }
   }
@@ -891,13 +905,25 @@ void SelfDetectionAgent::merge_objects(float similarity_threshold) {
       p.frames_since_last_seen = 0;
     if (p.seen_count < 5 && p.frames_since_last_seen > 3) {
       prototypes_to_erase.push_back(i);
+    p.seen_count += p.times_seen_this_frame;
     }
   }
   for (int i = prototypes_to_erase.size() - 1; i >= 0; --i) {
-    obj_classes.erase(obj_classes.begin() + i);
+    if (free_colors.find(obj_classes[prototypes_to_erase[i]].color) != free_colors.end())
+      free_colors.insert(obj_classes[prototypes_to_erase[i]].color);
+    obj_classes.erase(obj_classes.begin() + prototypes_to_erase[i]);
   }
 
   std::cout << "Active Prototypes: " << obj_classes.size() << std::endl;
+  for (int i=0; i<obj_classes.size(); ++i) {
+    Prototype& p = obj_classes[i];
+    if (p.times_seen_this_frame) {
+      std::cout << " #";
+    } else {
+      std::cout << "  ";
+    }
+    std::cout << p.id << std::endl;
+  }
   
 };
 
