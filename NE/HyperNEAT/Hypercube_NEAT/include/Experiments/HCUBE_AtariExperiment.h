@@ -10,14 +10,9 @@ namespace HCUBE
   {
   protected:
     int substrate_width, substrate_height;
-
-    // Atari stuff
     IntMatrix screen_matrix;
     IntVect ram_content;
-    int pixel_screen_width;
-    int pixel_screen_height;
-    MediaSource *mediasrc;
-    System* emulator_system;
+    
     InternalController* controller;
     SelfDetectionAgent* self_detection_agent;
     GameSettings* game_settings;

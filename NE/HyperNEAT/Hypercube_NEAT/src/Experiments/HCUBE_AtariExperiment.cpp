@@ -17,26 +17,6 @@ namespace HCUBE
   AtariExperiment::AtariExperiment(string _experimentName,int _threadID):
     Experiment(_experimentName,_threadID)
   {
-    initializeEmulator();
-    emulator_system = &theOSystem->console().system();
-    controller = (InternalController*) theOSystem->getGameController();
-    self_detection_agent = (SelfDetectionAgent*) controller->getPlayerAgentLeft();
-    game_settings = controller->getGameSettings();
-    mediasrc = &theOSystem->console().mediaSource();
-    pixel_screen_width = mediasrc->width();
-    pixel_screen_height = mediasrc->height();
-    // Initialize Atari Stuff 
-    for (int i=0; i<pixel_screen_height; ++i) { // Initialize our screen matrix
-      IntVect row;
-      for (int j=0; j<pixel_screen_width; ++j)
-        row.push_back(-1);
-      screen_matrix.push_back(row);
-    }
-    // Intialize our ram array
-    for (int i=0; i<RAM_LENGTH; i++)
-      ram_content.push_back(0);
-
-    
     substrate_width = 16;
     substrate_height = 21;
 
@@ -49,15 +29,9 @@ namespace HCUBE
     layerInfo.layerSizes.push_back(Vector2<int>(substrate_width,substrate_height));
     layerInfo.layerIsInput.push_back(false);
     layerInfo.layerLocations.push_back(Vector3<float>(0,4,0));
-    layerInfo.layerNames.push_back("Processing");
-
-    layerInfo.layerSizes.push_back(Vector2<int>(game_settings->pv_possible_actions->size(),1));
-    layerInfo.layerIsInput.push_back(false);
-    layerInfo.layerLocations.push_back(Vector3<float>(0,8,0));
     layerInfo.layerNames.push_back("Output");
 
-    layerInfo.layerAdjacencyList.push_back(std::pair<string,string>("Input","Processing"));
-    layerInfo.layerAdjacencyList.push_back(std::pair<string,string>("Processing","Output"));
+    layerInfo.layerAdjacencyList.push_back(std::pair<string,string>("Input","Output"));
 
     layerInfo.normalize = true;
     layerInfo.useOldOutputNames = false;
@@ -77,8 +51,7 @@ namespace HCUBE
     genes.push_back(GeneticNodeGene("X2","NetworkSensor",0,false));
     genes.push_back(GeneticNodeGene("Y1","NetworkSensor",0,false));
     genes.push_back(GeneticNodeGene("Y2","NetworkSensor",0,false));
-    genes.push_back(GeneticNodeGene("Output_Input_Processing","NetworkOutputNode",1,false,ACTIVATION_FUNCTION_SIGMOID));
-    genes.push_back(GeneticNodeGene("Output_Processing_Output","NetworkOutputNode",1,false,ACTIVATION_FUNCTION_SIGMOID));
+    genes.push_back(GeneticNodeGene("Output_Input_Output","NetworkOutputNode",1,false,ACTIVATION_FUNCTION_SIGMOID));
 
     for (int a=0;a<populationSize;a++) {
       shared_ptr<GeneticIndividual> individual(new GeneticIndividual(genes,true,1.0));
@@ -116,6 +89,27 @@ namespace HCUBE
   }
 
   void AtariExperiment::runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual) {
+    // Initialize Atari Stuff 
+    initializeEmulator();
+    MediaSource &mediasrc = theOSystem->console().mediaSource();
+    int pixel_screen_width = mediasrc.width();
+    int pixel_screen_height = mediasrc.height();
+    for (int i=0; i<pixel_screen_height; ++i) { // Initialize our screen matrix
+      IntVect row;
+      for (int j=0; j<pixel_screen_width; ++j)
+        row.push_back(-1);
+      screen_matrix.push_back(row);
+    }
+    // Intialize our ram array
+    for (int i=0; i<RAM_LENGTH; i++)
+      ram_content.push_back(0);
+
+    System* emulator_system = &theOSystem->console().system();
+    controller = (InternalController*) theOSystem->getGameController();
+    self_detection_agent = (SelfDetectionAgent*) controller->getPlayerAgentLeft();
+    game_settings = controller->getGameSettings();
+    // Initialize Atari Stuff - fin
+
     // Main Loop
     int skip_frames_num = game_settings->i_skip_frames_num;
     int frame_skip_ctr = 0;
@@ -142,7 +136,7 @@ namespace HCUBE
         
         // Get the latest screen
         int ind_i, ind_j;
-        uInt8* pi_curr_frame_buffer = mediasrc->currentFrameBuffer();
+        uInt8* pi_curr_frame_buffer = mediasrc.currentFrameBuffer();
         for (int i = 0; i < pixel_screen_width * pixel_screen_height; i++) {
           uInt8 v = pi_curr_frame_buffer[i];
           ind_i = i / pixel_screen_width;
@@ -172,16 +166,14 @@ namespace HCUBE
         // Set substrate value for all objects (of a certain size)
         for (int i=0; i<self_detection_agent->obj_classes.size(); i++) {
           Prototype& proto = self_detection_agent->obj_classes[i];
-          if (proto.obj_ids.size() == 0)
+
+          if (!proto.is_valid) // not a strong enough prototype yet
+            continue;
+          if (proto.obj_ids.size() == 0) // no obhects on screen
             continue;
 
           // Map object classes to values
-          float assigned_value = 0;
-          if (proto.mask.size() == 41) { // Boxing gloves -- we need to collect
-            assigned_value = 1.0;
-          } else if (proto.mask.size() == 42) { // Harps -- we need to avoid
-            assigned_value = -1.0;
-          }
+          float assigned_value = proto.value;
 
           // Assign values to each of the objects
           for (set<long>::iterator it=proto.obj_ids.begin(); it!=proto.obj_ids.end(); it++) {
@@ -209,37 +201,28 @@ namespace HCUBE
         if (self_x < 0 || self_y < 0) {
           action = PLAYER_A_NOOP;
         } else {
-          ActionVect* possible_actions = game_settings->pv_possible_actions;
-          int num_possible_actions = possible_actions->size();
-          int max_id = 0;
-          float max_val = substrate.getValue(Node(0,0,2)); //TODO extra parens?
-          for (int i=1; i<num_possible_actions; i++) {
-            float act_val = substrate.getValue(Node(i,0,2));
-            if (act_val > max_val) {
-              max_val = act_val;
+          float noop_val = substrate.getValue((Node(self_x,self_y,1)));
+          float up_val   = (self_y <= 0) ? noop_val : substrate.getValue((Node(self_x,self_y-1,1)));
+          float down_val = (self_y >= substrate_height-1) ? noop_val : substrate.getValue((Node(self_x,self_y+1,1)));
+          float left_val = (self_x <= 0) ? noop_val : substrate.getValue((Node(self_x-1,self_y,1)));
+          float right_val= (self_x >= substrate_width-1) ? noop_val : substrate.getValue((Node(self_x+1,self_y,1)));
+
+          ActionVect *allowed_actions = game_settings->pv_possible_actions;
+          Action actionIds[] = {PLAYER_A_NOOP,PLAYER_A_UP,PLAYER_A_DOWN,PLAYER_A_LEFT,PLAYER_A_RIGHT};
+          float action_vals[] = {noop_val,up_val,down_val,left_val,right_val};
+          
+          int max_id = 0; // all games should have noop
+          float max_val = action_vals[0];
+          int size = sizeof(actionIds) / sizeof(Action);
+          for (int i=1; i < size; i++) {
+            if (action_vals[i] > max_val && 
+                std::find(allowed_actions->begin(), allowed_actions->end(), actionIds[i]) != allowed_actions->end()) {
+              max_val = action_vals[i];
               max_id = i;
             }
           }
-          action = (*possible_actions)[max_id];
-          // float noop_val = substrate.getValue((Node(self_x,self_y,1)));
-          // float up_val   = (self_y <= 0) ? noop_val : substrate.getValue((Node(self_x,self_y-1,1)));
-          // float down_val = (self_y >= substrate_height-1) ? noop_val : substrate.getValue((Node(self_x,self_y+1,1)));
-          // float left_val = (self_x <= 0) ? noop_val : substrate.getValue((Node(self_x-1,self_y,1)));
-          // float right_val= (self_x >= substrate_width-1) ? noop_val : substrate.getValue((Node(self_x+1,self_y,1)));
 
-          // Action actionIds[] = {PLAYER_A_NOOP,PLAYER_A_UP,PLAYER_A_DOWN,PLAYER_A_LEFT,PLAYER_A_RIGHT};
-          // float action_vals[] = {noop_val,up_val,down_val,left_val,right_val};
-
-          // int max_id = 0;
-          // float max_val = action_vals[0];
-          // int size = sizeof(actionIds) / sizeof(Action);
-          // for (int i=1; i<size; i++) {
-          //   if (action_vals[i] > max_val) {
-          //     max_val = action_vals[i];
-          //     max_id = i;
-          //   }
-          // }
-          // action = actionIds[max_id];
+          action = actionIds[max_id];
         }
 
         // Display the screen
