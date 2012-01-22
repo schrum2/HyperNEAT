@@ -145,6 +145,7 @@ struct Prototype {
   int times_seen_this_frame;
   int color;
   bool is_valid;
+  float value;
   
   Prototype (CompositeObject& obj, map<long,Blob>& blob_map);
 
@@ -223,6 +224,7 @@ class SelfDetectionAgent : public PlayerAgent {
 
   //(piyushk)
   int prototype_ids;
+  float prototype_value;
   set<int> free_colors;
 };
 

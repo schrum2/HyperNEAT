@@ -329,7 +329,8 @@ SelfDetectionAgent::SelfDetectionAgent(GameSettings* _game_settings, OSystem* _o
   PlayerAgent(_game_settings, _osystem),
   max_history_len(50), //numeric_limits<int>::max()),
   curr_num_regions(0), prev_num_regions(0), blob_ids(0), obj_ids(0), self_id(-1),
-  prototype_ids(0) //(piyushk)
+  prototype_ids(0),//(piyushk)
+  prototype_value(1.0) //(piyushk)
 {
 
   // Get the height and width of the screen
@@ -923,6 +924,7 @@ void SelfDetectionAgent::merge_objects(float similarity_threshold) {
       Prototype p(obj,curr_blobs);
       p.seen_count = p.frames_since_last_seen = p.times_seen_this_frame = 0; //(piyushk)
       p.is_valid = false;
+      p.value = 0.0;
       if (free_colors.size() != 0) {
         p.color = *(free_colors.begin()); //(piyushk)
         free_colors.erase(p.color); //(piyushk)
@@ -944,8 +946,10 @@ void SelfDetectionAgent::merge_objects(float similarity_threshold) {
       p.frames_since_last_seen = 0;
     if (p.seen_count < 25 && p.frames_since_last_seen > 1) {
       prototypes_to_erase.push_back(i);
-    } else if (p.seen_count >= 25) {
+    } else if (p.seen_count >= 25 && !p.is_valid) {
       p.is_valid = true;
+      p.value = prototype_value;
+      prototype_value += 1.0;
     }
     p.seen_count += p.times_seen_this_frame;
   }
@@ -963,7 +967,7 @@ void SelfDetectionAgent::merge_objects(float similarity_threshold) {
     } else {
       std::cout << "  ";
     }
-    std::cout << p.id << " " << p.seen_count << " " << p.times_seen_this_frame << " " << p.frames_since_last_seen << std::endl;
+    std::cout << p.id << " " << p.value << " " << p.seen_count << " " << p.times_seen_this_frame << " " << p.frames_since_last_seen << std::endl;
   }
   
 };
