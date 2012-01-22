@@ -354,7 +354,7 @@ SelfDetectionAgent::SelfDetectionAgent(GameSettings* _game_settings, OSystem* _o
   f_max_shape_area_dif = p_osystem->settings().getFloat("max_shape_area_dif", true);
 
   // (piyushk) Initialize the free color set structure
-  for (int i = 257; i < 512; i++) {
+  for (int i = 258; i < 512; i++) {
     free_colors.insert(i);
   }
 
@@ -377,6 +377,9 @@ Action SelfDetectionAgent::agent_step(const IntMatrix* screen_matrix,
     // Merge blobs into objects
     update_existing_objs();
     merge_blobs(curr_blobs);
+
+    // Sanitize objects
+    sanitize_objects();
 
     // Merge objects into classes
     merge_objects(.96);
@@ -424,6 +427,8 @@ Action SelfDetectionAgent::agent_step(const IntMatrix* screen_matrix,
     int region_color = 256;
     for (int i=0; i<obj_classes.size(); ++i) {
       Prototype& p = obj_classes[i];
+      if (!p.is_valid)
+        continue;         // Do not display weak prototypes
       region_color = p.color;
       for (set<long>::iterator obj_it=p.obj_ids.begin(); obj_it!=p.obj_ids.end(); ++obj_it) {
         long o_id = *obj_it;
@@ -472,6 +477,9 @@ void SelfDetectionAgent::process_image(const IntMatrix* screen_matrix, Action ac
     // Merge blobs into objects
     update_existing_objs();
     merge_blobs(curr_blobs);
+
+    // Sanitize objects
+    sanitize_objects();
 
     // Merge objects into classes
     merge_objects(.96);
@@ -720,7 +728,7 @@ void SelfDetectionAgent::update_existing_objs() {
       if (b.x_velocity != first.x_velocity || b.y_velocity != first.y_velocity) {
         velocity_consistent = false;
         break;
-      }
+      } 
     }
 
     // This works if object is still cohesive
@@ -733,6 +741,8 @@ void SelfDetectionAgent::update_existing_objs() {
       if (obj.x_velocity != 0 || obj.y_velocity != 0)
         obj.expand(curr_blobs);
       obj.compute_boundingbox(curr_blobs); // Recompute bounding box
+
+
       used_blob_ids.insert(obj.blob_ids.begin(), obj.blob_ids.end());
     } else {
       // This object is no longer legitimate. Decide what to do with it.
@@ -747,6 +757,33 @@ void SelfDetectionAgent::update_existing_objs() {
     composite_objs.erase(to_remove[i]); 
   }
 };
+
+void SelfDetectionAgent::sanitize_objects() {
+
+  vector<long> to_remove;
+
+  for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); it++) {
+    CompositeObject& obj = it->second;
+
+    // (piyushk) if blob is too small or the velocity is 0, then remove the object
+    if ((obj.x_velocity == 0 && obj.y_velocity == 0)
+        || ((obj.x_max - obj.x_min) * (obj.y_max - obj.y_min) < 15)
+        ) {
+      to_remove.push_back(obj.id);
+      continue;
+    }
+    //std::cout << "  " << (obj.x_max - obj.x_min) * (obj.y_max - obj.y_min) << std::endl;
+  }
+
+  // Walk through list in reverse removing objects
+  for (int i=0; i<to_remove.size(); ++i) {
+    assert(composite_objs.find(to_remove[i]) != composite_objs.end());
+    composite_objs.erase(to_remove[i]); 
+  }
+
+  // std::cout << "Haha! " << composite_objs.size();
+
+}
 
 void SelfDetectionAgent::identify_self() {
   float max_info_gain = -1;
@@ -880,10 +917,12 @@ void SelfDetectionAgent::merge_objects(float similarity_threshold) {
         break;
       }
     }
-    
+   
+    // Insert new prototype here
     if (!found_match) {
       Prototype p(obj,curr_blobs);
-      p.seen_count = p.frames_since_last_seen = 0; //(piyushk)
+      p.seen_count = p.frames_since_last_seen = p.times_seen_this_frame = 0; //(piyushk)
+      p.is_valid = false;
       if (free_colors.size() != 0) {
         p.color = *(free_colors.begin()); //(piyushk)
         free_colors.erase(p.color); //(piyushk)
@@ -903,10 +942,12 @@ void SelfDetectionAgent::merge_objects(float similarity_threshold) {
       p.frames_since_last_seen++;
     else
       p.frames_since_last_seen = 0;
-    if (p.seen_count < 5 && p.frames_since_last_seen > 3) {
+    if (p.seen_count < 25 && p.frames_since_last_seen > 1) {
       prototypes_to_erase.push_back(i);
-    p.seen_count += p.times_seen_this_frame;
+    } else if (p.seen_count >= 25) {
+      p.is_valid = true;
     }
+    p.seen_count += p.times_seen_this_frame;
   }
   for (int i = prototypes_to_erase.size() - 1; i >= 0; --i) {
     if (free_colors.find(obj_classes[prototypes_to_erase[i]].color) != free_colors.end())
@@ -917,12 +958,12 @@ void SelfDetectionAgent::merge_objects(float similarity_threshold) {
   std::cout << "Active Prototypes: " << obj_classes.size() << std::endl;
   for (int i=0; i<obj_classes.size(); ++i) {
     Prototype& p = obj_classes[i];
-    if (p.times_seen_this_frame) {
+    if (p.is_valid) {
       std::cout << " #";
     } else {
       std::cout << "  ";
     }
-    std::cout << p.id << std::endl;
+    std::cout << p.id << " " << p.seen_count << " " << p.times_seen_this_frame << " " << p.frames_since_last_seen << std::endl;
   }
   
 };

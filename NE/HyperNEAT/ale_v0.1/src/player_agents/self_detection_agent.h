@@ -144,6 +144,7 @@ struct Prototype {
   int frames_since_last_seen;
   int times_seen_this_frame;
   int color;
+  bool is_valid;
   
   Prototype (CompositeObject& obj, map<long,Blob>& blob_map);
 
@@ -177,6 +178,9 @@ class SelfDetectionAgent : public PlayerAgent {
 
   // Updates objects when a new timestep arrives
   void update_existing_objs();
+
+  // Sanitize objects based on size and velocity
+  void sanitize_objects();
 
   // Merges objects together into classes of objects
   void merge_objects(float similarity_threshold);
