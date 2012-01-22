@@ -958,7 +958,7 @@ void SelfDetectionAgent::merge_objects(float similarity_threshold) {
       free_colors.insert(obj_classes[prototypes_to_erase[i]].color);
     obj_classes.erase(obj_classes.begin() + prototypes_to_erase[i]);
   }
-
+/*
   std::cout << "Active Prototypes: " << obj_classes.size() << std::endl;
   for (int i=0; i<obj_classes.size(); ++i) {
     Prototype& p = obj_classes[i];
@@ -969,7 +969,7 @@ void SelfDetectionAgent::merge_objects(float similarity_threshold) {
     }
     std::cout << p.id << " " << p.value << " " << p.seen_count << " " << p.times_seen_this_frame << " " << p.frames_since_last_seen << std::endl;
   }
-  
+  */
 };
 
 // Overrides the normal display screen method to alter our display
