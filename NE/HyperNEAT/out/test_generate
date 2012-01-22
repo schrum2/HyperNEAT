@@ -1,0 +1,3 @@
+#!/bin/sh
+
+./atari_generate -I data/AtariExperiment.dat -O results/generation0.xml
