@@ -86,8 +86,8 @@ $hostname = Socket.gethostname
 #   runlocal: an array of integers containing the policy numbers to run locally instead on condorContents
 def run_on_condor(gen, inds, run, retries=0, runlocal = false) 
 
-  #paramsFile = $experimentbase + "/results/params_#{gen}_i_\$(Process).txt"
-  #valueFile = $experimentbase + "/results/value_#{gen}_i_\$(Process).txt"
+  #paramsFile = $experimentbase + "/results3/params_#{gen}_i_\$(Process).txt"
+  #valueFile = $experimentbase + "/results3/value_#{gen}_i_\$(Process).txt"
   
   inds = inds - runlocal  # don't run the local jobs on condor too
   condorContents = <<END_OF_CONDORFILE;
@@ -110,8 +110,8 @@ END_OF_CONDORFILE
   inds.each do |i|
     
     dataFile = $experimentbase + "/data/AtariExperiment.dat"
-    populationFile = $experimentbase + "/results/generation#{gen}.xml.gz"
-    fitnessFile = $experimentbase + "/results/fitness.#{gen}.#{i}";
+    populationFile = $experimentbase + "/results3/generation#{gen}.xml.gz"
+    fitnessFile = $experimentbase + "/results3/fitness.#{gen}.#{i}";
     individualId = "#{i}";
    
     condorContents = condorContents + "\n"
@@ -145,8 +145,8 @@ END_OF_CONDORFILE
     print "\nRunning #{i} locally:\n"
     # Run the ones that need to be run locally locally
     dataFile = $experimentbase + "/data/AtariExperiment.dat"
-    populationFile = $experimentbase + "/results/generation#{gen}.xml.gz"
-    fitnessFile = $experimentbase + "/results/fitness.#{gen}.#{i}";
+    populationFile = $experimentbase + "/results3/generation#{gen}.xml.gz"
+    fitnessFile = $experimentbase + "/results3/fitness.#{gen}.#{i}";
     individualId = "#{i}";
     
     # run our local one while we wait
@@ -183,19 +183,19 @@ end
 
 #make sure that the 'process' and 'results' directories exist under $experimentbase
 Dir.mkdir($experimentbase) unless File.exists?($experimentbase)
-Dir.mkdir($experimentbase + "/results") unless File.exists?($experimentbase + "/results")
+Dir.mkdir($experimentbase + "/results3") unless File.exists?($experimentbase + "/results3")
 Dir.mkdir($experimentbase + "/process") unless File.exists?($experimentbase + "/process")
 
 #generate initial pop first:
-print "Executing command: #{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results/generation0.xml\n"
-generate_result = system("#{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results/generation0.xml")
-#until(File.exists?("#{$experimentbase}/results/generation0.xml.gz")) 
-# print "Waiting on #{$experimentbase}/results/generation0.xml.gz\n"
+print "Executing command: #{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results3/generation0.xml\n"
+generate_result = system("#{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results3/generation0.xml")
+#until(File.exists?("#{$experimentbase}/results3/generation0.xml.gz")) 
+# print "Waiting on #{$experimentbase}/results3/generation0.xml.gz\n"
 # sleep 1 
 #end
 while generate_result == false
   print "\n****\ngenerate failed....\nRUNNING GENERATE AGAIN\n......\n****\n\n"
-  generate_result = system("#{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results/generation0.xml")
+  generate_result = system("#{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results3/generation0.xml")
 end
 
 (0..$maxIter).each do |gen|
@@ -211,7 +211,7 @@ end
 
   while (found.size == 0 || remaining.size > $minJobs)
     retries = retries + 1
-    Dir[$experimentbase + "/results/fitness.#{gen}.*"].each do |file|
+    Dir[$experimentbase + "/results3/fitness.#{gen}.*"].each do |file|
       foo = false 
       file =~ /.([0-9]+)$/
       found << $1.to_i
@@ -232,18 +232,18 @@ end
 
 
   #now generate a new pop:
-  generate_result = system("#{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results/generation#{gen+1}.xml -P #{$experimentbase}/results/generation#{gen}.xml.gz -F #{$experimentbase}/results/fitness.#{gen}. -E #{$experimentbase}/results/generation#{gen}.eval.xml")
+  generate_result = system("#{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results3/generation#{gen+1}.xml -P #{$experimentbase}/results3/generation#{gen}.xml.gz -F #{$experimentbase}/results3/fitness.#{gen}. -E #{$experimentbase}/results3/generation#{gen}.eval.xml")
   
   # now wait until next parameters are written before continuing
-  #until(File.exists?("#{$experimentbase}/results/generation#{gen+1}.xml.gz")) 
+  #until(File.exists?("#{$experimentbase}/results3/generation#{gen+1}.xml.gz")) 
   #  break if gen == $maxIter 
-  #  print "Waiting on #{$experimentbase}/results/generation#{gen+1}.xml.gz\n"
+  #  print "Waiting on #{$experimentbase}/results3/generation#{gen+1}.xml.gz\n"
   #  sleep 1 
   #end 
 
   while generate_result == false
     print "\n****\ngenerate failed....\nRUNNING GENERATE AGAIN\n......\n****\n\n"
-    generate_result = system("#{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results/generation#{gen+1}.xml -P #{$experimentbase}/results/generation#{gen}.xml.gz -F #{$experimentbase}/results/fitness.#{gen}. -E #{$experimentbase}/results/generation#{gen}.eval.xml")
+    generate_result = system("#{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results3/generation#{gen+1}.xml -P #{$experimentbase}/results3/generation#{gen}.xml.gz -F #{$experimentbase}/results3/fitness.#{gen}. -E #{$experimentbase}/results3/generation#{gen}.eval.xml")
   end
 end
 
