@@ -1,0 +1,141 @@
+@article{Samuel_59, title={Some Studies in Machine Learning Using the Game of Checkers}, volume={3}, url={http://www.research.ibm.com/journal/rd/033/ibmrd0303B.pdf}, number={3}, journal={IBM Journal of Research and Development}, publisher={IBM}, author={Samuel, A L}, year={1959}, pages={210--229}}
+
+@article{tesauro_94,
+title={TD-Gammon, a Self-Teaching Backgammon Program, Achieves Master-Level Play},
+author={Tesauro, Gerald},
+year={1994},
+pages={215--219},
+journal={Neural Computation}
+}
+
+@mastersthesis{naddaf10,
+  AUTHOR = {Yavar Naddaf},
+  TITLE = {Game-Independent AI Agents For Playing Atari 2600 Console Games},
+  School= {University of Alberta},
+  YEAR = {2010}
+}
+
+@article{verbancsics10,
+ author = {Verbancsics, Phillip and Stanley, Kenneth O.},
+ title = {Evolving Static Representations for Task Transfer},
+ journal = {J. Mach. Learn. Res.},
+ issue_date = {3/1/2010},
+ volume = {11},
+ month = {August},
+ year = {2010},
+ issn = {1532-4435},
+ pages = {1737--1769},
+ numpages = {33},
+ url = {http://dl.acm.org/citation.cfm?id=1756006.1859909},
+ acmid = {1859909},
+ publisher = {JMLR.org},
+} 
+
+@inproceedings{gauci08,
+    abstract = {{An important feature of many problem domains in machine learning is their geometry. For example, adjacency relationships, symmetries, and Cartesian coordinates are essential to any complete description of board games, visual recognition, or vehicle control. Yet many approaches to learning ignore such information in their representations, instead inputting flat parameter vectors with no indication of how those parameters are situated geometrically. This paper argues that such geometric information is critical to the ability of any machine learning approach to effectively generalize; even a small shift in the configuration of the task in space from what was experienced in training can go wholly unrecognized unless the algorithm is able to learn the regularities in decision-making across the problem geometry. To demonstrate the importance of learning from geometry, three variants of the same evolutionary learning algorithm (NeuroEvolution of Augmenting Topologies), whose representations vary in their capacity to encode geometry, are compared in checkers. The result is that the variant that can learn geometric regularities produces a significantly more general solution. The conclusion is that it is important to enable machine learning to detect and thereby learn from the geometry of its problems.}},
+    author = {Gauci, Jason and Stanley, Kenneth O.},
+    booktitle = {Proceedings of the 23rd National Conference on Artificial Intelligence (AAAI)},
+    citeulike-article-id = {9744476},
+    citeulike-linkout-0 = {http://portal.acm.org/citation.cfm?id=1620169},
+    keywords = {evolution, machine\_learning},
+    posted-at = {2011-09-06 17:36:17},
+    priority = {2},
+    title = {{A case study on the critical role of geometric regularity in machine learning}},
+    url = {http://portal.acm.org/citation.cfm?id=1620169},
+    year = {2008}
+}
+
+@inproceedings{ambrosio08,
+    abstract = {{This paper argues that multiagent learning is a potential "killer application" for generative and developmental systems (GDS) because key challenges in learning to coordinate a team of agents are naturally addressed through indirect encodings and information reuse. For example, a significant problem for multiagent learning is that policies learned separately for different agent roles may nevertheless need to share a basic skill set, forcing the learning algorithm to reinvent the wheel for each agent. GDS is a good match for this kind of problem because it specializes in ways to encode patterns of related yet varying motifs. In this paper, to establish the promise of this capability, the Hypercube-based NeuroEvolution of Augmenting Topologies (HyperNEAT) generative approach to evolving neurocontrollers learns a set of coordinated policies encoded by a  single  genome representing a team of predator agents that work together to capture prey. Experimental results show that it is not only possible, but beneficial to encode a heterogeneous team of agents with an indirect encoding. The main contribution is thus to open up a significant new application domain for GDS.}},
+    address = {New York, NY, USA},
+    author = {D'Ambrosio, David B. and Stanley, Kenneth O.},
+    booktitle = {GECCO '08: Proceedings of the 10th annual conference on Genetic and evolutionary computation},
+    citeulike-article-id = {6235855},
+    citeulike-linkout-0 = {http://portal.acm.org/citation.cfm?id=1389095.1389256},
+    citeulike-linkout-1 = {http://dx.doi.org/10.1145/1389095.1389256},
+    doi = {10.1145/1389095.1389256},
+    isbn = {978-1-60558-130-9},
+    keywords = {alife10, behavior, evolution, indirect},
+    location = {Atlanta, GA, USA},
+    pages = {819--826},
+    posted-at = {2010-01-27 10:51:11},
+    priority = {2},
+    publisher = {ACM},
+    title = {{Generative encoding for multiagent learning}},
+    url = {http://dx.doi.org/10.1145/1389095.1389256},
+    year = {2008}
+}
+
+@inproceedings{clune09,
+ author = {Clune, Jeff and Beckmann, Benjamin E. and Ofria, Charles and Pennock, Robert T.},
+ title = {Evolving coordinated quadruped gaits with the HyperNEAT generative encoding},
+ booktitle = {Proceedings of the Eleventh conference on Congress on Evolutionary Computation},
+ series = {CEC'09},
+ year = {2009},
+ isbn = {978-1-4244-2958-5},
+ location = {Trondheim, Norway},
+ pages = {2764--2771},
+ numpages = {8},
+ url = {http://dl.acm.org/citation.cfm?id=1689599.1689966},
+ acmid = {1689966},
+ publisher = {IEEE Press},
+ address = {Piscataway, NJ, USA},
+} 
+
+@Article{stanley02,
+title={Evolving Neural Networks Through Augmenting Topologies},
+author={Kenneth O. Stanley and Risto Miikkulainen},
+volume={10},
+journal={Evolutionary Computation},
+number={2},
+pages={99-127},
+url="http://nn.cs.utexas.edu/?stanley:ec02",
+year={2002}
+}
+
+@InProceedings(stone01,
+	Author="Peter Stone and Richard S. Sutton",
+	Title="Scaling Reinforcement Learning toward {R}obo{C}up Soccer",
+	BookTitle="Proceedings of the Eighteenth International Conference on Machine Learning",
+    publisher = "Morgan Kaufmann, San Francisco, CA",
+    pages = "537--544",
+    year = "2001",
+    abstract={
+              RoboCup simulated soccer presents many challenges to
+              reinforcement learning methods, including a large state
+              space, hidden and uncertain state, multiple agents, and
+              long and variable delays in the effects of actions.  We
+              describe our application of episodic SMDP
+              Sarsa(lambda)with linear tile-coding function
+              approximation and variable lambda to learning
+              higher-level decisions in a keepaway subtask of RoboCup
+              soccer.  In keepaway, one team, ``the keepers,'' tries
+              to keep control of the ball for as long as possible
+              despite the efforts of ``the takers.''  The keepers
+              learn individually when to hold the ball and when to
+              pass to a teammate, while the takers learn when to
+              charge the ball-holder and when to cover possible
+              passing lanes.  Our agents learned policies that
+              significantly out-performed a range of benchmark
+              policies.  We demonstrate the generality of our approach
+              by applying it to a number of task variations including
+              different field sizes and different numbers of players
+              on each team.
+    },
+    wwwnote={<a href="http://www.ecn.purdue.edu/ICML2001/">ICML-2001</a><br>
+            Some <a href="http://www.cs.utexas.edu/users/AustinVilla/sim/keepaway/">simulations of keepaway</a> referenced in the paper.},
+)
+
+@ARTICLE{genesereth05,
+    author = {Michael Genesereth and Nathaniel Love},
+    title = {General game playing: Overview of the AAAI competition},
+    journal = {AI Magazine},
+    year = {2005},
+    volume = {26},
+    pages = {62--72}
+}
+
+
+
+
+
