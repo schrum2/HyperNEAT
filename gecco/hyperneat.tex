@@ -143,7 +143,7 @@ In this work we apply HyperNeat to the problem of learning to play Atari games. 
 %% %A category including the fourth, optional field follows...
 %% \category{D.2.8}{Software Engineering}{Metrics}[complexity measures, performance measures]
 
-%\terms{Theory}
+%% \terms{Theory}
 
 %% \keywords{ACM proceedings, \LaTeX, text tagging} % NOT required for Proceedings
 
@@ -170,7 +170,7 @@ Specifically, HyperNEAT evolves the topology and weights of a CPPN. A CPPN is id
 
 \begin{figure}[htp]
 \begin{center}
-\includegraphics[scale=.3]{figures/cppn}
+\includegraphics[width=\columnwidth]{figures/cppn}
 \end{center}
 \caption{An fully connected ANN (left) is used to compute the target function for a task. The weights between each pair of substrate nodes are determined by the CPPN (right). The CPPN is itself an ANN which takes as input the locations of the pair of nodes whose connection weight is being determined and computes as output the weight of that connection. Before the ANN (left) can be used to compute the target function, each pair of nodes must have their corresponding connection weight determined.}
 \label{fig:cppn}
@@ -184,13 +184,13 @@ In this section we describe the details of our approach -- the main points are t
 
 For nearly any machine learning problem, the question of how to encode the state space is of great importance. Following Verbansics' example, we use an overhead representation of the game screen which includes only the objects on the current screen. Since we are given only the raw pixels of the screen as input, we design a simple visual processing stack which identifies objects and game entities without a priori knowledge of the specific game. A graphical depiction of this stack is shown in Figure \ref{fig:visproc}.
 
-\begin{figure}[htp]
+\begin{figure*}[htp]
 \begin{center}
-\includegraphics[scale=.8]{figures/AtariArch}
+\includegraphics[width=\textwidth]{figures/AtariArch}
 \end{center}
 \caption{Visual Processing Architecture. Filled arrows denote the processing steps. Narrow arrows show examples of the game screen after each processing step for the game Freeway. The results of the Self Detection step are shown in gray on the Object Classes screen capture in which the algorithm has successfully identified the chicken as Self.}
 \label{fig:visproc}
-\end{figure}
+\end{figure*}
 
 Visual processing begins at the raw pixels of the game screen. Image Segmentation is performed at the first layer of stack in which adjacent raw pixels with similar colors are combined to form blobs. At the next level blob merging occurs which outputs a set of current objects on screen. The process of blob merging examines all of the recently discovered blobs in order to identify adjacent blobs which have the same velocity. These adjacent blobs are then merged into an object. (Velocity of blobs is computed by matching each blob with its counterpart in the previous frame and calculating displacement based on the centroids of the two blobs). Finally, similar objects are merged into object classes. In order to do this, the shape of each pair of objects is compared and if found to exceed a threshold (97\% pixel match in these experiments), the objects were said to belong to the same class. As the object class image in Figure \ref{fig:visproc} indicates, different object classes were discovered for the cars at the bottom half of the screen (light green), cars at the top half of the screen (dark green -- cars at top and bottom show slight differences as they are mirror images of each other), chicken (gray), and lane separators (red). It is assumed here that objects belong to the same class if their shape is relatively similar. This could be a false assumption in certain games where objects may look similar but interact differently -- however we have yet to encounter such a game.
 
@@ -223,15 +223,15 @@ While this algorithm is generally successful in identifying the self blob, it ha
 
 \subsection{Condor Parallel Processing Framework}
 \label{sec:condor}
-Depending the game being played in the Atari simulator, a single evaluation of an individual (CPPN) can last from anything between a few seconds to 2 or 3 minutes. While keeping the evolution parameters to as low as 100 individuals and 300 generations, it is still not possible to obtain results in sufficient time on a single machine. To mitigate this problem, we exploit the embarassingly parallel nature of evaluating individuals. We have modifed the HyperNEAT codebase to run on the Condor cluster, by adapting the framework developed by Yinon Bentor and Patrick MacAlpine.\footnote{This framework was initially developed in a previous iteration of the CS394N class. Since then it has been used by the AustinVilla Robot Soccer team for optimizing policy parameters for various soccer related tasks using evolutionary strategies such as CMA-ES.}
+Depending on the game being played in the Atari simulator, a single evaluation of an individual (CPPN) can last from anything between a few seconds to 2 or 3 minutes. While keeping the evolution parameters to as low as 100 individuals and 300 generations, it is still not possible to obtain results in sufficient time on a single machine. To mitigate this problem, we exploit the embarassingly parallel nature of evaluating individuals. We have modifed the HyperNEAT codebase to run on the Condor cluster, by adapting the framework developed by Yinon Bentor and Patrick MacAlpine.\footnote{This framework was initially developed in a previous iteration of the CS394N class. Since then it has been used by the AustinVilla Robot Soccer team for optimizing policy parameters for various soccer related tasks using evolutionary strategies such as CMA-ES.}
 
-\begin{figure}[ht]
+\begin{figure*}[ht]
 \begin{center}
-\includegraphics[scale=.35]{figures/CondorHyperNEAT}
+\includegraphics[width=\textwidth]{figures/CondorHyperNEAT}
 \end{center}
 \caption{Procedure for using HyperNEAT on the condor framework. An initial Master process is responsible for running NEAT and prodcuding successive generations. Condor jobs are initialized with each job being provided the population file and the id of th individual it is responsible for evaluating. Each job starts an instance of the Atari emulator and proceeds to evaluate the individual by playing the game using the policy defined by that individual. A fitness value is calculated, corresponding to the score obtained in the game and written out to file. This is read back by the Master process which then proceeds to use the fitness values to produce the next generation.}
 \label{fig:condor}
-\end{figure}
+\end{figure*}
 
 Figure \ref{fig:condor} goes over the basic procedure for using HyperNEAT over the Condor cluster. This procedure is similar to parallelizing the evaluations of any policy search algorithm. Some modifications were made due to practical constraints, and we outline the most significant one. On occasion jobs on condor would not complete, which would mean that those particular individuals need to be reevaluated. Doing so greatly greatly increases the evaluation time of a single generation. For this reason as long as a minimum number of jobs completed for each generation (90\%), the remaining jobs were terminated and given minimum score. This may not be ideal as certain strong candidates may have received bad fitness evaluations, but it is our belief that evolution would find a way around this constraint.
 
@@ -244,7 +244,7 @@ We provide a brief description of the game retrieved from \cite{naddaf10}. ``Fre
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[scale=.35]{figures/freeway}
+\includegraphics[width=\columnwidth]{figures/freeway}
 \end{center}
 \caption{The average fitness of the population along with the champion at each generation in the Freeway game.}
 \label{fig:freeway-curve}
@@ -271,16 +271,16 @@ We provide a brief description of the game retrieved from \cite{naddaf10}. ``Ast
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[scale=.35]{figures/asterix}
+\includegraphics[width=\columnwidth]{figures/asterix}
 \end{center}
 \caption{The average fitness of the population along with the champion at each generation in the Asterix game.}
 \label{fig:asterix-curve}
 \end{figure}
 
-Results from the Asterix game are summarized in Figure \ref{fig:asterix-curve} and Table \ref{tab:results-table}. Unlike the Freeway game, the champion fitness curve shows significant improvement accross successive generations. Secondly, the champion fitness reaches a high of 750 before dropping down to around the 550 mark. We suspect that our Condor implementaion is responsible, and that the champion was lost to an incomplete Condor job (see Section \ref{sec:condor}. We hope to rectify this issue in the future by making our framework more robust. In contrast to the Freeway game, RL methods perform decently well in this domain. Initial exploration probably causes the agent to learn to stay away from the sprites much faster in this case. However HyperNEAT still outperforms RL based methods. On the other hand, HyperNEAT does not perform as well as a human player. We attribute this to the higher complexity of the game, as well as multiple object classes (which is something we are still working on). 
+Results from the Asterix game are summarized in Figure \ref{fig:asterix-curve} and Table \ref{tab:results-table}. Unlike the Freeway game, the champion fitness curve shows significant improvement accross successive generations. Secondly, the champion fitness reaches a high of 750 before dropping down to around the 550 mark. We suspect that our Condor implementaion is responsible, and that the champion was lost to an incomplete Condor job (see Section \ref{sec:condor}). We hope to rectify this issue in the future by making our framework more robust. In contrast to the Freeway game, RL methods perform decently well in this domain. Initial exploration probably causes the agent to learn to stay away from the sprites much faster in this case. However HyperNEAT still outperforms RL based methods. On the other hand, HyperNEAT does not perform as well as a human player. We attribute this to the higher complexity of the game, as well as multiple object classes (which is something we are still working on). 
 
 \section{Future Work}
-There are many avenues of future work to explore. In general, we wish to extend the system presented here to work on a general and previously unknown games. One of the foremost difficulties we identified is dealing with multiple classes of objects. When providing input to the lowest substrate level in the HyperNEAT ANN, a floating point value much be provided for each substrate node. In Freeway, like in Robocup Keepaway, this is easily accomplished because there are only 2 different classes of objects -- \textit{cars} and \textit{self} for Freeway and \textit{takers} and \textit{keepers} for keepaway. This allows for an easy mapping from objects to substrate values -- for example, we assigned cars substrate values of -1 in order to encourage the agent to avoid them and gave the self a value of 1.0. In Keepaway, a similar thing is done in which takers get negative substrate values and keepers are given positives ones. 
+There are many avenues of future work to explore. In general, we wish to extend the system presented here to work on general and previously unknown games. One of the foremost difficulties we identified is dealing with multiple classes of objects. When providing input to the lowest substrate level in the HyperNEAT ANN, a floating point value much be provided for each substrate node. In Freeway, like in Robocup Keepaway, this is easily accomplished because there are only 2 different classes of objects -- \textit{cars} and \textit{self} for Freeway and \textit{takers} and \textit{keepers} for keepaway. This allows for an easy mapping from objects to substrate values -- for example, we assigned cars substrate values of -1 in order to encourage the agent to avoid them and gave the self a value of 1.0. In Keepaway, a similar thing is done in which takers get negative substrate values and keepers are given positives ones. 
 
 This process of assigning values grows more complicated when there are more classes of objects on screen -- in the worst case a new game could have an arbitrarily large number of object classes. Furthermore, since visual processing is done on the fly during the course of the game, it is quite possible that new object classes may arise well after the start of the game. We have yet to clearly understand how well HyperNEAT is able to differentiate between classes of objects which are given very similar values when fed into the substrate (as is necessary when there are many different classes of objects). Another possible approach is to create multiple layers of input substrate -- one layer for each class of objects. We have yet to try this, but expect it would incur additional computational costs associated with a more complex ANN.
 
@@ -288,7 +288,7 @@ Another area of future work is finding a better way to handle the variable numbe
 
 \begin{figure}[htp]
 \begin{center}
-\includegraphics[scale=1]{figures/possiblearch}
+\includegraphics[width=\columnwidth]{figures/possiblearch}
 \end{center}
 \caption{Alternative architecture for handling variable numbers of actions. Assume full connectivity between levels (sparse connectivity shown with dotted arrows). This differs from the current architecture in that instead of choosing the agent's action based on values of nodes in the processing layer, we condense the processing layer into a third layer with an explicit node for each applicable action (U,D,L,R are example nodes corresponding to the actions Up, Down, Left, and Right).}
 \label{fig:possiblearch}
