@@ -294,15 +294,37 @@ The visual processing and self identification components of our code require som
 \begin{center}
 \includegraphics[width=\columnwidth]{figures/condor-hyperneat-small.png}
 \end{center}
-\caption{Parallel evaluations of Individuals on the Condor framework}
+\caption{Parallel evaluations on the Condor framework}
 \label{fig:condor}
 \end{figure}
 
-Figure \ref{fig:condor} goes over the basic procedure for using HyperNEAT over the Condor cluster. This procedure is similar to parallelizing the evaluations of any policy search algorithm. Some modifications were made due to practical constraints, and we outline the most significant one. On occasion jobs on condor would not complete, which would mean that those particular individuals need to be reevaluated. Doing so greatly greatly increases the evaluation time of a single generation. For this reason as long as a minimum number of jobs completed for each generation (90\%), the remaining jobs were terminated and given minimum score. This may not be ideal as certain strong candidates may have received bad fitness evaluations, but it is our belief that evolution would find a way around this constraint.
+Figure \ref{fig:condor} details how parallel evaluations were performed using the Condor framework. Once all the individuals of a given generation have been evaluated on separate machines, all fitness values are gathered and a new generation is produced. This process is then repeated for each successive generation. 
+
+We detected a practical problem while using the framework; certain fitness evaluations do not complete and are assigned the minimum score. As a result, some individuals may be lost before maturing enough to improve other members of the population. Although such a situation is not ideal, we believe the evolutionary process to be robust enough to counter this. This hypothesis is corroborated by the steady increase of the average champion fitness accross multiple runs (see Fig. \ref{fig:asterix-curve}). 
 
 \section{Results}
 \label{sec:results}
-In this section, we provide results obtained using HyperNEAT on two Atari games, namely \textit{Freeway} and \textit{Asterix}, and compare them with Naddaf's results previously attained via reinforcement learning. The experimental setup was the same for both Freeway and Asterix: HyperNEAT was run for 250 generations, with 100 individuals evaluated during each generation. Runs took between 5 and 10 hours on Condor. The subsrate resolution was 16x21, an order of magnitude reduction from the native Atari resolution of 160x210 (we suspect higher substrate resolutions may yield greater performance but require more computational resources). Objects from the game screen were mapped onto subsrate nodes that corresponded to the objects' centroids. Each HyperNEAT instance had prior knowledge of the number of classes of objects that would be present in the game it was playing (see Future Work Section). Finally, objects of small size were ignored to limit the number of object classes on screen at once.
+In this section, we provide results obtained from applying HyperNEAT on two Atari games, \textit{Freeway} and \textit{Asterix}. The experimental setup was same for both Freeway and Asterix: HyperNEAT was run for 250 generations, with 100 individuals each generation and a subsrate resolution of 16x21. We average results accross multiple runs of the HyperNEAT evolution and compare them with previous results obtained using reinforcement learning $(\lambda)$ \cite{naddaf10}. BASS, DISCO, and RAM are gradient descent sarsa$(\lambda)$ agents with linear function approximation. These methods use state representations corresponding to the subsampled screen image, objects on screen, and console ram respectively. We also compare against results obtained from an agent taking random actions each step \cite{naddaf10}.
+
+%Runs took between 5 and 10 hours on Condor. , an order of magnitude reduction from the native Atari resolution of 160x210 (we suspect higher substrate resolutions may yield greater performance but require more computational resources). Objects from the game screen were mapped onto subsrate nodes that corresponded to the objects' centroids. Each HyperNEAT instance had prior knowledge of the number of classes of objects that would be present in the game it was playing (see Future Work Section). Finally, objects of small size were ignored to limit the number of object classes on screen at once.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+~ & \textbf{Freeway} & \textbf{Asterix} \\ \hline
+\textbf{BASS} & 0 & 402 \\ \hline
+\textbf{DISCO} & 0 & 301 \\ \hline
+\textbf{RAM} & 0 & 545 \\ \hline
+\textbf{Random} & 0 & 156 \\ \hline
+\textbf{HyperNEAT(Average)} & 0 & 0 \\ \hline
+\textbf{HyperNEAT(Best)} & 0 & 0 \\ 
+\hline
+\end{tabular}
+\end{center}
+\label{tab:results-table}
+\caption{Game scores obtained in the Freeway and Asterix games.}
+\end{table}
 
 \subsection {Freeway}
 We provide a brief description of the game retrieved from \cite{naddaf10}. ``Freeway is an Atari 2600 video game, developed by David Crane and published by Activision in 1981. The gameplay is very similar to the popular arcade game Frogger. The player controls the yellow chicken, and the goal of the game is to reach the top of the highway while avoiding the passing cars. Once the chicken reaches the top of the highway, the player receives a score of one, and the chicken moves back to the bottom of the screen.'' In the mode we ran our experiments, the chicken gets pushed down a certain distance if hit by the car. ``The player character never dies, and the game only ends after two minutes of gameplay. There are three possible actions in the game: \textit{Up}, \textit{Down}, and \textit{No-Action}.''
@@ -314,20 +336,6 @@ We provide a brief description of the game retrieved from \cite{naddaf10}. ``Fre
 \caption{The average fitness of the population along with the champion at each generation in the Freeway game.}
 \label{fig:freeway-curve}
 \end{figure}
-
-\begin{table}
-\begin{center}
-\begin{tabular}{|c|c|c|c|c|c|c|}
-\hline
-~       & BASS & DISCO & RAM & Random & Human & HyperNEAT \\ \hline
-Freeway & 0    & 0     & 0   & 0      & 25    & \textbf{29}        \\ \hline
-Asterix & 402  & 301   & 545 & 156    & 1550  & \textbf{750}       \\ 
-\hline
-\end{tabular}
-\end{center}
-\label{tab:results-table}
-\caption{Game scores obtained in the Freeway and Asterix games. HyperNEAT scores are compared against agents used by Naddaf\cite{naddaf10}. BASS, DISCO, and RAM are gradient descent sarsa$(\lambda)$ agents with linear function approximation using state representations respectively corresponding to the subsampled screen image, objects on screen, and console ram. The random agent simply takes random actions at each step and the human represents a reasonably skilled human playing the game.}
-\end{table}
 
 Figure \ref{fig:freeway-curve} illustrates the learning curve for the champion at each generation. Table \ref{tab:results-table} contrasts the HyperNEAT based learning with reinforcement learning based techniques \cite{naddaf10}. One of the interesting results from this graph is that even the starting individuals perform extremely well, where on the other hand reinforcement learning is unable to find a solution to the problem. We attribute this to the power of CPPNs in representing geomtric information. It is our belief that with a population 100 individuals, one of individuals would represent a policy of consistently taking the \textit{up} action. As a result of this HyperNEAT based learning does extremely well from the start, and refines a bit over the period of 250 generations. Reinforcement learning has to perform a large number of exploratory actions before it can reach the goal state at the top, and succumbs to the highly delayed nature of the reward in this game.
 
