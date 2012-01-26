@@ -239,7 +239,7 @@ Finally, objects are clustered into object classes or prototypes. Specifically, 
 It is assumed here that objects belong to the same class if their shape is relatively similar without taking color into consideration. This could be a false assumption in certain games where different objects may have similar shapes bud different colors. However we have yet to encounter such a game.
 
 \subsection{Self Identification}
-The self detection step is meant to identify the location of entity which is being controlled. In the vast majority of Atari games, actions affect the movement of an entity on screen here termed the \textit{self}. We hypothesize that knowing the location of the \textit{self} on screen serves as a useful piece of information for a learning algorithm like HyperNEAT. (There are some notable exceptions in which no such self exists, but they are few and far between.) We use an approach based on information gain to identify a blob most likely to correspond to the \textit{self}. Pseudocode is given in Algorithm \ref{alg:idself}.
+The self detection step is meant to identify the location of an on-screen entity which is being controlled. In the vast majority of Atari games, the player's actions affect the movement of some on-screen entity here termed the \textit{self}. Knowledge of the location of the \textit{self} is crucial to selecting an action, as described in Subsection \ref{sec:interface}. We use an approach based on information gain to identify a blob most likely to correspond to the \textit{self}. Pseudocode is given in Algorithm \ref{alg:idself}.
 
 \begin{algorithm}
 \caption{Identify Self}
@@ -267,7 +267,7 @@ At a high level, we assume there is a blob on screen which corresponds to the se
 
 While this algorithm is generally successful in identifying the self blob, it has occasional problems with dynamics of certain environments. For example, in the Freeway game, after colliding with a car, control is taken from the player and the chicken (\textit{self}) inadvertently moves down for several frames. The algorithm presented above has no way to identify or account for periods of time in which the agent is out of the player's control and thus returns incorrect solutions when this is the case. 
 
-\subsectio{Atari-HyperNEAT Interface}
+\subsection{Atari-HyperNEAT Interface}
 \label{sec:interface}
 
 \subsection{Parallel Implementation}
