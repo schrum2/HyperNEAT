@@ -295,7 +295,7 @@ Having described the interface between our visual processing framework and the H
 
 \subsection{Parallel Implementation}
 \label{sec:condor}
-The visual processing and self identification components of our code require some amount of processing time each frame. Depending on the game being played, evaluating a single individual can take anywhere between a few seconds to 5 minutes. Based on some initial experimental work, we estimated that we would need to run HyperNEAT for \textit{250 generations} with \textit{100 individuals per generation} to obtain good results. These parameters make it infeasible to run the entire computation on a single machine in a reasonable amount of time. To speed up the evolution process, we exploit the embarassingly parallel nature of this approach by evaluating each individual on a separate machine. We make use of the Condor distributed processing cluster \cite{thain2005distributed} to run a massive number of Atari simulations in parallel. This same framework has been used in the past to speed up the optimization of robot soccer agents in simulation using CMA-ES\cite{Urieli+MKBS:2010}. We have modified the original HyperNEAT implementation of \cite{verbancsics10} to run on the Condor cluster.
+The visual processing and self identification components of our code require some amount of processing time each frame. Depending on the game being played, evaluating a single individual can take anywhere between a few seconds to 5 minutes. Based on some initial experimental work, we estimated that we would need to run HyperNEAT for \textit{250 generations} with \textit{100 individuals per generation} to obtain good results. These parameters make it infeasible to run the entire computation on a single machine in a reasonable amount of time. To speed up the evolution process, we exploit the embarrassingly parallel nature of this approach by evaluating each individual on a separate machine. We make use of the Condor distributed processing cluster \cite{thain2005distributed} to run a massive number of Atari simulations in parallel. This same framework has been used in the past to speed up the optimization of robot soccer agents in simulation using CMA-ES\cite{Urieli+MKBS:2010}. We have modified the original HyperNEAT implementation of \cite{verbancsics10} to run on the Condor cluster.
 
 % To this end, we exploit the embarassingly parallel nature of the evaluating a number of individuals in a single generation. We use the Depending on the game being played in the Atari simulator, a single evaluation of an individual can last from anything between a few seconds to 2 or 3 minutes. While keeping the evolution parameters to as low as 100 individuals and 300 generations, it is still not possible to obtain results in sufficient time on a single machine. To mitigate this problem, we exploit the embarassingly parallel nature of evaluating individuals. We have modifed the HyperNEAT codebase to run on the Condor cluster, by adapting the framework developed by Yinon Bentor and Patrick MacAlpine.\footnote{This framework was initially developed in a previous iteration of the CS394N class. Since then it has been used by the AustinVilla Robot Soccer team for optimizing policy parameters for various soccer related tasks using evolutionary strategies such as CMA-ES.}
 
@@ -321,11 +321,11 @@ We detected a practical problem while using the framework; certain fitness evalu
 
 \section{Results}
 \label{sec:results}
-In this section, we provide results obtained from applying HyperNEAT on two Atari games, \textit{Freeway} and \textit{Asterix}. The experimental setup was same for both Freeway and Asterix: HyperNEAT was run for 250 generations, with 100 individuals each generation and a subsrate resolution of 16x21. All individuals are evaluated on the simulator using the same random seed. We average results accross multiple runs of the HyperNEAT evolution and compare them with previous results obtained using reinforcement learning \cite{naddaf10}. BASS, DISCO, and RAM are gradient descent sarsa$(\lambda)$ agents with linear function approximation. These methods use state representations corresponding to the subsampled screen image, objects on screen, and console ram respectively. We also compare against results obtained from an agent taking random actions each step \cite{naddaf10}.
+In this section, we provide results obtained from applying HyperNEAT on two Atari games, \textit{Freeway} and \textit{Asterix}. The experimental setup was same for both Freeway and Asterix: HyperNEAT was run for 250 generations, with 100 individuals each generation and a substrate resolution of 16x21. All individuals are evaluated on the simulator using the same random seed. We average results across multiple runs of the HyperNEAT evolution and compare them with previous results obtained using reinforcement learning \cite{naddaf10}. BASS, DISCO, and RAM are gradient descent Sarsa$(\lambda)$ agents with linear function approximation. These methods use state representations corresponding to the sub-sampled screen image, objects on screen, and console ram respectively. We also compare against results obtained from an agent taking random actions each step \cite{naddaf10}.
 
 \begin{table}
 \begin{center}
-\begin{tabular}{|c|c|c|}
+\begin{tabular}{|l|c|c|}
 \hline
 ~ & \textbf{Freeway} & \textbf{Asterix} \\ \hline
 \textbf{BASS} & 0 & 402 \\ \hline
@@ -342,27 +342,27 @@ In this section, we provide results obtained from applying HyperNEAT on two Atar
 \end{table}
 
 \subsection {Freeway}
-Freeway is an Atari game similar to the arcade game Frogger. The player controls a chicken with the objective of reaching the top of the highway while avoiding cars (see Fig. \ref{fig:visproc}). The player receives a score of 1 if the chicken reaches the top of the highway, and the chicken moves back to the bottom of the screen. If the chicken gets hit by a car, it gets pushed down by a fixed small distance. The game ends after two minutes of gameplay. There are three possible actions that the player may use in Freeway: \textit{Up}, \textit{Down}, and \textit{No-Action}.
+Freeway is an Atari game similar to the arcade game Frogger. The player controls a chicken with the objective of reaching the top of the highway while avoiding cars (see Fig. \ref{fig:visproc}). The player receives a score of 1 if the chicken reaches the top of the highway, and the chicken moves back to the bottom of the screen. If the chicken gets hit by a car, it gets pushed down by a fixed small distance. The game ends after two minutes of game-play. There are three possible actions that the player may use in Freeway: \textit{Up}, \textit{Down}, and \textit{No-Action}.
 
 \begin{figure}[ht]
 \begin{center}
 \includegraphics[width=\columnwidth]{figures/freeway-results.png}
 \end{center}
-\caption{The average fitness of the population along with the champion fitness at each generation in Freeway. The error bars represent standard deviation.}
+\caption{The average fitness of the population along with the champion fitness at each generation in Freeway. Error bars represent standard deviation.}
 \label{fig:freeway-curve}
 \end{figure}
 
 % \ref{tab:results-table} points incorrectly to 6?
-Average fitness of the population and the champion fitness along the learning process can be seen in Fig. \ref{fig:freeway-curve}. Results were averaged across 5 runs of HyperNEAT evolution. Table 1 contrasts our approach with previous results. The most striking observation from these results is that reinforcement learning is unable to find a solution to the problem, whereas even the first generation in the HyperNEAT approach produces a champion with a very high fitness. We believe that reinforcement learning has to perform a large number of exploratory actions before it can reach the goal state at the top, and succumbs to the highly delayed nature of the reward in this game. On the other hand, all individuals in the HyperNEAT based approach are produced by randomly initialized CPPNs. Due to the nature of CPPNs, atleast a few individuals have the propensity to always take the \textit{Up} action and obtain a large fitness at the outset. The individuals learn fairly quickly to avoid cars over the next 50 generations, which can be seen by the increase in champion and average fitness.
+Average fitness of the population and the champion fitness along the learning process can be seen in Fig. \ref{fig:freeway-curve}. Results were averaged across 5 runs of HyperNEAT evolution. Table 1 contrasts our approach with previous results. The most striking observation from these results is that reinforcement learning is unable to find a solution to the problem, whereas even the first generation in the HyperNEAT approach produces a champion with a very high fitness. We believe that reinforcement learning has to perform a large number of exploratory actions before it can reach the goal state at the top, and succumbs to the highly delayed nature of the reward in this game. On the other hand, all individuals in the HyperNEAT based approach are produced by randomly initialized CPPNs. Due to the nature of CPPNs, at least a few individuals have the propensity to always take the \textit{Up} action and obtain a large fitness at the outset. The individuals learn fairly quickly to avoid cars over the next 50 generations, which can be seen by the increase in champion and average fitness.
 
 \subsection {Asterix}
-We provide a brief description of the game retrieved from \cite{naddaf10}. ``Asterix is an Atari 2600 video game, developed by Steve Woita and published by Atari in 1982. Released for the European market, the game is essentially a slightly modified version of the Atari 2600 game Tad. The player controls the Asterix’s character. The aim of the game is to collect the sprites resembling magic potions while avoiding the sprites resembling lyres. Each time Asterix collects a magic potion, the player receives a score of 50. The game is over when the player character is hit by a lyre. There are five possible actions in the game: \textit{Up}, \textit{Down}, \textit{Left}, \textit{Right}, and \textit{No-Action}.''
+In Asterix, the player controls Asterix with the objective of collecting magic potions and avoiding \textit{lyres}. Both the magic potions and the lyres move across the screen around Asterix. Each time Asterix collects a magic potion, the player receives a score of 50. The game is over when the player character is hit by a lyre. Asterix can take five possible actions: \textit{Up}, \textit{Down}, \textit{Left}, \textit{Right}, and \textit{No-Action}.''
 
 \begin{figure}[ht]
 \begin{center}
 \includegraphics[width=\columnwidth]{figures/asterix-results.png}
 \end{center}
-\caption{The average fitness of the population along with the champion at each generation in the Asterix game.}
+\caption{The average fitness of the population along with the champion at each generation in the Asterix game. Error bars represent standard deviation}
 \label{fig:asterix-curve}
 \end{figure}
 
