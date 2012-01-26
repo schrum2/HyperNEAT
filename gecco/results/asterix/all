@@ -1,0 +1,6 @@
+#!/bin/bash
+
+rm -f *.csv
+./clean
+./merge.py
+./remove_files
