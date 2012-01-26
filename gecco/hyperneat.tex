@@ -31,6 +31,8 @@
 \usepackage{url}
 \usepackage{algorithm}
 \usepackage{algorithmic}
+\usepackage{subfig}
+\DeclareCaptionType{copyrightbox}
 \renewcommand{\algorithmiccomment}[1]{//#1}
 
 \long\def\commentp#1{{\bf **P: #1**}}
@@ -275,6 +277,27 @@ While this algorithm is generally successful in identifying the self blob, somet
 
 \subsection{Atari-HyperNEAT Interface}
 \label{sec:interface}
+After extracting objects classes as well as the location of the self from the raw game screen, this information needs to be sent to HyperNEAT. As discussed in Section \ref{sec:hyperneat}, HyperNEAT evolves a CPPN which encodes an ANN. In this section we assume we have a fully connected 2-layer ANN whose weights have been specified by the CPPN. At a high level, information from the game screen needs to be translated to activations of nodes in the input layer of the ANN, and, after the network has been run in the standard feed-forward fashion, the activation of nodes on the output layer must be interpreted in order to select an action.
+
+Figure \ref{fig:interface} shows an example of how objects classes are given as input to the substrate layer of the ANN. 
+
+Upon discovery, each new object class is assigned a real number. 
+
+First, the raw game screen is discretized into a 16x21 grid in order to match the 16x21 dimensionality of the ANN substrate. 
+
+Next, each object in each object class 
+
+Figure \ref{fig:anninput} 
+
+\begin{figure*}
+  \centering
+  \subfloat[Object Classes]{\label{fig:classes}\includegraphics[width=0.196\textwidth]{figures/objClasses.png}}\hspace{.1in}
+  \subfloat[Grid Overlay]{\label{fig:grid}\includegraphics[width=0.2\textwidth]{figures/grid-overlay.png}}\hspace{.1in}
+  \subfloat[ANN Input]{\label{fig:anninput}\includegraphics[width=0.2\textwidth]{figures/ann-input.png}}\hspace{.1in}
+  \subfloat[ANN Output]{\label{fig:annoutput}\includegraphics[width=0.2\textwidth]{figures/action-selection.png}}
+ \caption{}
+ \label{fig:interface}
+\end{figure*}
 
 \subsection{Parallel Implementation}
 \label{sec:condor}
