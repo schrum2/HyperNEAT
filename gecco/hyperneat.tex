@@ -254,8 +254,8 @@ The self detection step is meant to identify the location of an on-screen entity
   \STATE $H_b \leftarrow H(vHistory)$ 
   \FOR{action $a \in possible\_actions$}
   %\STATE \COMMENT{set of $b$'s velocities for timesteps in which action $a$ was taken}
-  \STATE $vHist_{(b|a)} \leftarrow \{vHist_b[t] ~\forall_t: ActionHist[t] == a\}$ 
-  \STATE $H_{(b|a)} \leftarrow H(vHistory_{(b|a)})$ %\COMMENT{Information entropy of $b$'s velocity history given action $a$ was taken}
+  \STATE $vHist_{(b|a)} \leftarrow [vHist_b[t] ~\forall_t: ActionHist[t] == a]$ 
+  \STATE $H_{(b|a)} \leftarrow H(vHist_{(b|a)})$ %\COMMENT{Information entropy of $b$'s velocity history given action $a$ was taken}
   \ENDFOR
   \STATE $InfoGain_b \leftarrow H_b - sum_{a \in actions}(p_a * H_{(b|a)})$ %\COMMENT{$p_a$ is probability of action $a$ based on observed frequency} 
   \ENDFOR
@@ -263,9 +263,15 @@ The self detection step is meant to identify the location of an on-screen entity
 \end{algorithmic}
 \end{algorithm}
 
-At a high level, we assume there is a blob on screen which corresponds to the self. Additionally, we expect that this blob will move similarly whenever the same action is performed -- that is, whenever an action (Joystick Up) is taken, we expect the velocity of the self blob to have a similar value (blob.y\_velocity = -1). Intuitively, assuming that random actions are taken, we expect the self blob to have a relatively high entropy taken over its full velocity history (since it should be going in random directions). However, we expect low entropy when taken over it's selective history conditioned on a specific action (since every time action up is taken the resulting velocity is -1). This should be true over all actions. Since information gain of a blob is defined as the information entropy of its full velocity history minus the weighted sum of selective velocity histories, we expect the self blob to exhibit maximum information gain. Entropy throughout refers to the standard formulation $H(X) = -\sum_{i=1}^n{p(x_i)*lg(p(x_i))}$.
+At a high level, we assume two things: first, there is a blob on screen which corresponds to the self. Second, we expect that this blob will move similarly whenever the same action is performed -- that is, whenever an action, say Joystick Up, is taken, we expect the resulting velocity of the self blob to have a similar value (e.g. blob.y\_velocity = -1). 
 
-While this algorithm is generally successful in identifying the self blob, it has occasional problems with dynamics of certain environments. For example, in the Freeway game, after colliding with a car, control is taken from the player and the chicken (\textit{self}) inadvertently moves down for several frames. The algorithm presented above has no way to identify or account for periods of time in which the agent is out of the player's control and thus returns incorrect solutions when this is the case. 
+As input, in lines 1-3, the algorithm has access to the set of possible joystick and button actions applicable to the current game (this is typically a subset of the 18 possible actions present on the Atari console), a list of blobs detected in the current frame, and a history of the actions taken by the agent. Additionally, in line 5, we have accesss to the $(x,y)$ velocity history $vHist$ of every blob. Next, we compute the entropy of blob $b$'s velocity history. Entropy is calculated using the standard formulation: $H(X) = -\sum_{i=1}^n{p(x_i)*lg(p(x_i))}$. Taking entropy over a velocity history involves computing the probability that blob $b$'s velocity assumes a given $(x,y)$ velocity value. This is done using the empirically observed frequencies of each observed $(x,y)$ velocity value in $b$'s velocity history. A blob with highly random movement will exhibit a high information entropy over its full velocity history while a blob with highly regular movement will yield low entropy.
+
+Having computed the information entropy over $b$'s full velocity history, we next examine each action individually and, in line 8, create $b$'s selective velocity history $vHist_{(b|a)}$. The selective velocity history simply filters the full velocity history by including only velocities which were observed in frames after which action $a$ was taken. For example, if $a = $ joystick left, then $vHist_{(b|a)}$ would only contain resultant velocities for frames in which $a$ was the action selected. In line 9, entropy is computed over $b$'s selective velocity history. This selective entropy $H_{(b|a)}$ should be low if it is the case that a given action reliably the blob to move in a certain direction.
+
+Finally, information gain is computed in line 11 by subtracting a frequency weighted sum of a blob's selective velocity entropies from the blob's full velocity entropy. If each of the selective entropies is low, as we expect for the self blob, this results in a high information gain. In line 13, the algorithm concludes by returning the blob with maximum information gain.
+
+While this algorithm is generally successful in identifying the self blob, sometimes game dynamics break the assumption that actions result in similar velocities. For example, in the Freeway game, after colliding with a car, control is taken from the player and the chicken (\textit{self}) inadvertently moves down for several frames regardless of which actions the agent is executing. This results in irregular selective velocity histories and temporarily poorer identification of the self. However, in some sense the algorithm is correct in loosing confidence in an object over which it no longer has control.
 
 \subsection{Atari-HyperNEAT Interface}
 \label{sec:interface}
