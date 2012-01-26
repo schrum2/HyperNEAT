@@ -187,19 +187,33 @@ In order to play these games, a number of open source Atari emulators exist, inc
 
 Additionally, the Atari state and action interface is simple enough to be tractable yet complex enough to control a myriad of games. The state of an Atari game can be described relatively simply by its 2D graphics (containing between 8 and 256 colors depending on color-mode), elementary sound effects, and 128 bytes of console RAM. The discrete action space for Atari consists of 4 possible directions of movement for the joystick and one button. Combinations of these two controls yield a total of 18 possible actions.
 
+Having chosen the Atari as a suitable research platform, we turn next to the challenge of developing a capable HyperNeat-based learning agent.
+
 \section{HyperNeat}
 \label{sec:hyperneat}
-In this section we review the fundamentals of the HyperNeat learning algorithm. Hypercube-NEAT (HyperNeat) in an extension of the Neuro Evolution of Augmenting Topologies (NEAT) algorithm\cite{stanley02}. HyperNEAT, introduced by Gauci and Stanely\cite{gauci08}, evolves an indirect encoding or compressed description of a solution network. While traditional NEAT evolves the topology and weights of a neural network which is then used to directly compute the solution to a problem, HyperNEAT evolves the topology and weights of a Compositional Pattern Producing Network (CPPN) which is used to determine the weights of the solution network. In this way, HyperNEAT is able to learn the geometric relationships of a domain through an indirect encoding that describes how the connectivity of an Artificial Neural Network (ANN) can be generated as a function of domain geometry. 
+In this section we review the fundamentals of the HyperNeat learning algorithm. Hypercube-NEAT (HyperNeat) in an extension of the Neuro Evolution of Augmenting Topologies (NEAT) algorithm\cite{stanley02}. Introduced by Gauci and Stanely\cite{gauci08}, HyperNEAT evolves an indirect encoding or compressed description of an artificial neural network. This encoding is then used to create the ANN which computes the solution to the task. This contrasts with traditional NEAT which directly evolves the topology and weights of the neural network used to compute the solution to the given problem. Specifically HyperNEAT evolves the topology and weights of an indirect encoding called a Compositional Pattern Producing Network (CPPN). The CPPN is then used to create an ANN. Finally the resulting ANN computes a solution to the task. Furthermore, because the CPPN is aware of domain geometry, the ANNs it encodes implicitly contain knowledge about geometric relationships present in a given domain. This allows HyperNEAT to take advantage of geometric regularities present in many board and 2D games.
 
-Specifically, HyperNEAT evolves the topology and weights of a CPPN. A CPPN is identical to an ANN except that rather than computing the target function of a task, a CPPN computes the weights of a corresponding ANN which then computes the target function. Figure \ref{fig:cppn} shows a graphical depiction of the relationship between a CPPN and its corresponding ANN. Because connection weights are produced as a function of a pair nodes in the substrate (ANN) whose geometric relationship is known, geometric knowledge may be encoded into the ANN. 
+Specifically, HyperNEAT works in a simple three stage process:
+
+\begin{enumerate}
+\item HyperNEAT evolves the weights and topology of a CPPN. Internally a CPPN consists of functions such Gaussians and sinusoids connected in a weighted topology. An example CPPN is shown in Figure \ref{fig:cppn}.
+\item The CPPN is used to generate an ANN. More correctly, the CPPN is presented with a fully connected ANN and for every pair of \emph{(input,output)} nodes, determines the weight for that connection.
+\item With a fully specified topology and weights, the ANN is applied directly to the problem of interest. Activations of output nodes are computed in a standard feed-forward manner.
+\end{enumerate}
+
+Figure \ref{fig:cppn} shows a graphical depiction of the relationship between a CPPN and its corresponding ANN. Because connection weights are produced as a function of a pair nodes in the substrate (ANN) whose geometric relationship is known, geometric knowledge may be encoded into the ANN. 
 
 \begin{figure}[htp]
 \begin{center}
 \includegraphics[width=\columnwidth]{figures/cppn}
 \end{center}
-\caption{An fully connected ANN (left) is used to compute the target function for a task. The weights between each pair of substrate nodes are determined by the CPPN (right). The CPPN is itself an ANN which takes as input the locations of the pair of nodes whose connection weight is being determined and computes as output the weight of that connection. Before the ANN (left) can be used to compute the target function, each pair of nodes must have their corresponding connection weight determined.}
+\caption{HyperNEAT evolves the weights and topology of a CPPN (right). This CPPN is subsequently used to determine all of the weights between substrate nodes in a fully connected ANN (left). Finally, the ANN is used to compute the solution to the desired problem. This three stage process form the core of HyperNEAT. CPPNs are said to be geometrically aware because when they compute the weights of the associated ANN, they are given the geometric location of both the input and output node in the ANN.}
 \label{fig:cppn}
 \end{figure}
+
+Having covered the basics of HyperNEAT, we now discuss the specifics of our approach including game screen processing and self identification.
+
+\commentm{May need something here about how we attach a game screen to the input layer of the ANN.}
 
 \section{Approach}
 \label{sec:approach}
@@ -225,20 +239,22 @@ The self detection step is meant to identify the location of entity which is bei
 \begin{algorithm}
 \caption{Identify Self}
 \label{alg:idself}
-\begin{algorithmic}
+\begin{algorithmic}[1]
   \STATE $possible\_actions \leftarrow $ set of actions applicable to this game
   \STATE $current\_blobs \leftarrow $ set of blobs in the current game frame
-  \STATE $ActionHistory \leftarrow \{a_0...a_n\}$ \COMMENT{Actions at time 0...n}
+  \STATE $ActionHistory \leftarrow \{a_0...a_n\}$ %\COMMENT{Actions at time 0...n}
   \FOR{blob $b \in current\_blobs$}
-  \STATE $vHistory_b \leftarrow \{v_0...v_n\}$ \COMMENT{Velocity of blob $b$ at each timestep in the history}
-  \STATE $H_b \leftarrow H(vHistory)$ \COMMENT{Information entropy of $b$'s velocity history}
+  \STATE $vHist_b \leftarrow \{v_0...v_n\}$ %\COMMENT{Velocity of blob $b$ at each timestep in the history}
+  %\STATE \COMMENT{Information entropy of $b$'s velocity history}
+  \STATE $H_b \leftarrow H(vHistory)$ 
   \FOR{action $a \in possible\_actions$}
-  \STATE $vHistory_{(b|a)} \leftarrow \{vHistory_b[t] ~\forall_t: ActionHist[t] == a\}$ \COMMENT{set of $b$'s velocities for timesteps in which action $a$ was taken}
-  \STATE $H_{(b|a)} \leftarrow H(vHistory_{(b|a)})$ \COMMENT{Information entropy of $b$'s velocity history given action $a$ was taken}
+  %\STATE \COMMENT{set of $b$'s velocities for timesteps in which action $a$ was taken}
+  \STATE $vHist_{(b|a)} \leftarrow \{vHist_b[t] ~\forall_t: ActionHist[t] == a\}$ 
+  \STATE $H_{(b|a)} \leftarrow H(vHistory_{(b|a)})$ %\COMMENT{Information entropy of $b$'s velocity history given action $a$ was taken}
   \ENDFOR
-  \STATE $InfoGain_b \leftarrow H_b - sum_{a \in actions}(p_a * H_{(b|a)})$ \COMMENT{$p_a$ is probability of action $a$ based on observed frequency} 
+  \STATE $InfoGain_b \leftarrow H_b - sum_{a \in actions}(p_a * H_{(b|a)})$ %\COMMENT{$p_a$ is probability of action $a$ based on observed frequency} 
   \ENDFOR
-  \RETURN $arg\_max_{b \in current\_blobs}(InfoGain_b)$ \COMMENT{Return blob with max information gain}
+  \RETURN $arg\_max_{b \in current\_blobs}(InfoGain_b)$ %\COMMENT{Return blob with max information gain}
 \end{algorithmic}
 \end{algorithm}
 
