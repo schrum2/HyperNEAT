@@ -234,6 +234,8 @@ Visual processing begins at the raw pixels of the game screen. We perform image 
 
 Finally, objects are clustered into object classes or prototypes. Specifically, the shape of each pair of objects is compared and if found to exceed a threshold (97\% pixel match in these experiments), the objects were said to belong to the same class. Pixel similarity between two objects is computed by comparing the presence of absence of pixels relative to each object's bounding box. As the object classes image in Figure \ref{fig:visproc} indicates, different object classes were discovered for the cars at the bottom half of the screen, cars at the top half of the screen, chicken, and lane separators. 
 
+\commentm{Piyush -- Need to say how we remove bogus object classes.}
+
 It is assumed here that objects belong to the same class if their shape is relatively similar without taking color into consideration. This could be a false assumption in certain games where different objects may have similar shapes bud different colors. However we have yet to encounter such a game.
 
 \subsection{Self Identification}
