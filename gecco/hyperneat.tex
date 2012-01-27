@@ -370,6 +370,8 @@ Results from the Asterix game are summarized in Figure \ref{fig:asterix-curve} a
 
 \section{Future Work}
 \label{sec:futurework}
+While HyperNEAT learning proved successful on the Freeway and Asterix domains, many challenges remain for future work. First and foremost, we hope to make the framework applicable to a larger set of games. There are two main challenges in this regard -- first handling games with large numbers of possible actions and second handling games with many different object classes.
+
 There are many avenues of future work to explore. In general, we wish to extend the system presented here to work on general and previously unknown games. One of the foremost difficulties we identified is dealing with multiple classes of objects. When providing input to the lowest substrate level in the HyperNEAT ANN, a floating point value much be provided for each substrate node. In Freeway, like in Robocup Keepaway, this is easily accomplished because there are only 2 different classes of objects -- \textit{cars} and \textit{self} for Freeway and \textit{takers} and \textit{keepers} for keepaway. This allows for an easy mapping from objects to substrate values -- for example, we assigned cars substrate values of -1 in order to encourage the agent to avoid them and gave the self a value of 1.0. In Keepaway, a similar thing is done in which takers get negative substrate values and keepers are given positives ones. 
 
 This process of assigning values grows more complicated when there are more classes of objects on screen -- in the worst case a new game could have an arbitrarily large number of object classes. Furthermore, since visual processing is done on the fly during the course of the game, it is quite possible that new object classes may arise well after the start of the game. We have yet to clearly understand how well HyperNEAT is able to differentiate between classes of objects which are given very similar values when fed into the substrate (as is necessary when there are many different classes of objects). Another possible approach is to create multiple layers of input substrate -- one layer for each class of objects. We have yet to try this, but expect it would incur additional computational costs associated with a more complex ANN.
@@ -378,7 +380,7 @@ Another area of future work is finding a better way to handle the variable numbe
 
 \begin{figure}[htp]
 \begin{center}
-\includegraphics[width=\columnwidth]{figures/possiblearch}
+\includegraphics[width=\columnwidth]{figures/multiple-substrate.png}
 \end{center}
 \caption{Alternative architecture for handling variable numbers of actions. Assume full connectivity between levels (sparse connectivity shown with dotted arrows). This differs from the current architecture in that instead of choosing the agent's action based on values of nodes in the processing layer, we condense the processing layer into a third layer with an explicit node for each applicable action (U,D,L,R are example nodes corresponding to the actions Up, Down, Left, and Right).}
 \label{fig:possiblearch}
