@@ -50,9 +50,10 @@ for file_number in range(len(filenames)):
       means_error.append(numpy.mean(values[row]))
       stddev_error.append(numpy.std(values[row]))
 
+    mean_val = numpy.mean(values[row])
     #print csv to file with mean and generation ready for chart creation
     values[row].append(row+1)
-    values[row].append(numpy.mean(values[row]))
+    values[row].append(mean_val)
     file_writer.writerow(values[row])
     #print [row+1, numpy.mean(values[row]), numpy.std(values[row])]
 
@@ -63,4 +64,6 @@ plt.xlim(0,255)
 plt.ylim(0,35)
 #plt.show()
 plt.grid()
+plt.xlabel('Number of generations')
+plt.ylabel('Fitness')
 plt.savefig('figure.png', bbox_inches='tight', dpi=200)
