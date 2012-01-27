@@ -279,15 +279,7 @@ While this algorithm is generally successful in identifying the self blob, somet
 \label{sec:interface}
 After extracting objects classes as well as the location of the self from the raw game screen, this information needs to be sent to HyperNEAT. As discussed in Section \ref{sec:hyperneat}, HyperNEAT evolves a CPPN which encodes an ANN. In this section we assume we have a fully connected 2-layer ANN whose weights have been specified by the CPPN. At a high level, information from the game screen needs to be translated to activations of nodes in the input layer of the ANN, and, after the network has been run in the standard feed-forward fashion, the activation of nodes on the output layer must be interpreted in order to select an action.
 
-Figure \ref{fig:interface} shows an example of how objects classes are given as input to the substrate layer of the ANN. 
-
-Upon discovery, each new object class is assigned a real number. 
-
-First, the raw game screen is discretized into a 16x21 grid in order to match the 16x21 dimensionality of the ANN substrate. 
-
-Next, each object in each object class 
-
-Figure \ref{fig:anninput} 
+Figure \ref{fig:interface} shows an example of how objects classes are given as input to the substrate layer of the ANN. Since the ANN input nodes can only take real valued activations, each class of objects must be mapped to a real number. Thus we maintain a mapping from object classes to real values. Upon discovery of new object classes, real values are incrementally added to our map in a non-decreasing fashion. Next, since the ANN contains a 16x21 grid of input nodes, the raw game screen must also be discretized. Figure \ref{fig:grid} shows an example discretization of the game screen. Following this, each cell which contains an object is fed as input to the ANN with a real value corresponding to that object class's real value. Cells devoid of objects are given input activations of zero. The ANN is run in a standard feed-forward manner which produces activations of the nodes in the 16x21 output layer (Figure \ref{fig:annoutput}). In order to choose which action to take, we first locate cell corresponding to the location of the detected self object (colored blue in Figure \ref{fig:annoutput}). Having located this cell, we next examine its activation as well as the activations of the four adjacent cells (shown with red arrows) and select an action corresponding to the arrow in the highest of these five cells, or no-op action if the self square has the highest value. Future work involves extending this framework to support more complex actions such a button presses and combinations of joystick and button press actions.
 
 \begin{figure*}
   \centering
@@ -295,9 +287,11 @@ Figure \ref{fig:anninput}
   \subfloat[Grid Overlay]{\label{fig:grid}\includegraphics[width=0.2\textwidth]{figures/grid-overlay.png}}\hspace{.1in}
   \subfloat[ANN Input]{\label{fig:anninput}\includegraphics[width=0.2\textwidth]{figures/ann-input.png}}\hspace{.1in}
   \subfloat[ANN Output]{\label{fig:annoutput}\includegraphics[width=0.2\textwidth]{figures/action-selection.png}}
- \caption{}
+ \caption{Interface between visual processing framework and the HyperNEAT ANN. Classes of objects are discretized into a grid whose cells are fed to the input nodes of the ANN via a map from object class to real number. After running the ANN, activations of the output layer in cells agent to the detected self are used to select which action the agent should take.}
  \label{fig:interface}
 \end{figure*}
+
+Having described the interface between our visual processing framework and the HyperNEAT agent, we focus next on parallelizing the evaluation of individuals.
 
 \subsection{Parallel Implementation}
 \label{sec:condor}
