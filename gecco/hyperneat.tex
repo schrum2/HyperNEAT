@@ -181,7 +181,7 @@ This work differs from GGP in that the games we learn to play are not abstract. 
 
 In contrast to the abstract representations of GGP tasks, annual Ms. Pacman competitions utilize actual screen representations~\cite{pacmancompetition}. Agents must deal with non-determinism introduced by delays in processing the game screen along with false object detections. Successful entries in this competition have now far exceeded novice human players \cite{sigevolution2007}. Our approach is similar to the Ms. Pac-man agents because we also extract objects from the game screen. However, since our approach must handle multiple games, we cannot utilize specialized object detection and game playing machinery.
 
-Perhaps the first work on Atari game playing was an R-Max learning agent which employed an Object-oriented MDP representation~\cite{duik08}. Objects were detected in the game screen of the popular Atari game, \emph{Pitfall}. Results showed that the agent was able to make it past the first screen. Subsequent work on learning in Atari games includes a masters thesis by Yavar Naddaf at the University of Alberta~\cite{naddaf10}. In his thesis, Naddaf modified the popular Atari 2600 emulator, Stella, in order to allow it to be easily controlled by computer programs such as learning agents. Naddaf quantified the performance of several reinforcement learning and search agents over 50 different Atari games. Reinforcement learning agents included a gradient descent Sarsa$(\lambda)$ with linear function approximation which could learn from feature vectors generated from either the game screen or the console RAM. Search tree agents include full tree search and UCT based agent. Due to his extensive experimentation, his work represents a solid benchmark against which we compare our results.
+Perhaps the first work on Atari game playing was an R-Max learning agent which employed an Object-oriented MDP representation~\cite{duik08}. Objects were detected in the game screen of the popular Atari game, \emph{Pitfall}. Results showed that the agent was able to make it past the first screen. Subsequent work on learning in Atari games includes a masters thesis by Yavar Naddaf at the University of Alberta~\cite{naddaf10}. In his thesis, Naddaf modified the popular Atari 2600 emulator, Stella, in order to allow it to be easily controlled by computer programs such as learning agents. Naddaf quantified the performance of several reinforcement learning and search agents over 50 different Atari games. Reinforcement learning agents included a gradient descent Sarsa$(\lambda)$ with linear function approximation which could learn from feature vectors generated from either the game screen or the console RAM. Search tree agents include full tree search and UCT based agents. Due to his extensive experimentation, his work represents a solid benchmark against which we compare our results.
 
 Learning to play games based on overhead representations has been previously attempted by Verbancsics and Stanley~\cite{verbancsics10} who focused on the RoboCup Keepaway Soccer domain~\cite{stone01}, a task in which some number of \textit{keeper} agents must maneuver and pass a soccer ball so that it is not captured by one of the \textit{taker} agents. Verbancsics encodes the state of the game using an overhead representation of the objects on the playing field -- namely the keepers, takers, and the ball. In order to exploit the geometric regularities present in this overhead representation of the field, Verbancsics employs HyperNeat to learn a policy for playing this game. Results show that the learned policy is competitive with top learning algorithms for this task. Additionally, it is demonstrated that the learned policy can be effectively transferred with no further learning to the same task at a higher resolution or a different number of players on the field. This is a result of the indirect encoding present in HyperNeat. HyperNEAT has also been successfully applied to other domains such as checkers~\cite{gauci08}, multi-agent predator prey~\cite{ambrosio08}, and quadruped locomotion~\cite{clune09}. 
 
@@ -219,7 +219,7 @@ Specifically, HyperNEAT works in three stages:
 \begin{center}
 \includegraphics[width=\columnwidth]{figures/cppn}
 \end{center}
-\caption{The relationship between a CPPN and its corresponding ANN. Because connection weights are produced as a function of a pair nodes in the substrate (ANN) whose geometric relationship is known, geometric knowledge may be encoded into the ANN.}
+\caption{The relationship between a CPPN and its corresponding ANN. Because connection weights are produced as a function of a pair of nodes in the substrate (ANN) whose geometric relationship is known, geometric knowledge may be encoded into the ANN.}
 %HyperNEAT evolves the weights and topology of a CPPN (right). This CPPN is subsequently used to determine all of the weights between substrate nodes in a fully connected ANN (left). Finally, the ANN is used to compute the solution to the desired problem. This three stage process form the core of HyperNEAT. CPPNs are said to be geometrically aware because when they compute the weights of the associated ANN, they are given the geometric location of both the input and output node in the ANN.}
 \label{fig:cppn}
 \end{figure}
@@ -237,7 +237,7 @@ For nearly any machine learning problem, the question of how to encode the state
 \begin{center}
 \includegraphics[width=\textwidth]{figures/AtariArch}
 \end{center}
-\caption{Visual Processing Architecture applied to the game Freeway. Raw pixels the game screen are displayed on the left. Next, contiguous pixels of the same color are merged into blobs. Objects are then extracted by merging adjacent blobs which exhibit constant velocity over the last two frames. Next, objects are clustered into object classes based on a pixel similarity score. Two main object classes are found -- cars facing left and cars facing right. Finally, self detection successfully identifies the chicken blob as the agent and colors it gray (circled in a red dashed line in rightmost screen).}
+\caption{Visual Processing Architecture applied to the game Freeway. Raw pixels from the game screen are displayed on the left. Next, contiguous pixels of the same color are merged into blobs. Objects are then extracted by merging adjacent blobs which exhibit constant velocity over the last two frames. Next, objects are clustered into object classes based on a pixel similarity score. Two main object classes are found -- cars facing left and cars facing right. Finally, self detection successfully identifies the chicken blob as the agent and colors it gray (circled in a red dashed line in rightmost screen).}
 \label{fig:visproc}
 \end{figure*}
 
@@ -245,7 +245,7 @@ Visual processing begins at the raw pixels of the game screen. We perform image 
 
 Finally, objects are clustered into object classes or prototypes. Specifically, the shape of each pair of objects is compared and if found to exceed a similarity threshold (97\% pixel match in these experiments), the objects are grouped in the same class. Pixel similarity between two objects is computed by comparing the presence of pixels relative to each object's bounding box. As Figure \ref{fig:visproc} indicates, different object classes are discovered for the cars at the bottom half of the screen, cars at the top half of the screen, and the chicken. 
 
-To reduce the number of spurious prototypes, prototypes are only passed to the next stage of the approach only when 25 instances of that prototype have been seen without a gap of more than 3 frames. In the example in Figure \ref{fig:visproc}, this check helps removes prototypes for objects created when the cars are at the edges of the screen. Prototypes failing this check are removed while those which pass are assigned a unique real number (see Section \ref{sec:interface} for more details).
+To reduce the number of spurious prototypes, prototypes are passed to the next stage of the approach only when 25 instances of that prototype have been seen without a gap of more than 3 frames. In the example in Figure \ref{fig:visproc}, this check helps removes prototypes for objects created when the cars are at the edges of the screen. Prototypes failing this check are removed while those which pass are assigned a unique real number (see Section \ref{sec:interface} for more details).
 
 It is assumed here that objects belong to the same class if their shape is relatively similar without taking color into consideration. This has a potential drawback in certain games if different objects have similar shapes but different colors. 
 
@@ -286,7 +286,7 @@ Having computed the information entropy over $b$'s full velocity history, we nex
   \subfloat[Grid Overlay]{\label{fig:grid}\includegraphics[width=0.2\textwidth]{figures/grid-overlay.png}}\hspace{.1in}
   \subfloat[ANN Input]{\label{fig:anninput}\includegraphics[width=0.2\textwidth]{figures/ann-input.png}}\hspace{.1in}
   \subfloat[ANN Output]{\label{fig:annoutput}\includegraphics[width=0.2\textwidth]{figures/action-selection.png}}
- \caption{Interface between visual processing framework and the HyperNEAT ANN. Classes of objects are discretized into a grid whose cells are fed to the input nodes of the ANN via a map from object class to real number. After running the ANN, activations of the output layer in cells agent to the detected self are used to select which action the agent should take.}
+ \caption{Interface between visual processing framework and the HyperNEAT ANN. Classes of objects are discretized into a grid whose cells are fed to the input nodes of the ANN via a map from object class to real number. After running the ANN, activations of the output layer in cells adjacent to the detected self are used to select which action the agent should take.}
  \label{fig:interface}
 \end{figure*}
 
@@ -320,7 +320,7 @@ The visual processing and self identification components of our code require som
 \begin{center}
 \includegraphics[width=\columnwidth]{figures/condor-hyperneat-small.png}
 \end{center}
-\caption{Parallel evaluations on the Condor framework}
+\caption{Parallel evaluations on the Condor framework.}
 \label{fig:condor}
 \end{figure}
 
@@ -330,7 +330,7 @@ We detected a practical problem while using the framework; certain fitness evalu
 
 \section{Results}
 \label{sec:results}
-In this section, we provide results obtained from applying HyperNEAT on two Atari games, \textit{Freeway} and \textit{Asterix}. The experimental setup was same for both Freeway and Asterix: HyperNEAT was run for 250 generations, with 100 individuals each generation and a substrate resolution of 16x21. All individuals were evaluated on the Atari simulator using the same random seed. We averaged results across multiple runs of the HyperNEAT evolution and compare them with previous results obtained using reinforcement learning \cite{naddaf10}. In Table 1, we present the fitness values of the best individual averaged across all the runs, as well as the overall best individual found. BASS, DISCO, and RAM are gradient descent Sarsa$(\lambda)$ agents with linear function approximation. These methods use state representations corresponding to the sub-sampled screen image, objects on screen, and console ram respectively. We also compare against results obtained from an agent taking random actions each step \cite{naddaf10}. 
+In this section, we provide results obtained from applying HyperNEAT on two Atari games, \textit{Freeway} and \textit{Asterix}. The experimental setup was the same for both Freeway and Asterix: HyperNEAT was run for 250 generations, with 100 individuals in each generation and a substrate resolution of 16x21. All individuals were evaluated on the Atari simulator using the same random seed. We averaged results across multiple runs of the HyperNEAT evolution and compare them with previous results obtained using reinforcement learning \cite{naddaf10}. In Table 1, we present the fitness values of the best individual averaged across all the runs, as well as the overall best individual found. BASS, DISCO, and RAM are gradient descent Sarsa$(\lambda)$ agents with linear function approximation. These methods use state representations corresponding to the sub-sampled screen image, objects on screen, and console ram respectively. We also compare against results obtained from an agent taking random actions each step \cite{naddaf10}. 
 
 \subsection {Freeway}
 
@@ -340,7 +340,7 @@ Freeway is an Atari game similar to the arcade game \textit{Frogger}. The player
 \begin{center}
 \includegraphics[width=\columnwidth]{figures/freeway-results.png}
 \end{center}
-\caption{The average fitness of the population along with the champion fitness at each generation in Freeway. Error bars represent standard deviation. The fitness of an individual corresponds exactly to their game score.}
+\caption{HyperNEAT learning performance on the Freeway game. Average fitness of the population along with the champion fitness for each generation are displayed. Error bars represent standard deviation. The fitness of an individual corresponds exactly to their game score.}
 \label{fig:freeway-curve}
 \end{figure}
 
@@ -356,7 +356,7 @@ In Asterix, the player controls a unit called Asterix with the objective of coll
 \begin{center}
 \includegraphics[width=\columnwidth]{figures/asterix-results.png}
 \end{center}
-\caption{The average fitness of the population along with the champion at each generation in the Asterix game. Error bars represent standard deviation. Fitness of an individual corresponds exactly to their game score.}
+\caption{HyperNEAT learning performance on the Asterix game. The average fitness of the population along with the champion at each generation in the Asterix game. Error bars represent standard deviation. Fitness of an individual corresponds exactly to their game score.}
 \label{fig:asterix-curve}
 \end{figure}
 
