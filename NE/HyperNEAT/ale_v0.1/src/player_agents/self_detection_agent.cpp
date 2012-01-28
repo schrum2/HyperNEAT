@@ -208,6 +208,7 @@ float Prototype::get_pixel_match(CompositeObject& obj, map<long,Blob>& blob_map)
 
 CompositeObject::CompositeObject() {
   id = -1;
+  frames_since_last_movement = 0;
 };
 
 CompositeObject::CompositeObject(int x_vel, int y_vel, long _id) {
@@ -217,6 +218,7 @@ CompositeObject::CompositeObject(int x_vel, int y_vel, long _id) {
   y_max = numeric_limits<int>::min();
   x_velocity = x_vel; y_velocity = y_vel;
   id = _id;
+  frames_since_last_movement = 0;
 };
 
 CompositeObject::~CompositeObject() {};
@@ -386,9 +388,9 @@ Action SelfDetectionAgent::agent_step(const IntMatrix* screen_matrix,
     merge_objects(.96);
 
     // Identify which object we are
-    //identify_self();
-    //assert(curr_blobs.find(self_id) != curr_blobs.end());
-    //Blob& self_blob = curr_blobs[self_id];
+    identify_self();
+    assert(curr_blobs.find(self_id) != curr_blobs.end());
+    Blob& self_blob = curr_blobs[self_id];
 
     // Graphical display stuff
     for (int y=0; y<screen_height; ++y) {
@@ -448,9 +450,9 @@ Action SelfDetectionAgent::agent_step(const IntMatrix* screen_matrix,
     }
 
     // Color the self blob
-    //for (set<point>::iterator it=self_blob.mask.begin(); it!=self_blob.mask.end(); ++it) {
-      //region_matrix[it->y][it->x] = 6;
-    //}
+    for (set<point>::iterator it=self_blob.mask.begin(); it!=self_blob.mask.end(); ++it) {
+      region_matrix[it->y][it->x] = 6;
+    }
   }
 
   // Save State and action history
@@ -767,11 +769,18 @@ void SelfDetectionAgent::sanitize_objects() {
     CompositeObject& obj = it->second;
 
     // (piyushk) if blob is too small or the velocity is 0, then remove the object
-    if ((obj.x_velocity == 0 && obj.y_velocity == 0)
-        || ((obj.x_max - obj.x_min) * (obj.y_max - obj.y_min) < 15)
-        ) {
+    if ((obj.x_max - obj.x_min) * (obj.y_max - obj.y_min) < 15) {
       to_remove.push_back(obj.id);
       continue;
+    }
+    if (obj.frames_since_last_movement > 10) {
+      to_remove.push_back(obj.id);
+      continue;
+    }
+    if (obj.x_velocity == 0 && obj.y_velocity == 0) {
+      obj.frames_since_last_movement++;      
+    } else {
+      obj.frames_since_last_movement = 0;
     }
     //std::cout << "  " << (obj.x_max - obj.x_min) * (obj.y_max - obj.y_min) << std::endl;
   }
@@ -865,7 +874,6 @@ point SelfDetectionAgent::get_self_centroid() {
   return curr_blobs[self_id].get_centroid();
 };
 
-
 // Merges together objects into classes of objects
 void SelfDetectionAgent::merge_objects(float similarity_threshold) {
   set<long> checked_objs; // Objects found to match a prototype
@@ -944,7 +952,7 @@ void SelfDetectionAgent::merge_objects(float similarity_threshold) {
       p.frames_since_last_seen++;
     else
       p.frames_since_last_seen = 0;
-    if (p.seen_count < 25 && p.frames_since_last_seen > 1) {
+    if (p.seen_count < 25 && p.frames_since_last_seen > 3) {
       prototypes_to_erase.push_back(i);
     } else if (p.seen_count >= 25 && !p.is_valid) {
       p.is_valid = true;
@@ -958,7 +966,7 @@ void SelfDetectionAgent::merge_objects(float similarity_threshold) {
       free_colors.insert(obj_classes[prototypes_to_erase[i]].color);
     obj_classes.erase(obj_classes.begin() + prototypes_to_erase[i]);
   }
-/*
+
   std::cout << "Active Prototypes: " << obj_classes.size() << std::endl;
   for (int i=0; i<obj_classes.size(); ++i) {
     Prototype& p = obj_classes[i];
@@ -969,7 +977,7 @@ void SelfDetectionAgent::merge_objects(float similarity_threshold) {
     }
     std::cout << p.id << " " << p.value << " " << p.seen_count << " " << p.times_seen_this_frame << " " << p.frames_since_last_seen << std::endl;
   }
-  */
+  
 };
 
 // Overrides the normal display screen method to alter our display

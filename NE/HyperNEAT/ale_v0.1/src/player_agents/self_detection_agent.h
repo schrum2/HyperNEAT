@@ -111,6 +111,7 @@ struct CompositeObject {
   set<long> blob_ids;
   int x_velocity, y_velocity;
   int x_min, x_max, y_min, y_max; // Bounding box
+  int frames_since_last_movement;
 
   CompositeObject();
   CompositeObject(int x_vel, int y_vel, long _id);
