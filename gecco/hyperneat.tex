@@ -40,7 +40,7 @@
 
 \begin{document}
 
-\title{Learning to play Atari games with HyperNEAT}
+\title{A HyperNEAT-based Atari General Game Player}
 %\subtitle{[Extended Abstract]
 %% \titlenote{A full version of this paper is available as
 %% \textit{Author's Guide to Preparing ACM SIG Proceedings Using
@@ -142,7 +142,11 @@
 
 \maketitle
 \begin{abstract}
-In this work, we apply HyperNeat to the problem of learning to play Atari games. By leveraging the geometric regularities present in the Atari game screen, HyperNeat is able to effectively evolve policies for playing two different Atari games. Results show that Hyperneat outperforms state of the art techniques.
+We use games as a platform for developing general intelligence, and therefore study methods that learn general game playing. 
+
+We use the Atari as a platform for developing a general game playing agent. This agent could be considered a general intelligence and hopefully yield insights into algorithms and learning methods which are applicable to many tasks. Having generally applicable AI algorithms will lower the barrier of entry required to apply learning techniques to new problems. This may go a long way towards making AI more commonplace and pervasive.
+
+In this work, we apply HyperNeat to the problem of learning to play Atari games based on visual input. By leveraging the geometric regularities present in the Atari game screen, HyperNeat is able to effectively evolve policies for playing two different Atari games. Results show that Hyperneat outperforms state of the art techniques.
 \end{abstract}
 
 % A category with the (minimum) three required fields
@@ -390,7 +394,7 @@ The learning process steadily improves the fitness through the entirety of 250 g
 \caption{Game scores obtained in the Freeway and Asterix games.}
 \end{table}
 
-Our results show excellent performance by HyperNEAT on the Asterix and Freeway. However, to extend HyperNEAT to play arbitrary games in the Atari simulator, some future work is required.
+Our results show excellent performance by HyperNEAT on the Asterix and Freeway games. However, to extend HyperNEAT to play arbitrary games in the Atari simulator, some future work is required.
 
 \section{Future Work}
 \label{sec:futurework}
