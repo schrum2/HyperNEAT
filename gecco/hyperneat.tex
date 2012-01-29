@@ -40,7 +40,7 @@
 
 \begin{document}
 
-\title{A HyperNEAT-based Atari General Game Player}
+\title{HyperNEAT-GGP: A HyperNEAT-based Atari General Game Player}
 %\subtitle{[Extended Abstract]
 %% \titlenote{A full version of this paper is available as
 %% \textit{Author's Guide to Preparing ACM SIG Proceedings Using
@@ -142,7 +142,7 @@
 
 \maketitle
 \begin{abstract}
-This paper focuses on developing general intelligence through the study of game playing agents. The main contribution is HyperNEAT-GGP, a HyperNEAT-based approach to playing general Atari games using a visual representation of the game screen. By leveraging the geometric regularities present in the Atari game screen, the HyperNeat effectively evolves policies for playing two different Atari games, Asterix and Freeway. Results show that the HyperNEAT-GGP outperforms state of the art techniques on these games. In creating a general game player, this work exposes some of the challenges inherent to the study of general intelligence. If such challenges can be overcome, generally intelligent agents have potential to lower the threshold of knowledge and expertise required to apply AI to new problems.
+This paper considers the challenge of enabling agents to learn with as little domain specific knowledge as possible. The main contribution is HyperNEAT-GGP, a HyperNEAT based approach to playing general Atari games using a visual representation of the game screen. By leveraging the geometric regularities present in the Atari game screen, HyperNeat effectively evolves policies for playing two different Atari games, Asterix and Freeway. Results show that the HyperNEAT-GGP outperforms existing benchmarks on these games. HyperNEAT-GGP represents a first step towards the ambitious goal of creating an agent capable of learning and seamlessly transitioning between many different tasks.
 \end{abstract}
 
 % A category with the (minimum) three required fields
@@ -157,9 +157,7 @@ This paper focuses on developing general intelligence through the study of game 
 \section{Introduction}
 Games have long been considered a fruitful domain for the study of AI. Seminal work on game playing includes Samuel's checkers playing program\cite{samuel_59} and Tesauro's TD-Gammon\cite{tesauro_94}. The allure of games lies in the fact that they represent problems challenging enough to interest humans yet abstract enough to be easily captured and modeled inside of computer programs. Many traditional games such as Chess, Checkers, and Backgammon already have AI agents capable of outperforming human experts. However, new games are continually being created, many of which now incorporate sophisticated graphics and realistic physics. This work focuses on Atari 2600 games, a middle ground between classic board games and newer, graphically intensive video games. Atari games, like traditional board games, provide opportunities for agents to benefit from a solid understanding of the game's dynamics and allow for careful planning. At the same time these games, like modern video games, incorporate reasonably complex visual representations that need to be processed and interpreted.
 
-Famous game playing AI systems such as Deep Blue for chess, Watson for Jeopardy, and TD-Gammon for backgammon all demonstrate that with enough manpower and ingenuity it is possible to tackle AI challenges that may have previously seemed insurmountable. Unlike these game intelligences which were created and tuned specifically for a single task, the game playing agent described herein must be general enough to tackle many different Atari 2600 games, necessitating the use of algorithms and techniques broadly applicable to games whose goals and dynamics may resemble anything from Checkers to Space Invaders. 
-
-Scientifically the aim of this work is to develop a learning agent capable of playing a large number of Atari games from a common visual input representation. The motivation behind this goal is the study general intelligence through the domain of general game players. 
+The aim of this work is to develop a learning agent capable of playing a large number of games with as little domain specific knowledge as possible. Famous game playing AI systems such as Deep Blue for chess, Watson for Jeopardy, and TD-Gammon for backgammon all demonstrate that with enough manpower and ingenuity it is possible to tackle AI challenges that may have previously seemed insurmountable. Unlike these game intelligences which were created and tuned specifically for a single task, the game playing agent described herein must be general enough to tackle many different Atari 2600 games. Dynamics of these games vary wildly from Checkers to Space Invaders, necessitating the use of general learning algorithms.
 
 Despite the variability of game dynamics, all Atari games share a standard interface designed for humans to interact with and enjoy. Game state is conveyed to the player through a 2D game screen, and in response, the player controls game elements by manipulating a four-directional joystick and a single button. This standard interface, combined with the large number of available games, makes Atari a convenient platform for AI researchers. 
 
@@ -171,9 +169,9 @@ Despite the variability of game dynamics, all Atari games share a standard inter
 \label{fig:asterix}
 \end{figure}
 
-This paper presents an agent based around an evolutionary algorithm called Hypercube-based NeuroEvolution of Augmenting Topologies (HyperNEAT)~\cite{gauci08}. Unlike most other approaches, HyperNEAT is capable of exploiting geometric regularities present in the 2D game screen in order to evolve highly effective game playing policies. 
+This paper presents HyperNEAT-GGP, an agent which uses an evolutionary algorithm called Hypercube-based NeuroEvolution of Augmenting Topologies (HyperNEAT)~\cite{gauci08}. Unlike most other approaches, HyperNEAT is capable of exploiting geometric regularities present in the 2D game screen in order to evolve highly effective game playing policies. This paper applies HyperNEAT-GGP to two Atari games.
 
-In the next section contains background and related work. Section \ref{sec:hyperneat} covers the basics of HyperNEAT and how it is able to take advantage of game geometry. Next, Section \ref{sec:approach} presents our visual processing architecture and parallel computing framework. Results are presented in Section \ref{sec:results}, followed by future work and conclusions.
+The next section contains related work. Section \ref{sec:hyperneat} covers the basics of HyperNEAT and how it is able to take advantage of game geometry. Next, Section \ref{sec:approach} presents our visual processing architecture and parallel computing framework. Experiments are presented in Section \ref{sec:experiments}, followed by future work and conclusions.
 
 \section{Related Work}
 \label{sec:background}
@@ -187,9 +185,7 @@ To the best of our knowledge, the first work on Atari game playing was an R-Max 
 
 Learning to play games based on overhead representations has been previously attempted by Verbancsics and Stanley~\cite{verbancsics10} who focused on the RoboCup Keepaway Soccer domain~\cite{stone01}. In this domain a number of \textit{keeper} agents must maneuver and pass a soccer ball so that it is not captured by one of the \textit{taker} agents. Verbancsics and Stanley encode the state of the game using an overhead representation of the objects on the playing field -- namely the keepers, takers, and the ball. In order to exploit the geometric regularities present in this overhead representation of the field, they employ HyperNeat. The learned policy is competitive with top learning algorithms for this task~\cite{stone05}. Additionally, the learned policy can be effectively transferred with no further learning to the same task at a higher resolution or a different number of players on the field. This successful transfer is a result of the indirect encoding of HyperNeat. HyperNEAT has also been successfully applied to other domains such as checkers~\cite{gauci08}, multi-agent predator prey~\cite{ambrosio08}, and quadruped locomotion~\cite{clune09}. 
 
-While HyperNEAT-GGP is quite similar to Verbancsics and Stanley's approach, in many ways Atari games represent a more challenging learning target than RoboCup Keepaway. In Keepaway there are a fixed number of object classes such as takers, keepers, and the ball. On the other hand, Atari games may contain an arbitrary number of objects classes that interact with each other in unexpected ways, requiring HyperNEAT-GGP to be more general. Additionally, the dynamics in any given Atari game are highly variable, ranging from simple games in which the agent must reach the goal while avoiding cars to highly complex games in which the agent must shoot fish while attempting to rescue five swimmers, all before the oxygen in the player's submarine is depleted.
-
-The next section describes the specifics of the Atari 2600 simulator and what makes it such an attractive platform for learning agents.
+While HyperNEAT-GGP is quite similar to Verbancsics and Stanley's approach, in many ways Atari games represent a more challenging learning target than RoboCup Keepaway. In Keepaway there are a fixed number of object classes such as takers, keepers, and the ball. On the other hand, Atari games may contain an arbitrary number of objects classes that interact with each other in unexpected ways, requiring HyperNEAT-GGP to be more general. Additionally, the dynamics in any given Atari game are highly variable, ranging from simple games in which the agent must reach the goal while avoiding cars to highly complex games in which the agent must shoot fish while attempting to rescue five swimmers, all before the oxygen in the player's submarine is depleted. Though this paper only demonstrates results on two fo the many Atari games, the successful results represent an important step towards the long-term goal of testing the approach on, and refining it to generalize to, the full range of Atari games.
 
 \section{Atari for Research}
 \label{sec:atari}
@@ -207,21 +203,24 @@ Having motivated the Atari as a suitable research platform for the development o
 \label{sec:hyperneat}
 This section reviews the fundamentals of the HyperNeat learning algorithm. HyperNEAT is an extension of the Neuro Evolution of Augmenting Topologies (NEAT) algorithm~\cite{stanley02}. NEAT evolves the topology and weights of an Artificial Neural Network (ANN) that is applied directly to the problem of interest. In contrast, HyperNEAT, introduced by Gauci and Stanley~\cite{gauci08}, evolves an \emph{indirect encoding} called a Compositional Pattern Producing Network (CPPN). The CPPN is then used to define the weights of an ANN that produces a solution for the problem. Furthermore, because the CPPN is aware of domain geometry, the ANNs it encodes implicitly contain knowledge about geometric relationships present in a given domain. This encoding allows HyperNEAT to take advantage of geometric regularities present in many board and 2D games, such as those in Atari 2600.
 
-Specifically, HyperNEAT works in three stages:
+Specifically, HyperNEAT works in four stages:
 
 \begin{enumerate}
 \item The weights and topology of the CPPN are evolved. Internally a CPPN consists of functions such as Gaussians and sinusoids connected in a weighted topology (see Figure \ref{fig:cppn}).
 \item The CPPN is used to determine the weights for every pair of \emph{(input,output)} nodes in a fully connected ANN.
 \item With fully specified weights, the ANN is applied to the problem of interest. The performance of the ANN determines the fitness of the CPPN that generates it.
+\item Based on fitness scores, the population of CPPNs is maintained, evaluated, and evolved via NEAT.
 \end{enumerate}
 
 \begin{figure}[htp]
 \begin{center}
 \includegraphics[width=\columnwidth]{figures/cppn}
 \end{center}
-\caption{HyperNEAT evolves the weights and topology of a CPPN (right). This CPPN is subsequently used to determine all of the weights between substrate nodes an ANN (left). Finally, the ANN is used to compute the solution to the desired problem. CPPNs are said to be geometrically aware because when they compute the weights of the associated ANN, they are given the geometric location of both the input and output node in the ANN.}
+\caption{HyperNEAT evolves the weights and topology of a CPPN (right). This CPPN is subsequently used to determine all of the weights between substrate nodes an ANN (left). Finally, the ANN is used to compute the solution to the desired problem. CPPNs are said to be geometrically aware because when they compute the weights of the associated ANN, they are given, as input, the x,y location of both the input and output node in the ANN.}
 \label{fig:cppn}
 \end{figure}
+
+The ANN's input representation will be discussed further in Section \ref{sec:interface}. For more information on HyperNEAT, refer to~\cite{gauci08}.
 
 \section{Approach}
 \label{sec:approach}
@@ -265,15 +264,15 @@ The self identification step is meant to identify the location of an on-screen e
   \STATE $vHist_{(b|a)} \leftarrow [vHist_b[t] ~\forall_t: ActionHist[t-1] == a]$ 
   \STATE $H_{(b|a)} \leftarrow H(vHist_{(b|a)})$ %\COMMENT{Information entropy of $b$'s velocity history given action $a$ was taken}
   \ENDFOR
-  \STATE $InfoGain_b \leftarrow H_b - sum_{a \in actions}(p_a * H_{(b|a)})$ %\COMMENT{$p_a$ is probability of action $a$ based on observed frequency} 
+  \STATE $\textrm{\emph{InfoGain}}_b \leftarrow H_b - sum_{a \in actions}(p_a * H_{(b|a)})$ %\COMMENT{$p_a$ is probability of action $a$ based on observed frequency} 
   \ENDFOR
-  \RETURN $arg\_max_{b \in current\_blobs}(InfoGain_b)$ %\COMMENT{Return blob with max information gain}
+  \RETURN $arg\_max_{b \in current\_blobs}(\textrm{\emph{InfoGain}}_b)$ %\COMMENT{Return blob with max information gain}
 \end{algorithmic}
 \end{algorithm}
 
 At the high level, this approach makes certain assumptions about the self entity. First, it is assumed that the self blob will move similarly whenever the same action is performed. That is, whenever an action, say Joystick Up, is taken, the resulting velocity of the self blob should have a similar value (e.g. blob.y\_velocity = -1). 
 
-As input, in lines 1-3, the algorithm has access to the set of possible joystick and button actions applicable to the current game (this is typically a subset of the 18 possible actions present on the Atari console), a list of blobs detected in the current frame, and a history of the actions taken by the agent. Additionally, line 5 assumes access to the $(x,y)$ velocity history $vHist$ of every blob. Next, Algorithm \ref{alg:idself} computes the entropy of blob $b$'s velocity history. Entropy is calculated using the standard formulation: $H(X) = -\sum_{i=1}^n{p(x_i)*lg(p(x_i))}$. Taking entropy over a velocity history involves computing the distribution over blob $b$'s velocity values. This computation is done using the empirically observed frequencies of each observed $(x,y)$ velocity value in $b$'s velocity history. A blob with highly random movement will exhibit a high information entropy over its full velocity history while a blob with highly regular movement will yield low entropy.
+As input, in lines 1-3, the algorithm has access to the set of possible joystick and button actions applicable to the current game (this is typically a subset of the 18 possible actions present on the Atari console), a list of blobs detected in the current frame, and a history of the actions taken by the agent. Additionally, line 5 assumes access to the $(x,y)$ velocity history $vHist$ of every blob. Next, Algorithm \ref{alg:idself} computes the entropy of blob $b$'s velocity history. Entropy is calculated using the standard formulation: $H(X) = -\sum_{i=1}^n{p(x_i)*ln(p(x_i))}$. Taking entropy over a velocity history involves computing the distribution over blob $b$'s velocity values. This computation is done using the empirically observed frequencies of each observed $(x,y)$ velocity value in $b$'s velocity history. A blob with highly random movement will exhibit a high information entropy over its full velocity history while a blob with highly regular movement will yield low entropy.
 
 Having computed the information entropy over $b$'s full velocity history, Algorithm \ref{alg:idself} next examines each action individually and, in line 8, create $b$'s selective velocity history $vHist_{(b|a)}$. The selective velocity history simply filters the full velocity history by including only velocities that were observed in frames after which action $a$ was taken. For example, if $a = $ joystick left, then $vHist_{(b|a)}$ would only contain resultant velocities for frames in which $a$ was the action selected. In line 9, entropy is computed over $b$'s selective velocity history. This selective entropy $H_{(b|a)}$ should be low if a given action reliably causes the blob to move in a certain direction.
 
@@ -289,13 +288,13 @@ Having computed the information entropy over $b$'s full velocity history, Algori
 
 Finally, information gain is computed in line 11 by subtracting a frequency weighted sum of a blob's selective velocity entropies from the blob's full velocity entropy. If each of the selective entropies is low, as should be the case for the self blob, a high information gain results. In line 13, the algorithm concludes by returning the blob with maximum information gain.
 
-While Algorithm \ref{alg:idself} is generally successful in identifying the self blob, sometimes game dynamics break the assumption that actions result in similar velocities. For example, in the Freeway game, after colliding with a car, control is taken from the player and the chicken inadvertently is moved down for several frames regardless of which actions the agent is executing. This temporary lack of control results in irregular selective velocity histories and temporarily poorer identification of the self. However, in some sense the algorithm is correct in losing confidence in an object over which it no longer has control.
+While Algorithm \ref{alg:idself} is generally successful in identifying the self blob, sometimes game dynamics break the assumption that actions result in similar velocities. For example, in the Freeway game, after colliding with a car, control is taken from the player and the chicken inadvertently is moved down for several frames regardless of which actions the agent is executing. This temporary lack of control results in irregular selective velocity histories and temporarily poorer identification of the self. However, in some sense the algorithm is correct in losing confidence in an object over which it no longer has control. However, since the chicken is still the most controlled blob, it remains the self.
 
 \subsection{Atari-HyperNEAT Interface}
 \label{sec:interface}
 After extracting object classes as well as the location of the self from the raw game screen, this information needs to be sent to HyperNEAT. As discussed in Section \ref{sec:hyperneat}, HyperNEAT evolves a CPPN that encodes an ANN. In this section assumes access to a fully connected 2-layer ANN whose weights have been specified by the CPPN. At a high level, information from the game screen needs to be translated to activations of nodes in the input layer of the ANN. Then, after the network has been run in the standard feed-forward fashion, the activation of nodes on the output layer must be interpreted in order to select an action.
 
-Figure \ref{fig:interface} shows an example of how object classes are given as input to the substrate layer of the ANN. Since the ANN input nodes can only take real-valued activations, each class of objects must be mapped to a real number. Thus a mapping from object classes to real values is maintained. Upon discovery of new object classes, real values are incrementally added to the map in a non-decreasing fashion. Next, since the ANN contains a $16x21$ grid of input nodes, the raw game screen must also be discretized. Figure \ref{fig:grid} shows an example discretization. Following this step, each cell that contains an object is fed as input to the ANN with a real value corresponding to that object class's real value. Cells devoid of objects are given input activations of zero. The ANN is run in a standard feed-forward manner, producing activations of the nodes in the $16x21$ output layer (Figure \ref{fig:annoutput}). Action selection involves locating the cell corresponding to the detected self object (colored blue in Figure \ref{fig:annoutput}). The activation of this cell as well as the activations of the four adjacent cells (shown with red arrows) are compared and the action corresponding to the arrow in the highest of these five cells is returned (or no-op if the self square has the highest value). This method of action selection supports up to five possible actions. Future work involves extending this framework to support more complex actions such a button presses and combinations of joystick and button-press actions.
+Figure \ref{fig:interface} shows an example of how object classes are given as input to the substrate layer of the ANN. Since the ANN input nodes can only take real-valued activations, each class of objects must be mapped to a real number. Thus a mapping from object classes to real values is maintained. Upon discovery of new object classes, real values are incrementally added to the map in a non-decreasing fashion. Next, since the ANN contains a $16x21$ grid of input nodes, the raw game screen must also be discretized by a factor of ten in each dimension from the native resolution of $160x210$. Figure \ref{fig:grid} shows an example discretization. Following this step, each cell that contains an object is fed as input to the ANN with a real value corresponding to that object class's real value. Cells devoid of objects are given input activations of zero. The ANN is run in a standard feed-forward manner, producing activations of the nodes in the $16x21$ output layer (Figure \ref{fig:annoutput}). Action selection involves locating the cell corresponding to the detected self object (colored blue in Figure \ref{fig:annoutput}). The activation of this cell as well as the activations of the four adjacent cells (shown with red arrows) are compared and the action corresponding to the arrow in the highest of these five cells is returned (or no-op if the self square has the highest value). This method of action selection supports up to five possible actions. Future work involves extending this framework to support more complex actions such a button presses and combinations of joystick and button-press actions.
 
 \subsection{Parallel Implementation}
 \label{sec:condor}
@@ -324,7 +323,7 @@ Figure \ref{fig:condor} details how parallel evaluations are performed using the
 One practical problem while using the framework was that certain fitness evaluations do not complete and are assigned the minimum score. As a result, some individuals may be lost before maturing enough to improve other members of the population. Although such a situation is not ideal, we believe the evolutionary process is robust enough to compensate. This hypothesis is corroborated by the steady increase of the average champion fitness in the experiments (see Fig. \ref{fig:asterix-curve}). 
 
 \section{Experimental Setup}
-\label{sec:exprsetup}
+\label{sec:experiments}
 The experimental setup was the same for both Freeway and Asterix: HyperNEAT-GGP was run for 250 generations, with 100 individuals in each generation and a substrate resolution of 16x21. All individuals were evaluated on the Atari simulator using the same random seed. Results are averaged across multiple runs of the HyperNEAT-GGP evolution and compared with previous results obtained using reinforcement learning \cite{naddaf10}. 
 
 \section{Results}
@@ -343,9 +342,6 @@ Freeway is an Atari game similar to the arcade game \textit{Frogger}. The player
 \label{fig:freeway-curve}
 \end{figure}
 
-\commentm{Change graph style so that we can differentiate between the two lines in b/w.}
-
-% \ref{tab:results-table} points incorrectly to 6?
 Average fitness of the population and the champion fitness throughout the learning process can be seen in Fig. \ref{fig:freeway-curve}. Results were averaged across five runs of HyperNEAT evolution. Table 1 contrasts HyperNEAT-GGP with previous results. The most striking observation from these results is that reinforcement learning is unable to find a solution to the problem, whereas even the first generation in HyperNEAT produces a champion with a very high fitness (starting average champion fitness = 26.4). Reinforcement learning has to perform a large number of exploratory actions before it can reach the goal state at the top, and succumbs to the highly delayed nature of the reward in this game. On the other hand, all individuals in HyperNEAT are produced by randomly initialized CPPNs. Due to the nature of CPPNs, at least a few individuals have the propensity to always take the \textit{Up} action and obtain a large fitness at the outset. Evolution helps individuals to learn quickly to avoid cars over the next 50 generations, which can be seen by the slight increase in champion and average fitness.
 
 \subsection {Asterix}
@@ -414,6 +410,8 @@ The second area of future work involves developing a better way to handle a larg
 \section{Conclusion}
 \label{sec:conclusion}
 This paper introduces HyperNEAT-GGP, a HyperNEAT-based general Atari game playing agent. Many Atari games contain geometric regularities in the two-dimensional space of the game screen. This structure allows HyperNEAT to quickly learn effective policies. To reduce the complexity of learning from the raw game screen, HyperNEAT-GGP employs a game-independent visual processing hierarchy designed to identify classes of objects as well as the entity that the player controls on the game screen. Identified objects are provided as input to HyperNEAT. Due to the computational overhead of visual processing applied to each game screen, a parallel architecture is used to evaluate multiple individuals simultaneously. Results were presented for two Atari games, \textit{Freeway} and \textit{Asterix}. In both cases, HyperNEAT-GGP was shown to outperform previous reinforcement learning benchmarks~\cite{naddaf10}. While no single Atari game, if studied in isolation and given extensive feature engineering, likely poses too great a challenge for modern AI techniques, the full collection of over 900 Atari games presents a daunting task for a single learning agent. HyperNEAT-GGP represents a first step towards the ambitious goal of creating an agent capable of learning and seamlessly transitioning between many different tasks.
+
+
 
 %\end{document}  % This is where a 'short' article might terminate
 
