@@ -144,7 +144,7 @@
 
 \maketitle
 \begin{abstract}
-This paper considers the challenge of enabling agents to learn with as little domain specific knowledge as possible. The main contribution is HyperNEAT-GGP, a HyperNEAT based approach to playing general Atari games using a visual representation of the game screen. By leveraging the geometric regularities present in the Atari game screen, HyperNEAT effectively evolves policies for playing two different Atari games, Asterix and Freeway. Results show that HyperNEAT-GGP outperforms existing benchmarks on these games. HyperNEAT-GGP represents a first step towards the ambitious goal of creating an agent capable of learning and seamlessly transitioning between many different tasks.
+This paper considers the challenge of enabling agents to learn with as little domain specific knowledge as possible. The main contribution is HyperNEAT-GGP, a HyperNEAT based approach to playing general Atari games using a visual representation of the game screen. By leveraging the geometric regularities present in the Atari game screen, HyperNEAT effectively evolves policies for playing two different Atari games, Asterix and Freeway. Results show that HyperNEAT-GGP outperforms existing benchmarks on these games. HyperNEAT-GGP represents a step towards the ambitious goal of creating an agent capable of learning and seamlessly transitioning between many different tasks.
 \end{abstract}
 
 % A category with the (minimum) three required fields
@@ -322,7 +322,7 @@ The visual processing and self-identification components of the code require a s
 
 Figure \ref{fig:condor} details how parallel evaluations are performed using the Condor cluster. Once a generation is produced, all the individuals of that generation are evaluated on separate machines in parallel. After all evaluations have been completed, the fitness values are gathered and a new population is produced. This process is then repeated for each successive generation. 
 
-One practical problem while using the framework was that certain fitness evaluations do not complete and are assigned the minimum score. As a result, some individuals may be lost before maturing enough to improve other members of the population. Although such a situation is not ideal, we believe the evolutionary process is robust enough to compensate. This hypothesis is corroborated by the steady increase of the average champion fitness in the experiments (see Fig. \ref{fig:asterix-curve}). 
+One practical problem while using the framework was that certain fitness evaluations do not complete and were assigned the minimum score. As a result, some individuals may be lost before maturing enough to improve other members of the population. Although such a situation is not ideal, we believe the evolutionary process is robust enough to compensate. This hypothesis is corroborated by the steady increase of the average champion fitness in the experiments (see Fig. \ref{fig:asterix-curve}). 
 
 \section{Experimental Setup}
 \label{sec:experiments}
