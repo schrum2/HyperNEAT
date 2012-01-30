@@ -5,3 +5,5 @@ glpk-4.45/
 *~
 *#
 *.o
+out/
+build/
