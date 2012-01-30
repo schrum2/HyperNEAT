@@ -42,7 +42,7 @@
 
 \begin{document}
 
-\title{HyperNEAT-GGP: A HyperNEAT-based Atari General Game Player}
+\title{HyperNEAT-GGP: A HyperNEAT-based \\Atari General Game Player}
 %\subtitle{[Extended Abstract]
 %% \titlenote{A full version of this paper is available as
 %% \textit{Author's Guide to Preparing ACM SIG Proceedings Using
@@ -144,7 +144,7 @@
 
 \maketitle
 \begin{abstract}
-This paper considers the challenge of enabling agents to learn with as little domain specific knowledge as possible. The main contribution is HyperNEAT-GGP, a HyperNEAT based approach to playing general Atari games using a visual representation of the game screen. By leveraging the geometric regularities present in the Atari game screen, HyperNEAT effectively evolves policies for playing two different Atari games, Asterix and Freeway. Results show that HyperNEAT-GGP outperforms existing benchmarks on these games. HyperNEAT-GGP represents a step towards the ambitious goal of creating an agent capable of learning and seamlessly transitioning between many different tasks.
+This paper considers the challenge of enabling agents to learn with as little domain-specific knowledge as possible. The main contribution is HyperNEAT-GGP, a HyperNEAT based approach to playing general Atari games using a visual representation of the game screen. By leveraging the geometric regularities present in the Atari game screen, HyperNEAT effectively evolves policies for playing two different Atari games, Asterix and Freeway. Results show that HyperNEAT-GGP outperforms existing benchmarks on these games. HyperNEAT-GGP represents a step towards the ambitious goal of creating an agent capable of learning and seamlessly transitioning between many different tasks.
 \end{abstract}
 
 % A category with the (minimum) three required fields
@@ -157,9 +157,11 @@ This paper considers the challenge of enabling agents to learn with as little do
 %% \keywords{ACM proceedings, \LaTeX, text tagging} % NOT required for Proceedings
 
 \section{Introduction}
-Games have long been considered a fruitful domain for the study of AI. Seminal work on game playing includes Samuel's checkers playing program\cite{samuel_59} and Tesauro's TD-Gammon\cite{tesauro_94}. The allure of games lies in the fact that they represent problems challenging enough to interest humans yet abstract enough to be easily captured and modeled inside of computer programs. Many traditional games such as Chess, Checkers, and Backgammon already have AI agents capable of outperforming human experts. However, new games are continually being created, many of which now incorporate sophisticated graphics and realistic physics. This work focuses on Atari 2600 games, a middle ground between classic board games and newer, graphically intensive video games. Atari games, like traditional board games, provide opportunities for agents to benefit from a solid understanding of the game's dynamics and allow for careful planning. At the same time these games, like modern video games, incorporate reasonably complex visual representations that need to be processed and interpreted.
+A major challenge for AI is to develop agents that can learn and perform many different tasks. To this end, this paper aims at developing a learning agent capable of playing a large number of games with as little domain specific knowledge as possible. Famous game playing AI systems such as Deep Blue for chess, Watson for Jeopardy, and TD-Gammon for backgammon~\cite{tesauro_94} all demonstrate that with enough manpower and ingenuity it is possible to tackle AI challenges that may have previously seemed insurmountable. Unlike these game intelligences which were created and tuned specifically for a single task, the game playing agent described herein must be general enough to tackle many different Atari 2600 games.
 
-The aim of this work is to develop a learning agent capable of playing a large number of games with as little domain specific knowledge as possible. Famous game playing AI systems such as Deep Blue for chess, Watson for Jeopardy, and TD-Gammon for backgammon all demonstrate that with enough manpower and ingenuity it is possible to tackle AI challenges that may have previously seemed insurmountable. Unlike these game intelligences which were created and tuned specifically for a single task, the game playing agent described herein must be general enough to tackle many different Atari 2600 games. Dynamics of these games vary wildly from Checkers to Space Invaders, necessitating the use of general learning algorithms.
+This work focuses on Atari 2600 games, a middle ground between classic board games and newer, graphically intensive video games. Atari games, like traditional board games, provide opportunities for agents to benefit from a solid understanding of the game's dynamics and allow for careful planning. At the same time these games, like modern video games, incorporate reasonably complex visual representations that need to be processed and interpreted. Dynamics of these games vary wildly from Checkers to Space Invaders, necessitating the use of general learning algorithms.
+
+%Games have long been considered a fruitful domain for the study of AI. Seminal work on game playing includes Samuel's checkers playing program\cite{samuel_59} and Tesauro's TD-Gammon. The allure of games lies in the fact that they represent problems challenging enough to interest humans yet abstract enough to be easily captured and modeled inside of computer programs. Many traditional games such as Chess, Checkers, and Backgammon already have AI agents capable of outperforming human experts. However, new games are continually being created, many of which now incorporate sophisticated graphics and realistic physics. 
 
 Despite the variability of game dynamics, all Atari games share a standard interface designed for humans to interact with and enjoy. Game state is conveyed to the player through a 2D game screen, and in response, the player controls game elements by manipulating a four-directional joystick and a single button. This standard interface, combined with the large number of available games, makes Atari a convenient platform for AI researchers. 
 
