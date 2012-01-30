@@ -10,6 +10,7 @@ errorbarStep = 25
 filenames = ['champion','average']
 legend = ['Champion Fitness', 'Average Fitness']
 colors = ['r', 'b']
+styles = ['-','--']
 linewidth = 2
 
 plt.figure()
@@ -17,6 +18,7 @@ for file_number in range(len(filenames)):
 
   filename = filenames[file_number]
   color = colors[file_number]
+  style = styles[file_number]
   legend_val = legend[file_number]
 
   generations = []
@@ -58,7 +60,7 @@ for file_number in range(len(filenames)):
     #print [row+1, numpy.mean(values[row]), numpy.std(values[row])]
 
   plt.errorbar(generations_error,means_error,yerr=stddev_error,fmt=None,ecolor=color,label='_nolegend_',linewidth=linewidth,capsize=2*linewidth,mew=linewidth)
-  plt.plot(generations, means, color+'-', label=legend_val, linewidth=linewidth)
+  plt.plot(generations, means, color+style, label=legend_val, linewidth=linewidth)
 plt.legend()
 plt.xlim(0,255)
 plt.ylim(0,35)
