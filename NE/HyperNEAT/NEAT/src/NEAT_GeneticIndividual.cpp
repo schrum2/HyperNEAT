@@ -213,7 +213,9 @@ namespace NEAT
         }
         while ( linkElementPtr!=NULL );
 
-		isValid();
+	if (!isValid()) {
+          cout << "Encountered Invalid Individual. Species Id: " << speciesID << endl;
+        }
     }
 
     GeneticIndividual::GeneticIndividual(istream &istr)
@@ -1309,43 +1311,43 @@ namespace NEAT
         return stream;
     }
 
-	bool GeneticIndividual::isValid()
-	{
-		for(int a=0;a<(int)nodes.size();a++)
-		{
-			if(
-				iequals(nodes[a].getType(),"NetworkOutputNode")==false &&
-				iequals(nodes[a].getType(),"NetworkSensor")==false
-				)
-			{
-				//Hidden nodes should have an incoming and outgoing connection
-				bool hasIncoming=false;
-				bool hasOutgoing=false;
-				for(int b=0;b<(int)links.size();b++)
-				{
-					if(links[b].getFromNodeID() == nodes[a].getID())
-					{
-						hasOutgoing = true;
-					}
-					else if(links[b].getToNodeID() == nodes[a].getID())
-					{
-						hasIncoming = true;
-					}
-				}
+  bool GeneticIndividual::isValid()
+  {
+    for(int a=0;a<(int)nodes.size();a++)
+      {
+        if(
+           iequals(nodes[a].getType(),"NetworkOutputNode")==false &&
+           iequals(nodes[a].getType(),"NetworkSensor")==false
+           )
+          {
+            //Hidden nodes should have an incoming and outgoing connection
+            bool hasIncoming=false;
+            bool hasOutgoing=false;
+            for(int b=0;b<(int)links.size();b++)
+              {
+                if(links[b].getFromNodeID() == nodes[a].getID())
+                  {
+                    hasOutgoing = true;
+                  }
+                else if(links[b].getToNodeID() == nodes[a].getID())
+                  {
+                    hasIncoming = true;
+                  }
+              }
 
-				if(!hasIncoming)
-				{
-					cout << "GENETIC INDIVIDUAL HAS NO INCOMING\n";
-					return false;
-				}
-				if(!hasOutgoing)
-				{
-					cout << "GENETIC INDIVIDUAL HAS NO OUTGOING\n";
-					return false;
-				}
-			}
-		}
+            if(!hasIncoming)
+              {
+                cout << "GENETIC INDIVIDUAL HAS NO INCOMING\n";
+                return false;
+              }
+            if(!hasOutgoing)
+              {
+                cout << "GENETIC INDIVIDUAL HAS NO OUTGOING\n";
+                return false;
+              }
+          }
+      }
 
-		return true;
-	}
+    return true;
+  }
 }

@@ -967,16 +967,16 @@ void SelfDetectionAgent::merge_objects(float similarity_threshold) {
     obj_classes.erase(obj_classes.begin() + prototypes_to_erase[i]);
   }
 
-  std::cout << "Active Prototypes: " << obj_classes.size() << std::endl;
-  for (int i=0; i<obj_classes.size(); ++i) {
-    Prototype& p = obj_classes[i];
-    if (p.is_valid) {
-      std::cout << " #";
-    } else {
-      std::cout << "  ";
-    }
-    std::cout << p.id << " " << p.value << " " << p.seen_count << " " << p.times_seen_this_frame << " " << p.frames_since_last_seen << std::endl;
-  }
+  // std::cout << "Active Prototypes: " << obj_classes.size() << std::endl;
+  // for (int i=0; i<obj_classes.size(); ++i) {
+  //   Prototype& p = obj_classes[i];
+  //   if (p.is_valid) {
+  //     std::cout << " #";
+  //   } else {
+  //     std::cout << "  ";
+  //   }
+  //   std::cout << p.id << " " << p.value << " " << p.seen_count << " " << p.times_seen_this_frame << " " << p.frames_since_last_seen << std::endl;
+  // }
   
 };
 
