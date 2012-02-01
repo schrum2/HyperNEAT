@@ -200,52 +200,35 @@ namespace HCUBE
 
   void ExperimentRun::createPopulationFromCondorRun(string populationFile, string fitnessFunctionPrefix,
                                                     string evaluationFile) {
-    cout << "[HyperNEAT core] Creating population from file...\n";
     createPopulation(populationFile);
-
-    /*
-      cout << "[HyperNEAT core] Obtaining fitness values...\n";
-
-      map<int, float> fitness;
-      ifstream fin(fitnessFunctionFile.c_str());
-      while (!fin.eof()) {
-      int individualId;
-      float individualFitness;
-      fin >> individualId >> individualFitness;
-      fitness[individualId] = individualFitness;     
-      }
-      fin.close();
-      for (int a = 0; a < population->getIndividualCount(); a++) {
-      if (fitness.find(a) == fitness.end())
-      fitness[a] = 10;
-      } 
-    */
-      
-    cout << "[HyperNEAT core] Setting fitness values...\n";
 
     // Iterate all individuals to set fitness values
     vector<shared_ptr<NEAT::GeneticIndividual> >::iterator tmpIterator =
       population->getIndividualIterator(0);
 
+    // Read the Individual fitness files and remove once read
     for (int a = 0; a < population->getIndividualCount(); a++, tmpIterator++) {
       string individualFile =
         fitnessFunctionPrefix + boost::lexical_cast<string>(a);
       ifstream fin(individualFile.c_str());
       if (fin.fail()) {
+        cout << "Failed to read individual fitness. Setting fitness to 10." << endl;
         (*tmpIterator)->setFitness(10);
       } else {
         float fitness;
         fin >> fitness;
         (*tmpIterator)->setFitness(fitness);
       }
+      // Delete the file
+      if (remove(individualFile.c_str()) != 0) {
+        perror("Error deleting file");
+      }
     }
-      
-    cout << "[HyperNEAT core] Adjusting fitness values...\n";
+
     population->adjustFitness();
 
     population->dumpBest(evaluationFile, true, true);
 
-    cout << "[HyperNEAT core] Resetting generation data...\n";
     shared_ptr<NEAT::GeneticGeneration> generation = population->getGeneration();
     experiments[0]->resetGenerationData(generation);
 
