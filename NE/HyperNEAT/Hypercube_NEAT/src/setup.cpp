@@ -26,18 +26,16 @@ int HyperNEAT_main(int argc,char **argv) {
       commandLineParser.HasSwitch("-O")) {
 
     NEAT::Globals::init(commandLineParser.GetSafeArgument("-I",0,"input.dat"));
+
+    // Has the user specified a random seed?
     if (commandLineParser.HasSwitch("-R")) {
       NEAT::Globals::getSingleton()->seedRandom(stringTo<unsigned int>(commandLineParser.GetSafeArgument("-R",0,"0")));
     }
 
     int experimentType = int(NEAT::Globals::getSingleton()->getParameterValue("ExperimentType") + 0.001);
-
-    cout << "[HyperNEAT core] Loading Experiment: " << experimentType << endl;
     HCUBE::ExperimentRun experimentRun;
-    experimentRun.setupExperiment(experimentType, commandLineParser.GetSafeArgument("-O",0,"output.xml"));
 
-    cout << "[HyperNEAT core] Experiment set up\n";
-    
+    // Is this an experiment in progress? If so we should load the current experiment
     if (commandLineParser.HasSwitch("-P") &&
         commandLineParser.HasSwitch("-F") &&
         commandLineParser.HasSwitch("-E")) {
@@ -45,9 +43,13 @@ int HyperNEAT_main(int argc,char **argv) {
       string fitnessFunctionPrefix = commandLineParser.GetSafeArgument("-F",0,"fitness.0.");
       string evaluationFile = commandLineParser.GetSafeArgument("-E",0,"evaluation.xml");
       cout << "[HyperNEAT core] Population for existing generation created from: " << populationFile << endl;
+
+      experimentRun.setupExperimentInProgress(populationFile,commandLineParser.GetSafeArgument("-O",0,"output.xml"));
       experimentRun.createPopulationFromCondorRun(populationFile, fitnessFunctionPrefix, evaluationFile);
     } else {
       cout << "[HyperNEAT core] Population for first generation created\n";
+
+      experimentRun.setupExperiment(experimentType, commandLineParser.GetSafeArgument("-O",0,"output.xml"));
       experimentRun.createPopulation();
     }
     experimentRun.setCleanup(true);
