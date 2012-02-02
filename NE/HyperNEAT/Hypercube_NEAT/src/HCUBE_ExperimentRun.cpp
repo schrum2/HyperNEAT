@@ -62,7 +62,7 @@ namespace HCUBE
     populationMutex(new mutex()),
     frame(NULL)
   {
-    cout << "Creating experiment run" << endl;
+    //cout << "Creating experiment run" << endl;
   }
 
   ExperimentRun::~ExperimentRun()
@@ -198,7 +198,8 @@ namespace HCUBE
 
   }
 
-  void ExperimentRun::createPopulationFromCondorRun(string populationFile, string fitnessFunctionPrefix,
+  void ExperimentRun::createPopulationFromCondorRun(string populationFile,
+                                                    string fitnessFunctionPrefix,
                                                     string evaluationFile) {
     createPopulation(populationFile);
 

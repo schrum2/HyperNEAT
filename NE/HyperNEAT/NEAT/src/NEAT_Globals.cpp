@@ -306,10 +306,10 @@ namespace NEAT
 
 	void Globals::cacheParameters()
 	{
-		cout << "ExtraActivationUpdates" << endl;
+          //cout << "ExtraActivationUpdates" << endl;
         extraActivationUpdates = int(getParameterValue("ExtraActivationUpdates"));
 
-		cout << "SignedActivation" << endl;
+        //cout << "SignedActivation" << endl;
 		if(getParameterValue("SignedActivation")>0.5)
 		{
 			signedActivation = true;
@@ -319,7 +319,7 @@ namespace NEAT
 			signedActivation = false;
 		}
 
-		cout << "UseTanhSigmoid" << endl;
+		//cout << "UseTanhSigmoid" << endl;
 		if(hasParameterValue("UseTanhSigmoid") && getParameterValue("UseTanhSigmoid")>0.5)
 		{
 			useTanhSigmoid = true;

@@ -172,12 +172,12 @@ END_OF_CONDORFILE
     lastJobsRemain = jobsRemain
     totalWaitTime = totalWaitTime + $sleepTime
     if (totalWaitTime > $maxWaitTime)
+      print "Exceeded max wait time of #{maxWaitTime}. Ending jobs.\n"
       break
     end
-    
   end
   # clean up remaining jobs
-#  system("condor_rm #{$user}")
+  system("condor_rm #{$user}")
   sleep $sleepTime
 end
 
@@ -198,6 +198,7 @@ while generate_result == false
   generate_result = system("#{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results/generation0.xml")
 end
 
+# Main generational loop
 (0..$maxIter).each do |gen|
   print "\n\n"
 
@@ -212,7 +213,6 @@ end
   while (found.size == 0 || remaining.size > $minJobs)
     retries = retries + 1
     Dir[$experimentbase + "/results/fitness.#{gen}.*"].each do |file|
-      foo = false 
       file =~ /.([0-9]+)$/
       found << $1.to_i
     end
@@ -224,12 +224,6 @@ end
       run_on_condor(gen, remaining, 0, retries, local)
     end
   end
-
-
-  ######################################
-  ######################################
-  ######################################
-
 
   #now generate a new pop:
   generate_result = system("#{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results/generation#{gen+1}.xml -P #{$experimentbase}/results/generation#{gen}.xml.gz -F #{$experimentbase}/results/fitness.#{gen}. -E #{$experimentbase}/results/generation#{gen}.eval.xml")

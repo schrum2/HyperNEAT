@@ -6,15 +6,15 @@ $sleepTime = 5
 
 # Kill off remaining condor jobs if this many seconds have
 # passed without any jobs completing.
-$maxWaitTime = 300
+$maxWaitTime = 1800
 
 # continue to the next iteration when no more than this number 
 # of policies have not yet been successfully evaluated
-$minJobs = 0.20*$numInds
+$minJobs = 0 #0.20*$numInds
 
 # kill off remaining condor jobs when no more than this number 
 # remain.  keeps slow jobs from choking our system
-$minCondorJobs = 0.10*$numInds
+$minCondorJobs = 0 #0.10*$numInds
 
 # number of instances to run on local computer (iteratively)
 $localCount = 0 
