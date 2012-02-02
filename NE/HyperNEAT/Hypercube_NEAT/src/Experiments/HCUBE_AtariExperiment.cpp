@@ -85,8 +85,8 @@ namespace HCUBE
 
     populateSubstrate(individual);
 
-    individual->reward(100);
-    //runAtariEpisode(individual);
+    //individual->reward(100);
+    runAtariEpisode(individual);
   }
 
   void AtariExperiment::runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual) {

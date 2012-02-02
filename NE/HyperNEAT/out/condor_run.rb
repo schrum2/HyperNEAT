@@ -177,7 +177,7 @@ END_OF_CONDORFILE
     end
   end
   # clean up remaining jobs
-  system("condor_rm #{$user}")
+  #system("condor_rm #{$user}")
   sleep $sleepTime
 end
 
