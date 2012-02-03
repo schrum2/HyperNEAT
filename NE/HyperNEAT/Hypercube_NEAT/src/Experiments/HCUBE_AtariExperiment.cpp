@@ -91,7 +91,7 @@ namespace HCUBE
 
   void AtariExperiment::runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual) {
     // Initialize Atari Stuff 
-    initializeEmulator();
+    initializeEmulator("../ale_v0.1/roms/asterix.bin",false);
     MediaSource &mediasrc = theOSystem->console().mediaSource();
     int pixel_screen_width = mediasrc.width();
     int pixel_screen_height = mediasrc.height();

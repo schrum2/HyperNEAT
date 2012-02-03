@@ -21,7 +21,7 @@ void cleanup() {
   }
 }
 
-void initializeEmulator() {
+void initializeEmulator(string rom_file, bool display_screen) {
   int argc = 6;
   char** argv = new char*[argc];
   for (int i=0; i<=argc; i++) {
@@ -31,8 +31,13 @@ void initializeEmulator() {
   strcpy(argv[1],"-player_agent");
   strcpy(argv[2],"self_detection_agent");
   strcpy(argv[3],"-display_screen");
-  strcpy(argv[4],"false");
-  strcpy(argv[5],"../ale_v0.1/roms/asterix.bin");  
+  if (display_screen)
+    strcpy(argv[4],"true");
+  else
+    strcpy(argv[4],"false");
+
+  //strcpy(argv[5],"../ale_v0.1/roms/asterix.bin");
+  strcpy(argv[5],rom_file.c_str());  
 
   cout << str_welcome << endl;
   theOSystem = new OSystemUNIX();
@@ -128,65 +133,65 @@ void display_screen(const IntMatrix& pm_screen_matrix) {
   remove(filename.str().c_str());
 };
 
-int test(int argc, char* argv[]) {
-  initializeEmulator();
+// int test(int argc, char* argv[]) {
+//   initializeEmulator();
 
-  // Media assets
-  MediaSource& mediasrc = theOSystem->console().mediaSource();
-  int screen_width = mediasrc.width();
-  int screen_height = mediasrc.height();
-  IntMatrix pm_screen_matrix; // 2D Matrix containing screen pixel colors
-  for (int i=0; i<screen_height; ++i) { // Initialize our matrix
-    IntVect row;
-    for (int j=0; j<screen_width; ++j)
-      row.push_back(-1);
-    pm_screen_matrix.push_back(row);
-  }
+//   // Media assets
+//   MediaSource& mediasrc = theOSystem->console().mediaSource();
+//   int screen_width = mediasrc.width();
+//   int screen_height = mediasrc.height();
+//   IntMatrix pm_screen_matrix; // 2D Matrix containing screen pixel colors
+//   for (int i=0; i<screen_height; ++i) { // Initialize our matrix
+//     IntVect row;
+//     for (int j=0; j<screen_width; ++j)
+//       row.push_back(-1);
+//     pm_screen_matrix.push_back(row);
+//   }
 
-  InternalController* controller = (InternalController*) theOSystem->getGameController();
-  SelfDetectionAgent* self_detection_agent = (SelfDetectionAgent*) controller->getPlayerAgentLeft();
-  GameSettings* game_settings = controller->getGameSettings();
+//   InternalController* controller = (InternalController*) theOSystem->getGameController();
+//   SelfDetectionAgent* self_detection_agent = (SelfDetectionAgent*) controller->getPlayerAgentLeft();
+//   GameSettings* game_settings = controller->getGameSettings();
 
-  // Main Loop
-  int skip_frames_num = game_settings->i_skip_frames_num;
-  int frame_skip_ctr = 0;
-  Action action = RESET;
-  time_start = time(NULL);
-  for (int frame=0; frame<100000; frame++) {
-    if (frame_skip_ctr++ >= skip_frames_num) {
-      frame_skip_ctr = 0;
+//   // Main Loop
+//   int skip_frames_num = game_settings->i_skip_frames_num;
+//   int frame_skip_ctr = 0;
+//   Action action = RESET;
+//   time_start = time(NULL);
+//   for (int frame=0; frame<100000; frame++) {
+//     if (frame_skip_ctr++ >= skip_frames_num) {
+//       frame_skip_ctr = 0;
 
-      // Get the latest screen
-      int ind_i, ind_j;
-      uInt8* pi_curr_frame_buffer = mediasrc.currentFrameBuffer();
-      for (int i = 0; i < screen_width * screen_height; i++) {
-        uInt8 v = pi_curr_frame_buffer[i];
-        ind_i = i / screen_width;
-        ind_j = i - (ind_i * screen_width);
-        pm_screen_matrix[ind_i][ind_j] = v;
-      }
+//       // Get the latest screen
+//       int ind_i, ind_j;
+//       uInt8* pi_curr_frame_buffer = mediasrc.currentFrameBuffer();
+//       for (int i = 0; i < screen_width * screen_height; i++) {
+//         uInt8 v = pi_curr_frame_buffer[i];
+//         ind_i = i / screen_width;
+//         ind_j = i - (ind_i * screen_width);
+//         pm_screen_matrix[ind_i][ind_j] = v;
+//       }
 
-      // Get the object representation
-      self_detection_agent->process_image(&pm_screen_matrix, action);
+//       // Get the object representation
+//       self_detection_agent->process_image(&pm_screen_matrix, action);
 
-      // Choose Action
-      if (frame <5) action = RESET;
-      else action = PLAYER_A_UP;
+//       // Choose Action
+//       if (frame <5) action = RESET;
+//       else action = PLAYER_A_UP;
 
-      // Display the screen
-      display_screen(pm_screen_matrix);
-    }
+//       // Display the screen
+//       display_screen(pm_screen_matrix);
+//     }
 
-    // Apply action to simulator and update the simulator
-    theOSystem->applyAction(action);
+//     // Apply action to simulator and update the simulator
+//     theOSystem->applyAction(action);
 
-    if (frame % 1000 == 0) {
-      time_end = time(NULL);
-      double avg = ((double)frame)/(time_end - time_start);
-      cerr << "Average main loop iterations per sec = " << avg << endl;
-    }
-  }
+//     if (frame % 1000 == 0) {
+//       time_end = time(NULL);
+//       double avg = ((double)frame)/(time_end - time_start);
+//       cerr << "Average main loop iterations per sec = " << avg << endl;
+//     }
+//   }
 
-  cleanup();
-  return 0;
-}
+//   cleanup();
+//   return 0;
+// }
