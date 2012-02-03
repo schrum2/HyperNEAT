@@ -659,9 +659,113 @@ ADD_EXECUTABLE(
 	src/evaluate.cpp
 	)
 
+ADD_EXECUTABLE(
+	atari_visualize
+  ../ale_v0.1/src/emucore/AtariVox.o
+  ../ale_v0.1/src/emucore/Booster.o
+  ../ale_v0.1/src/emucore/Cart2K.o
+  ../ale_v0.1/src/emucore/Cart3F.o
+  ../ale_v0.1/src/emucore/Cart3E.o
+  ../ale_v0.1/src/emucore/Cart4A50.o
+  ../ale_v0.1/src/emucore/Cart4K.o
+  ../ale_v0.1/src/emucore/CartAR.o
+  ../ale_v0.1/src/emucore/CartCV.o
+  ../ale_v0.1/src/emucore/Cart.o
+  ../ale_v0.1/src/emucore/CartDPC.o
+  ../ale_v0.1/src/emucore/CartE0.o
+  ../ale_v0.1/src/emucore/CartE7.o
+  ../ale_v0.1/src/emucore/CartF4.o
+  ../ale_v0.1/src/emucore/CartF4SC.o
+  ../ale_v0.1/src/emucore/CartF6.o
+  ../ale_v0.1/src/emucore/CartF6SC.o
+  ../ale_v0.1/src/emucore/CartF8.o
+  ../ale_v0.1/src/emucore/CartF8SC.o
+  ../ale_v0.1/src/emucore/CartFASC.o
+  ../ale_v0.1/src/emucore/CartFE.o
+  ../ale_v0.1/src/emucore/CartMB.o
+  ../ale_v0.1/src/emucore/CartMC.o
+  ../ale_v0.1/src/emucore/CartUA.o
+  ../ale_v0.1/src/emucore/Cart0840.o
+  ../ale_v0.1/src/emucore/Console.o
+  ../ale_v0.1/src/emucore/Control.o
+  ../ale_v0.1/src/emucore/Deserializer.o
+  ../ale_v0.1/src/emucore/Driving.o
+  ../ale_v0.1/src/emucore/Event.o
+  ../ale_v0.1/src/emucore/FSNode.o
+  ../ale_v0.1/src/emucore/Joystick.o
+  ../ale_v0.1/src/emucore/Keyboard.o
+  ../ale_v0.1/src/emucore/M6532.o
+  ../ale_v0.1/src/emucore/MD5.o
+  ../ale_v0.1/src/emucore/MediaSrc.o
+  ../ale_v0.1/src/emucore/OSystem.o
+  ../ale_v0.1/src/emucore/Paddles.o
+  ../ale_v0.1/src/emucore/Props.o
+  ../ale_v0.1/src/emucore/PropsSet.o
+  ../ale_v0.1/src/emucore/Random.o
+  ../ale_v0.1/src/emucore/Serializer.o
+  ../ale_v0.1/src/emucore/Settings.o
+  ../ale_v0.1/src/emucore/SpeakJet.o
+  ../ale_v0.1/src/emucore/Switches.o
+  ../ale_v0.1/src/emucore/TIA.o
+  ../ale_v0.1/src/emucore/TIASnd.o
+  ../ale_v0.1/src/emucore/unzip.o
+  ../ale_v0.1/src/emucore/m6502/src/Device.o
+  ../ale_v0.1/src/emucore/m6502/src/M6502.o
+  ../ale_v0.1/src/emucore/m6502/src/M6502Low.o
+  ../ale_v0.1/src/emucore/m6502/src/M6502Hi.o
+  ../ale_v0.1/src/emucore/m6502/src/NullDev.o
+  ../ale_v0.1/src/emucore/m6502/src/System.o
+  ../ale_v0.1/src/common/SoundNull.o
+  ../ale_v0.1/src/common/export_screen.o
+  ../ale_v0.1/src/common/display_screen.o
+  ../ale_v0.1/src/common/vector_matrix_tools.o
+  ../ale_v0.1/src/control/fifo_controller.o
+  ../ale_v0.1/src/control/game_controller.o
+  ../ale_v0.1/src/control/internal_controller.o
+  ../ale_v0.1/src/os_dependent/FSNodePOSIX.o
+  ../ale_v0.1/src/os_dependent/OSystemUNIX.o
+  ../ale_v0.1/src/os_dependent/SettingsUNIX.o
+  ../ale_v0.1/src/player_agents/game_settings.o
+  ../ale_v0.1/src/player_agents/player_agent.o
+  ../ale_v0.1/src/player_agents/random_agent.o
+  ../ale_v0.1/src/player_agents/rl_sarsa_lambda.o
+  ../ale_v0.1/src/player_agents/tiles2.o
+  ../ale_v0.1/src/player_agents/mountain_car_test.o
+  ../ale_v0.1/src/player_agents/ram_agent.o
+  ../ale_v0.1/src/player_agents/class_agent.o
+  ../ale_v0.1/src/player_agents/blob_object.o
+  ../ale_v0.1/src/player_agents/class_shape.o
+  ../ale_v0.1/src/player_agents/single_action_agent.o
+  ../ale_v0.1/src/player_agents/common_constants.o
+  ../ale_v0.1/src/player_agents/freeway_agent.o
+  ../ale_v0.1/src/player_agents/background_detector.o
+  ../ale_v0.1/src/player_agents/class_discovery.o
+  ../ale_v0.1/src/player_agents/region_manager.o
+  ../ale_v0.1/src/player_agents/shape_tools.o
+  ../ale_v0.1/src/player_agents/blob_class.o
+  ../ale_v0.1/src/player_agents/grid_screen_agent.o
+  ../ale_v0.1/src/player_agents/search_agent.o
+  ../ale_v0.1/src/player_agents/tree_node.o
+  ../ale_v0.1/src/player_agents/search_tree.o
+  ../ale_v0.1/src/player_agents/full_search_tree.o
+  ../ale_v0.1/src/player_agents/uct_search_tree.o
+  ../ale_v0.1/src/player_agents/actions_summary_agent.o
+  ../ale_v0.1/src/player_agents/bass_agent.o
+  ../ale_v0.1/src/player_agents/self_detection_agent.o
+  ../ale_v0.1/src/player_agents/models/model.o
+  ../ale_v0.1/src/player_agents/models/baseline_model.o
+  ../ale_v0.1/src/player_agents/models/block_grid.o
+  ../ale_v0.1/src/player_agents/models/freeway_model.o
+  ../ale_v0.1/src/player_agents/models/basic_dbn.o
+  ../ale_v0.1/src/player_agents/planners/node.o
+  ../ale_v0.1/src/player_agents/planners/uct.o
+	src/visualize.cpp
+	)
+
 #SET_TARGET_PROPERTIES(Hypercube_NEAT PROPERTIES DEBUG_POSTFIX _d)
 SET_TARGET_PROPERTIES(atari_generate PROPERTIES DEBUG_POSTFIX _d)
 SET_TARGET_PROPERTIES(atari_evaluate PROPERTIES DEBUG_POSTFIX _d)
+SET_TARGET_PROPERTIES(atari_visualize PROPERTIES DEBUG_POSTFIX _d)
 
 SET(
 	BOOST_LIB_EXT_NAME_DEBUG
@@ -837,6 +941,77 @@ TARGET_LINK_LIBRARIES(
 )
 
 TARGET_LINK_LIBRARIES(
+	atari_visualize
+
+	debug
+	Hypercube_NEAT_Base_d
+
+	optimized
+	Hypercube_NEAT_Base
+		
+	debug
+	ClicheLib_d
+		
+	optimized
+	ClicheLib
+
+	debug
+	CakeFixedDepthLib_d
+	
+	optimized
+	CakeFixedDepthLib
+
+	debug
+	NEATLib_d
+
+	optimized
+	NEATLib
+	
+	debug
+	tinyxmlpluslib_d
+
+	optimized
+	tinyxmlpluslib
+
+	debug
+	zlib_d
+	
+	optimized
+	zlib
+
+	debug
+	board_d
+
+	optimized
+	board
+
+	debug
+	FuegoLib_d
+	
+	optimized
+	FuegoLib
+
+	debug
+	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_DEBUG}
+
+	optimized
+	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_RELEASE}
+
+	debug
+	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_DEBUG}
+
+	optimized
+	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_RELEASE}
+
+	debug
+	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_DEBUG}
+
+	optimized
+	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_RELEASE}
+)
+
+
+TARGET_LINK_LIBRARIES(
 	atari_generate
 
 	SDL
@@ -849,6 +1024,17 @@ TARGET_LINK_LIBRARIES(
 
 TARGET_LINK_LIBRARIES(
 	atari_evaluate
+
+	SDL
+	SDL_gfx
+	SDL_image
+	boost_thread-mt
+	boost_serialization
+	ncurses
+)
+
+TARGET_LINK_LIBRARIES(
+	atari_visualize
 
 	SDL
 	SDL_gfx

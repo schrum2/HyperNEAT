@@ -5,6 +5,7 @@
 # include "HCUBE_MainApp.h"
 #endif
 
+#include "Experiments/HCUBE_AtariExperiment.h"
 #include "HCUBE_ExperimentRun.h"
 
 #ifndef HCUBE_NOGUI
@@ -22,10 +23,11 @@ int HyperNEAT_main(int argc,char **argv) {
  
   CommandLineParser commandLineParser(argc,argv);
 
-  if (commandLineParser.HasSwitch("-I") &&
-      commandLineParser.HasSwitch("-F") &&
-      commandLineParser.HasSwitch("-P") &&
-      commandLineParser.HasSwitch("-N")) {
+  if (commandLineParser.HasSwitch("-I") &&  // Experiment params
+      commandLineParser.HasSwitch("-P") &&  // Population file
+      commandLineParser.HasSwitch("-N") &&  // Individual number
+      commandLineParser.HasSwitch("-G"))    // Rom file
+    {
 
     NEAT::Globals::init(commandLineParser.GetSafeArgument("-I",0,"input.dat"));
     if (commandLineParser.HasSwitch("-R")) {
@@ -43,16 +45,14 @@ int HyperNEAT_main(int argc,char **argv) {
     experimentRun.createPopulation(populationFile);
     unsigned int individualId = stringTo<unsigned int>(commandLineParser.GetSafeArgument("-N",0,"0"));
 
-    cout << "[HyperNEAT core] Evaluating individual: " << individualId << endl;
+    cout << "[HyperNEAT core] Visualizing individual: " << individualId << endl;
+    string rom_file = commandLineParser.GetSafeArgument("-G",0,"../ale_v0.1/roms/asterix.bin");
+    boost::shared_ptr<HCUBE::AtariExperiment> exp = boost::static_pointer_cast<HCUBE::AtariExperiment>(experimentRun.getExperiment());
+    exp->setDisplayScreen(true);
+    exp->set_rom(rom_file.c_str());
     float fitness = experimentRun.evaluateIndividual(individualId);
 
-    string individualFitnessFile = 
-        commandLineParser.GetSafeArgument("-F",0,"fitness.0.0");
-    cout << "[HyperNEAT core] Fitness found to be " << fitness << ". Writing to: " << individualFitnessFile << endl;
-    ofstream fout(individualFitnessFile.c_str());
-    fout << fitness << endl;
-    fout.close();
-    cout << "[HyperNEAT core] Individual evaluation fin." << endl;
+    cout << "[HyperNEAT core] Fitness found to be " << fitness << endl;
 
   } else {
     cout << "Syntax for passing command-line options to HyperNEAT (do not actually type '(' or ')' ):\n";
@@ -60,7 +60,6 @@ int HyperNEAT_main(int argc,char **argv) {
     cout << "\t\t(datafile) HyperNEAT experiment data file - typically data/AtariExperiment.dat\n";
     cout << "\t\t(populationfile) current population file containing all the individuals - typically generationXX.xml.gz\n";
     cout << "\t\t(individualId) unsigned int specifying which particular individual from the above population file we are evaluating\n";
-    cout << "\t\t(fitnessFile) fitness value once estimated written to file - typically fitness.XX.individualId\n";
   }
 
   NEAT::Globals::deinit();

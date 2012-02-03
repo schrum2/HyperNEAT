@@ -15,7 +15,8 @@ enum GamePositionValue {
 namespace HCUBE
 {
   AtariExperiment::AtariExperiment(string _experimentName,int _threadID):
-    Experiment(_experimentName,_threadID)
+    Experiment(_experimentName,_threadID), rom_file("../ale_v0.1/roms/asterix.bin"),
+    display_active(false)
   {
     substrate_width = 16;
     substrate_height = 21;
@@ -91,7 +92,8 @@ namespace HCUBE
 
   void AtariExperiment::runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual) {
     // Initialize Atari Stuff 
-    initializeEmulator("../ale_v0.1/roms/asterix.bin",false);
+    //initializeEmulator("../ale_v0.1/roms/asterix.bin",false);
+    initializeEmulator(rom_file.c_str(),display_active);
     MediaSource &mediasrc = theOSystem->console().mediaSource();
     int pixel_screen_width = mediasrc.width();
     int pixel_screen_height = mediasrc.height();
@@ -227,7 +229,8 @@ namespace HCUBE
         }
 
         // Display the screen
-        //display_screen(screen_matrix);
+        if (display_active)
+          display_screen(screen_matrix);
       }
 
       // Apply action to simulator and update the simulator

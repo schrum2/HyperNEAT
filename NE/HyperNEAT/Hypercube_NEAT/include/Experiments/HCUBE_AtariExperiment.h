@@ -16,6 +16,8 @@ namespace HCUBE
     InternalController* controller;
     SelfDetectionAgent* self_detection_agent;
     GameSettings* game_settings;
+    string rom_file;
+    bool display_active;
 
   public:
     NEAT::LayeredSubstrate<float> substrate;
@@ -33,6 +35,8 @@ namespace HCUBE
                               shared_ptr<NEAT::GeneticIndividual> individual);
 
     virtual bool performUserEvaluations() { return false; }
+    void set_rom(string new_rom) { rom_file = new_rom; }
+    void setDisplayScreen(bool disp) { display_active = disp; }
     virtual inline bool isDisplayGenerationResult() { return displayGenerationResult; }
     virtual inline void setDisplayGenerationResult(bool _displayGenerationResult) {
       displayGenerationResult=_displayGenerationResult;
