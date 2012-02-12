@@ -6,16 +6,10 @@
 
 using namespace NEAT;
 
-enum GamePositionValue {
-  EMPTY,
-  CHICKEN,
-  VEHICLE
-};
-
 namespace HCUBE
 {
   AtariExperiment::AtariExperiment(string _experimentName,int _threadID):
-    Experiment(_experimentName,_threadID), rom_file("../ale_v0.1/roms/asterix.bin"),
+    Experiment(_experimentName,_threadID), rom_file(""),
     display_active(false)
   {
     substrate_width = 16;
@@ -91,8 +85,14 @@ namespace HCUBE
   }
 
   void AtariExperiment::runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual) {
+    // Check that rom exists and is readable
+    ifstream file(rom_file.c_str());
+    if (!file.good()) {
+      cerr << "Unable to find or open rom file: \"" << rom_file << "\"" << endl;
+      exit(-1);
+    }
+
     // Initialize Atari Stuff 
-    //initializeEmulator("../ale_v0.1/roms/asterix.bin",false);
     initializeEmulator(rom_file.c_str(),display_active);
     MediaSource &mediasrc = theOSystem->console().mediaSource();
     int pixel_screen_width = mediasrc.width();

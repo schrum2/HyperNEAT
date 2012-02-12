@@ -127,7 +127,7 @@ END_OF_CONDORFILE
       "Output = /dev/null\n" + 
       "Log = /dev/null\n"
     end
-    condorContents = condorContents + "arguments = -I #{dataFile} -P #{populationFile} -N #{individualId} -F #{fitnessFile}\n" + 
+    condorContents = condorContents + "arguments = -I #{dataFile} -P #{populationFile} -N #{individualId} -F #{fitnessFile} -G #{rom_path}\n" + 
       "Queue 1"
   end
 
@@ -150,7 +150,7 @@ END_OF_CONDORFILE
     individualId = "#{i}";
     
     # run our local one while we wait
-    system("#{$run_path} -I #{dataFile} -P #{populationFile} -I #{individualId} -F #{fitnessFile}")
+    system("#{$run_path} -I #{dataFile} -P #{populationFile} -I #{individualId} -F #{fitnessFile} -G #{rom_path}")
   end
   
   #wait for jobs to return

@@ -1,3 +1,3 @@
 #!/bin/sh
 
-./atari_evaluate -I data/AtariExperiment.dat -P results/generation0.xml.gz -N 0 -F results/fitness.0.0
+./atari_evaluate -I data/AtariExperiment.dat -P results/generation0.xml.gz -N 0 -F results/fitness.0.0 -G ../ale_v0.1/roms/asterix.bin
