@@ -52,6 +52,26 @@ struct point {
   };
 };
 
+/* A swath of color. Used as an intermediate data struct in blob detection. */
+struct swath {
+  int color;
+
+  // Bounding box of swath
+  int x_min, x_max, y_min, y_max; 
+
+  // x,y locations for pixels it contains
+  vector<int> x;
+  vector<int> y;
+
+  swath* parent;
+
+  swath(int _color, int _x, int _y);
+
+  void update_bounding_box(int x, int y);
+
+  void update_bounding_box(swath& other);
+};
+
 /* The blob is a region of contiguous color found in the game screen. */
 struct Blob {
   int color;            // Color of this blob
@@ -170,6 +190,7 @@ class SelfDetectionAgent : public PlayerAgent {
   virtual void display_screen(const IntMatrix& screen_matrix);
 
   void find_connected_components(const IntMatrix& screen_matrix, map<long,Blob>& blobs);
+  void find_connected_components2(const IntMatrix& screen_matrix, map<long,Blob>& blobs);
 
   // Matches blobs found in the current timestep with those from
   // the last time step

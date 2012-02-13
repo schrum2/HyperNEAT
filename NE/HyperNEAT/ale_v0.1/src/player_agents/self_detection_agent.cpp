@@ -12,10 +12,34 @@
 #include "System.hxx"
 #include <limits>
 #include <sstream>
+#include <omp.h>
+
+swath::swath(int _color, int _x, int _y) {
+  color = _color;
+  x_min = numeric_limits<int>::max();
+  x_max = numeric_limits<int>::min();
+  y_min = numeric_limits<int>::max();
+  y_max = numeric_limits<int>::min();
+  x.push_back(_x);
+  y.push_back(_y);
+  parent = NULL;
+};
+
+void swath::update_bounding_box(int x, int y) {
+  x_min = min(x,x_min);
+  y_min = min(y,y_min);
+  x_max = max(x,x_max);
+  y_max = max(y,y_max);
+};
+
+void swath::update_bounding_box(swath& other) {
+    update_bounding_box(other.x_min, other.y_min);
+    update_bounding_box(other.x_max, other.y_max);
+};
 
 Blob::Blob () {
   id = -1;
-}
+};
 
 Blob::Blob (int _color, long _id) {
   color = _color;
@@ -372,32 +396,32 @@ Action SelfDetectionAgent::agent_step(const IntMatrix* screen_matrix,
      action = choice <Action>(p_game_settings->pv_possible_actions);
 
   curr_blobs.clear();
-  find_connected_components(*screen_matrix, curr_blobs);
+  find_connected_components2(*screen_matrix, curr_blobs);
 
   if (blob_hist.size() > 1) {
     find_blob_matches(curr_blobs);
 
     // Merge blobs into objects
-    update_existing_objs();
-    merge_blobs(curr_blobs);
+    // update_existing_objs();
+    // merge_blobs(curr_blobs);
 
-    // Sanitize objects
-    sanitize_objects();
+    // // Sanitize objects
+    // sanitize_objects();
 
-    // Merge objects into classes
-    merge_objects(.96);
+    // // Merge objects into classes
+    // merge_objects(.96);
 
-    // Identify which object we are
-    identify_self();
-    assert(curr_blobs.find(self_id) != curr_blobs.end());
-    Blob& self_blob = curr_blobs[self_id];
+    // // Identify which object we are
+    // identify_self();
+    // assert(curr_blobs.find(self_id) != curr_blobs.end());
+    // Blob& self_blob = curr_blobs[self_id];
 
     // Graphical display stuff
-    for (int y=0; y<screen_height; ++y) {
-      for (int x=0; x<screen_width; ++x) {
-        region_matrix[y][x] = 257;
-      }
-    }
+    // for (int y=0; y<screen_height; ++y) {
+    //   for (int x=0; x<screen_width; ++x) {
+    //     region_matrix[y][x] = 257;
+    //   }
+    // }
 
     // Plot blobs
     // int region_color = 256;
@@ -427,32 +451,32 @@ Action SelfDetectionAgent::agent_step(const IntMatrix* screen_matrix,
     // }
 
     // Plot object classes
-    int region_color = 256;
-    for (int i=0; i<obj_classes.size(); ++i) {
-      Prototype& p = obj_classes[i];
-      if (!p.is_valid)
-        continue;         // Do not display weak prototypes
-      region_color = p.color;
-      for (set<long>::iterator obj_it=p.obj_ids.begin(); obj_it!=p.obj_ids.end(); ++obj_it) {
-        long o_id = *obj_it;
-        assert(composite_objs.find(o_id) != composite_objs.end());
-        CompositeObject& o = composite_objs[o_id];
-        for (set<long>::iterator blob_it=o.blob_ids.begin(); blob_it!=o.blob_ids.end(); ++blob_it) {
-          long b_id = *blob_it;
-          assert(curr_blobs.find(b_id) != curr_blobs.end());
-          Blob& b = curr_blobs[b_id];
-          for (set<point>::iterator point_it=b.mask.begin(); point_it!=b.mask.end(); ++point_it) {
-            point p = *point_it;
-            region_matrix[p.y][p.x] = region_color;
-          }
-        }
-      }
-    }
+    // int region_color = 256;
+    // for (int i=0; i<obj_classes.size(); ++i) {
+    //   Prototype& p = obj_classes[i];
+    //   if (!p.is_valid)
+    //     continue;         // Do not display weak prototypes
+    //   region_color = p.color;
+    //   for (set<long>::iterator obj_it=p.obj_ids.begin(); obj_it!=p.obj_ids.end(); ++obj_it) {
+    //     long o_id = *obj_it;
+    //     assert(composite_objs.find(o_id) != composite_objs.end());
+    //     CompositeObject& o = composite_objs[o_id];
+    //     for (set<long>::iterator blob_it=o.blob_ids.begin(); blob_it!=o.blob_ids.end(); ++blob_it) {
+    //       long b_id = *blob_it;
+    //       assert(curr_blobs.find(b_id) != curr_blobs.end());
+    //       Blob& b = curr_blobs[b_id];
+    //       for (set<point>::iterator point_it=b.mask.begin(); point_it!=b.mask.end(); ++point_it) {
+    //         point p = *point_it;
+    //         region_matrix[p.y][p.x] = region_color;
+    //       }
+    //     }
+    //   }
+    // }
 
-    // Color the self blob
-    for (set<point>::iterator it=self_blob.mask.begin(); it!=self_blob.mask.end(); ++it) {
-      region_matrix[it->y][it->x] = 6;
-    }
+    // // Color the self blob
+    // for (set<point>::iterator it=self_blob.mask.begin(); it!=self_blob.mask.end(); ++it) {
+    //   region_matrix[it->y][it->x] = 6;
+    // }
   }
 
   // Save State and action history
@@ -505,7 +529,148 @@ void SelfDetectionAgent::process_image(const IntMatrix* screen_matrix, Action ac
   }
 };
 
+void SelfDetectionAgent::find_connected_components2(const IntMatrix& screen_matrix, map<long,Blob>& blob_map) {
+  double start = omp_get_wtime();
+  // Pointer to a swatch for each pixel
+  swath* swath_mat[screen_height][screen_width];
+
+  int num_neighbors = 4;
+  int neighbors_y[] = {-1, -1, -1,  0};
+  int neighbors_x[] = {-1,  0,  1, -1};
+  // 1- First Scan
+  int i, j, y, x, color_ind, neighbors_ind;
+  for (i=0; i<screen_height; ++i) {
+    for (j=0; j<screen_width; ++j) {
+      swath* match1 = NULL; // Unique swatch matches
+      swath* match2 = NULL; // there can be only 2 max
+      color_ind = screen_matrix[i][j];
+      // find the region of i,j based on west and north neighbors.
+      for (neighbors_ind = 0; neighbors_ind < num_neighbors; neighbors_ind++) {
+        y = i + neighbors_y[neighbors_ind];
+        x = j + neighbors_x[neighbors_ind];
+        if (x < 0 || x >= screen_width || y < 0 || y >= screen_height)
+          continue;
+        if (screen_matrix[y][x] == color_ind) {
+          swath* match = swath_mat[y][x];
+          while (match->parent != NULL)
+            match = match->parent;
+
+          if (match == match1 || match == match2)
+            continue;
+          else if (match1 == NULL)
+            match1 = match;
+          else if (match2 == NULL)
+            match2 = match;
+          else
+            assert(false);
+        }
+      }
+
+      if (match1 == NULL) { // This pixel is a new region
+        swath* s = new swath(color_ind, j, i); // This may hit performance hard!
+        s->update_bounding_box(j,i);
+        swath_mat[i][j] = s;
+
+      } else if (match2 == NULL) { // This is part of a current region
+        assert(match1->parent == NULL);
+        match1->x.push_back(j);
+        match1->y.push_back(i);
+        match1->update_bounding_box(j,i);
+        swath_mat[i][j] = match1;
+
+      } else { // Multiple matches -- merge regions
+        assert(match1 != NULL && match2 != NULL);
+        // Walk up parent pointers
+        while (match1->parent != NULL)
+          match1 = match1->parent;
+        while (match2->parent != NULL)
+          match2 = match2->parent;
+
+        // Add new pixel to match1
+        match1->x.push_back(j);
+        match1->y.push_back(i);
+        match1->update_bounding_box(j,i);
+        swath_mat[i][j] = match1;
+
+        if (match1 != match2) {
+          match2->parent = match1;
+          match1->update_bounding_box(*match2);
+        }
+      }
+    }
+  }
+
+  // Convert swaths into blobs
+  // map<swath*,long> swath_map;
+  // for (int y=0; y<screen_height; ++y) {
+  //   for (int x=0; x<screen_width; ++x) {
+  //     swath* s = swath_mat[y][x];
+  //     if (swath_map.find(s) != swath_map.end())
+  //       continue;
+
+  //     // Check if some parent of this swath has been blobified
+  //     long blob_parent_id = -1;
+  //     swath *p = swath->parent;
+  //     while (p->parent != NULL) {
+  //       p = p->parent;
+  //       if (swath_map.find(p) != swath_map.end()) {
+  //         blob_parent_id = swath_map[p];
+  //         break;
+  //       }
+  //     }
+
+  //     // If no blob parent is found, create a new blob
+  //     if (blob_parent_id == -1) {
+  //       Blob b(s->color,blob_ids++);
+        
+  //     }
+
+  //     do {
+  //       swath
+  //     } while (s->parent != NULL);
+
+  //     if (swath_map.find(s) == swath_map.end())
+  //       swath_map[s] = region_color++;
+  //     region_matrix[y][x] = swath_map[s];
+  //   }
+  // }
+
+
+  // int region_color = 256;
+  // map<swath*,int> swath_map;
+  // for (int y=0; y<screen_height; ++y) {
+  //   for (int x=0; x<screen_width; ++x) {
+  //     swath* s = swath_mat[y][x];
+  //     while (s->parent != NULL)
+  //       s = s->parent;
+  //     if (swath_map.find(s) == swath_map.end()) {
+  //       swath_map[s] = region_color++;
+  //     }
+  //     region_matrix[y][x] = swath_map[s];
+  //   }
+  // }
+
+  // Populate neighbors
+  // for (int i = 0; i < screen_height; i++) {
+  //   for (int j = 0; j < screen_width; j++) {
+  //     int b_id = blob_matrix[i][j];
+  //     Blob& b = blob_map[b_id];
+  //     if (j+1 < screen_width && b_id != blob_matrix[i][j+1]) {
+  //       b.add_neighbor(blob_matrix[i][j+1]);
+  //       blob_map[blob_matrix[i][j+1]].add_neighbor(b.id);
+  //     }
+  //     if (i+1 < screen_height && b_id != blob_matrix[i+1][j]) {
+  //       b.add_neighbor(blob_matrix[i+1][j]);
+  //       blob_map[blob_matrix[i+1][j]].add_neighbor(b.id);
+  //     }
+  //   }
+  // }
+  double end = omp_get_wtime();
+  cout << "Blob Detection: " << end-start << endl;
+};
+
 void SelfDetectionAgent::find_connected_components(const IntMatrix& screen_matrix, map<long,Blob>& blob_map) {
+  double start = omp_get_wtime();
   // initialize the blob matrix
   vector<vector<long> > blob_matrix; 
   for (int y = 0; y < screen_height; y++) {
@@ -546,6 +711,7 @@ void SelfDetectionAgent::find_connected_components(const IntMatrix& screen_matri
         blob_matrix[i][j] = match_id;
         blob_map[match_id].add_pixel(j, i);
       } else {
+        assert(matches.size() == 2);
         // Multiple matches -- merge them
         int largest_blob_id = -1;
         for (set<long>::iterator it=matches.begin(); it!=matches.end(); ++it) {
@@ -590,6 +756,8 @@ void SelfDetectionAgent::find_connected_components(const IntMatrix& screen_matri
       }
     }
   }
+  double end = omp_get_wtime();
+  cout << "Blob Detection: " << end-start << endl;
 };
 
 void SelfDetectionAgent::find_blob_matches(map<long,Blob>& blobs) {
