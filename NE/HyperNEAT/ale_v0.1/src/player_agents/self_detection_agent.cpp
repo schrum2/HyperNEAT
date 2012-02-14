@@ -41,15 +41,17 @@ Blob::Blob () {
   id = -1;
 };
 
-Blob::Blob (int _color, long _id) {
+Blob::Blob (int _color, long _id, int _x_min, int _x_max, int _y_min, int _y_max) {
   color = _color;
-  x_min = numeric_limits<int>::max();
-  x_max = numeric_limits<int>::min();
-  y_min = numeric_limits<int>::max();
-  y_max = numeric_limits<int>::min();
+  x_min = _x_min;
+  x_max = _x_max;
+  y_min = _y_min;
+  y_max = _y_max;
   x_velocity = 0; y_velocity = 0;
+  size = 0;
   parent_id = -1; child_id = -1;
   id = _id;
+  mask = new char[(x_max - x_min)*(y_max - y_min)/8 + 1];
 };
 
 void Blob::update_minmax(int x, int y) {
@@ -60,9 +62,8 @@ void Blob::update_minmax(int x, int y) {
 };
 
 void Blob::add_pixel(int x, int y) {
-  point p(x,y);
-  mask.insert(p);
-  update_minmax(x,y);
+  // TODO
+  size++;
 };
 
 void Blob::add_neighbor(long neighbor_id) {
@@ -71,13 +72,6 @@ void Blob::add_neighbor(long neighbor_id) {
 
 point Blob::get_centroid() {
   return point((x_min+x_max)/2,(y_min+y_max)/2);
-};
-
-void Blob::consume(const Blob& other) {
-  mask.insert(other.mask.begin(), other.mask.end());
-  neighbors.insert(other.neighbors.begin(), other.neighbors.end());
-  update_minmax(other.x_min, other.y_min);
-  update_minmax(other.x_max, other.y_max);
 };
 
 void Blob::compute_velocity(const Blob& other) {
@@ -92,48 +86,27 @@ float Blob::get_centroid_dist(const Blob& other) {
   return euclid_dist;
 };
 
-float Blob::get_percentage_absolute_overlap(const Blob& other) {
-  int overlap = 0;
-  // Use the blob with fewer points for more efficiency
-  if (mask.size() < other.mask.size()) {
-    for (set<point>::iterator it=mask.begin(); it!=mask.end(); ++it)
-      if (other.mask.find(*it) != other.mask.end())
-        overlap++;
-  } else {
-    for (set<point>::iterator it=other.mask.begin(); it!=other.mask.end(); ++it)
-      if (mask.find(*it) != mask.end())
-        overlap++;
-  }
-  return overlap / (float) (mask.size() + other.mask.size() - overlap);
-};
-
-float Blob::get_percentage_relative_overlap(const Blob& other) {
-  int overlap = 0;
-  point p(0,0);
-  if (mask.size() < other.mask.size()) {
-    for (set<point>::iterator it=mask.begin(); it!=mask.end(); ++it) {
-      p = *it; // Scale the point into the coordinates of the other blob
-      p.x = p.x - x_min + other.x_min; 
-      p.y = p.y - y_min + other.y_min;
-      if (other.mask.find(p) != other.mask.end())
-        overlap++;
-    }
-  } else {
-    for (set<point>::iterator it=other.mask.begin(); it!=other.mask.end(); ++it) {
-      p = *it; // Scale the point into our coordinates
-      p.x = p.x - other.x_min + x_min;
-      p.y = p.y - other.y_min + y_min;
-      if (mask.find(*it) != mask.end())
-        overlap++;
-    }
-  }
-  return overlap / (float) (mask.size() + other.mask.size() - overlap);    
+float Blob::get_percentage_overlap(const Blob& other) {
+  //TODO
+  return 0;
+  // int overlap = 0;
+  // // Use the blob with fewer points for more efficiency
+  // if (mask.size() < other.mask.size()) {
+  //   for (set<point>::iterator it=mask.begin(); it!=mask.end(); ++it)
+  //     if (other.mask.find(*it) != other.mask.end())
+  //       overlap++;
+  // } else {
+  //   for (set<point>::iterator it=other.mask.begin(); it!=other.mask.end(); ++it)
+  //     if (mask.find(*it) != mask.end())
+  //       overlap++;
+  // }
+  // return overlap / (float) (mask.size() + other.mask.size() - overlap);
 };
 
 float Blob::get_aggregate_blob_match(const Blob& other) {
   int color_diff  = color == other.color;
   float dist_diff = get_centroid_dist(other);
-  float size_diff = other.mask.size() / mask.size();
+  float size_diff = other.size / size;
 
   float normalized_dist_diff = dist_diff > 8 ? 0 : 1 - (dist_diff / 9.0); // Slope adjusted from 8 to 9
   float normalized_size_diff = max(0.0f, 1.0f - abs(1.0f - size_diff));
@@ -164,70 +137,62 @@ long Blob::find_matching_blob(map<long,Blob>& blobs, set<long>& excluded) {
   return best_match_id;
 };
 
-void Blob::check_bounding_box() {
-  assert(x_min >= 0);
-  assert(y_min >= 0);
-  for (set<point>::iterator it=mask.begin(); it!=mask.end(); it++) {
-    assert(it->x >= x_min && it->x <= x_max);
-    assert(it->y >= y_min && it->y <= y_max);
-  }
-};
-
 void Blob::to_string() {
-  printf("Blob: %p BB: (%d,%d)->(%d,%d) Size: %d Col: %d\n",this,x_min,y_min,x_max,y_max,(int)mask.size(),color);
+  printf("Blob: %p BB: (%d,%d)->(%d,%d) Size: %d Col: %d\n",this,x_min,y_min,x_max,y_max,size,color);
 };
 
 Prototype::Prototype (CompositeObject& obj, map<long,Blob>& blob_map) {
-  x_min = numeric_limits<int>::max();
-  x_max = numeric_limits<int>::min();
-  y_min = numeric_limits<int>::max();
-  y_max = numeric_limits<int>::min();
+  // x_min = numeric_limits<int>::max();
+  // x_max = numeric_limits<int>::min();
+  // y_min = numeric_limits<int>::max();
+  // y_max = numeric_limits<int>::min();
 
-  obj_ids.insert(obj.id);
+  // obj_ids.insert(obj.id);
 
-  // Set the Prototype's pixel mask to that of the composite obj it was constructed from
-  for (set<long>::iterator it=obj.blob_ids.begin(); it!=obj.blob_ids.end(); ++it) {
-    long b_id = *it;
-    assert(blob_map.find(b_id) != blob_map.end());
-    Blob& b = blob_map[b_id];
-    for (set<point>::iterator it2=b.mask.begin(); it2!=b.mask.end(); ++it2) {
-      point p = *it2;
-      p.x -= obj.x_min;
-      p.y -= obj.y_min;
+  // // Set the Prototype's pixel mask to that of the composite obj it was constructed from
+  // for (set<long>::iterator it=obj.blob_ids.begin(); it!=obj.blob_ids.end(); ++it) {
+  //   long b_id = *it;
+  //   assert(blob_map.find(b_id) != blob_map.end());
+  //   Blob& b = blob_map[b_id];
+  //   for (set<point>::iterator it2=b.mask.begin(); it2!=b.mask.end(); ++it2) {
+  //     point p = *it2;
+  //     p.x -= obj.x_min;
+  //     p.y -= obj.y_min;
 
-      // Update the bounding box
-      x_min = min(p.x, x_min);
-      x_max = max(p.x, x_max);
-      y_min = min(p.y, y_min);
-      y_max = max(p.y, y_max);
+  //     // Update the bounding box
+  //     x_min = min(p.x, x_min);
+  //     x_max = max(p.x, x_max);
+  //     y_min = min(p.y, y_min);
+  //     y_max = max(p.y, y_max);
 
-      assert(p.x >= 0 && p.y >= 0);
-      assert(p.x <= obj.x_max-obj.x_min && p.y <= obj.y_max-obj.y_min);
-      mask.insert(p);
-    }
-  }
-  assert(x_min == 0 && y_min == 0);
-  assert(x_max == obj.x_max - obj.x_min);
-  assert(y_max == obj.y_max - obj.y_min);  
+  //     assert(p.x >= 0 && p.y >= 0);
+  //     assert(p.x <= obj.x_max-obj.x_min && p.y <= obj.y_max-obj.y_min);
+  //     mask.insert(p);
+  //   }
+  // }
+  // assert(x_min == 0 && y_min == 0);
+  // assert(x_max == obj.x_max - obj.x_min);
+  // assert(y_max == obj.y_max - obj.y_min);  
 };
 
 
 float Prototype::get_pixel_match(CompositeObject& obj, map<long,Blob>& blob_map) {
-  int overlap = 0, total = 0;
-  for (set<long>::iterator it=obj.blob_ids.begin(); it!=obj.blob_ids.end(); ++it) {
-    long b_id = *it;
-    assert(blob_map.find(b_id) != blob_map.end());
-    Blob& b = blob_map[b_id];
-    for (set<point>::iterator pit=b.mask.begin(); pit!=b.mask.end(); ++pit) {
-      point p = *pit;
-      p.y -= obj.y_min;
-      p.x -= obj.x_min;
-      if (mask.find(p) != mask.end())
-        overlap++;
-      total++;
-    }
-  }
-  return overlap / (float) (total + mask.size() - overlap);
+  return 0;
+  // int overlap = 0, total = 0;
+  // for (set<long>::iterator it=obj.blob_ids.begin(); it!=obj.blob_ids.end(); ++it) {
+  //   long b_id = *it;
+  //   assert(blob_map.find(b_id) != blob_map.end());
+  //   Blob& b = blob_map[b_id];
+  //   for (set<point>::iterator pit=b.mask.begin(); pit!=b.mask.end(); ++pit) {
+  //     point p = *pit;
+  //     p.y -= obj.y_min;
+  //     p.x -= obj.x_min;
+  //     if (mask.find(p) != mask.end())
+  //       overlap++;
+  //     total++;
+  //   }
+  // }
+  // return overlap / (float) (total + mask.size() - overlap);
 };
 
 CompositeObject::CompositeObject() {
@@ -277,15 +242,15 @@ void CompositeObject::compute_boundingbox(map<long,Blob>& blob_map) {
 };
 
 void CompositeObject::check_bounding_box(map<long,Blob>& blob_map) {
-  for (set<long>::iterator it=blob_ids.begin(); it!=blob_ids.end(); ++it) {
-    long b_id = *it;
-    assert(blob_map.find(b_id) != blob_map.end());
-    Blob& b = blob_map[b_id];
-    for (set<point>::iterator it2=b.mask.begin(); it2!=b.mask.end(); ++it2) {
-      assert(it2->y >= y_min && it2->y <= y_max);
-      assert(it2->x >= x_min && it2->x <= x_max);
-    }
-  }
+  // for (set<long>::iterator it=blob_ids.begin(); it!=blob_ids.end(); ++it) {
+  //   long b_id = *it;
+  //   assert(blob_map.find(b_id) != blob_map.end());
+  //   Blob& b = blob_map[b_id];
+  //   for (set<point>::iterator it2=b.mask.begin(); it2!=b.mask.end(); ++it2) {
+  //     assert(it2->y >= y_min && it2->y <= y_max);
+  //     assert(it2->x >= x_min && it2->x <= x_max);
+  //   }
+  // }
 };
 
 void CompositeObject::expand(map<long,Blob>& blob_map) {
@@ -601,39 +566,52 @@ void SelfDetectionAgent::find_connected_components2(const IntMatrix& screen_matr
   }
 
   // Convert swaths into blobs
-  // map<swath*,long> swath_map;
-  // for (int y=0; y<screen_height; ++y) {
-  //   for (int x=0; x<screen_width; ++x) {
-  //     swath* s = swath_mat[y][x];
-  //     if (swath_map.find(s) != swath_map.end())
-  //       continue;
+  map<swath*,long> swath_map;
+  for (int y=0; y<screen_height; ++y) {
+    for (int x=0; x<screen_width; ++x) {
+      swath* s = swath_mat[y][x];
+      if (swath_map.find(s) != swath_map.end())
+        continue;
 
-  //     // Check if some parent of this swath has been blobified
-  //     long blob_parent_id = -1;
-  //     swath *p = swath->parent;
-  //     while (p->parent != NULL) {
-  //       p = p->parent;
-  //       if (swath_map.find(p) != swath_map.end()) {
-  //         blob_parent_id = swath_map[p];
-  //         break;
-  //       }
-  //     }
+      // Check if some parent of this swath has been blobified
+      long blob_parent_id = -1;
+      swath *p = s;
+      while (p->parent != NULL) {
+        p = p->parent;
+        if (swath_map.find(p) != swath_map.end()) {
+          blob_parent_id = swath_map[p];
+          break;
+        }
+      }
 
-  //     // If no blob parent is found, create a new blob
-  //     if (blob_parent_id == -1) {
-  //       Blob b(s->color,blob_ids++);
-        
-  //     }
+      // If no blob parent is found, create a new blob
+      if (blob_parent_id == -1) {
+        Blob b(p->color,blob_ids++,p->x_min,p->x_max,p->y_min,p->y_max);
+        // Add all of s' pixels to b as well as s' parent's pixels
+        do {
+          for (int i=0; i<s->x.size(); ++i)
+            b.add_pixel(s->x[i],s->y[i]);
+          swath_map[s] = b.id;
+          s = s->parent;
+        } while (s != NULL);
+        blob_map[b.id] = b;
 
-  //     do {
-  //       swath
-  //     } while (s->parent != NULL);
+      } else { // A blob has already been created. Add to it
+        Blob& b = blob_map[blob_parent_id];
+        do {
+          for (int i=0; i<s->x.size(); ++i)
+            b.add_pixel(s->x[i],s->y[i]);
+          swath_map[s] = b.id;
+          s = s->parent;
+        } while (s != p);
+      }
+    }
+  }
 
-  //     if (swath_map.find(s) == swath_map.end())
-  //       swath_map[s] = region_color++;
-  //     region_matrix[y][x] = swath_map[s];
-  //   }
-  // }
+  // Delete the swaths
+  for (map<swath*,long>::iterator it=swath_map.begin(); it!=swath_map.end(); ++it) {
+    delete it->first;
+  }
 
 
   // int region_color = 256;
@@ -670,94 +648,94 @@ void SelfDetectionAgent::find_connected_components2(const IntMatrix& screen_matr
 };
 
 void SelfDetectionAgent::find_connected_components(const IntMatrix& screen_matrix, map<long,Blob>& blob_map) {
-  double start = omp_get_wtime();
-  // initialize the blob matrix
-  vector<vector<long> > blob_matrix; 
-  for (int y = 0; y < screen_height; y++) {
-    vector<long> row;
-    for (int x = 0; x < screen_width; x++)
-     row.push_back(-1);
-    blob_matrix.push_back(row);
-  }
+  // double start = omp_get_wtime();
+  // // initialize the blob matrix
+  // vector<vector<long> > blob_matrix; 
+  // for (int y = 0; y < screen_height; y++) {
+  //   vector<long> row;
+  //   for (int x = 0; x < screen_width; x++)
+  //    row.push_back(-1);
+  //   blob_matrix.push_back(row);
+  // }
 
-  int num_neighbors = 4;
-  int neighbors_y[] = {-1, -1, -1,  0};
-  int neighbors_x[] = {-1,  0,  1, -1};
-  // 1- First Scan
-  int i, j, y, x, color_ind, neighbors_ind;
-  set<long> matches;
-  for (i=0; i<screen_height; ++i) {
-    for (j=0; j<screen_width; ++j) {
-      color_ind = screen_matrix[i][j];
-      // find the region of i,j based on west and north neighbors.
-      for (neighbors_ind = 0; neighbors_ind < num_neighbors; neighbors_ind++) {
-        y = i + neighbors_y[neighbors_ind];
-        x = j + neighbors_x[neighbors_ind];
-        if (x < 0 || x >= screen_width || y < 0 || y >= screen_height)
-          continue;
-        if (screen_matrix[y][x] == color_ind) {
-          matches.insert(blob_matrix[y][x]);
-          assert(blob_matrix[y][x] >= 0);
-        }
-      }
-      if (matches.empty()) {
-        // this pixel is in a new region
-        Blob b(color_ind, blob_ids++);
-        b.add_pixel(j, i);
-        blob_matrix[i][j] = b.id;
-        blob_map.insert(pair<long,Blob>(b.id, b));
-      } else if (matches.size() == 1) {
-        long match_id = *matches.begin();
-        blob_matrix[i][j] = match_id;
-        blob_map[match_id].add_pixel(j, i);
-      } else {
-        assert(matches.size() == 2);
-        // Multiple matches -- merge them
-        int largest_blob_id = -1;
-        for (set<long>::iterator it=matches.begin(); it!=matches.end(); ++it) {
-          long blob_id = *it;
-          if (largest_blob_id == -1 || blob_map[blob_id].mask.size() > blob_map[largest_blob_id].mask.size()) {
-            largest_blob_id = blob_id;
-          }
-        }
-        Blob& largest = blob_map[largest_blob_id];
-        for (set<long>::iterator it=matches.begin(); it!=matches.end(); ++it) {
-          long blob_id = *it;
-          if (largest.id == blob_id)
-            continue;
-          Blob& b = blob_map[blob_id];
-          for (set<point>::iterator pit = b.mask.begin(); pit!=b.mask.end(); pit++) {
-            const point& p = *pit; //b->mask[l];
-            assert(blob_matrix[p.y][p.x] == b.id);
-            blob_matrix[p.y][p.x] = largest.id;
-          }
-          largest.consume(b);
-          blob_map.erase(b.id);
-        }
-        largest.add_pixel(j,i);
-        blob_matrix[i][j] = largest.id;
-      }
-      matches.clear();
-    }
-  }
+  // int num_neighbors = 4;
+  // int neighbors_y[] = {-1, -1, -1,  0};
+  // int neighbors_x[] = {-1,  0,  1, -1};
+  // // 1- First Scan
+  // int i, j, y, x, color_ind, neighbors_ind;
+  // set<long> matches;
+  // for (i=0; i<screen_height; ++i) {
+  //   for (j=0; j<screen_width; ++j) {
+  //     color_ind = screen_matrix[i][j];
+  //     // find the region of i,j based on west and north neighbors.
+  //     for (neighbors_ind = 0; neighbors_ind < num_neighbors; neighbors_ind++) {
+  //       y = i + neighbors_y[neighbors_ind];
+  //       x = j + neighbors_x[neighbors_ind];
+  //       if (x < 0 || x >= screen_width || y < 0 || y >= screen_height)
+  //         continue;
+  //       if (screen_matrix[y][x] == color_ind) {
+  //         matches.insert(blob_matrix[y][x]);
+  //         assert(blob_matrix[y][x] >= 0);
+  //       }
+  //     }
+  //     if (matches.empty()) {
+  //       // this pixel is in a new region
+  //       Blob b(color_ind, blob_ids++);
+  //       b.add_pixel(j, i);
+  //       blob_matrix[i][j] = b.id;
+  //       blob_map.insert(pair<long,Blob>(b.id, b));
+  //     } else if (matches.size() == 1) {
+  //       long match_id = *matches.begin();
+  //       blob_matrix[i][j] = match_id;
+  //       blob_map[match_id].add_pixel(j, i);
+  //     } else {
+  //       assert(matches.size() == 2);
+  //       // Multiple matches -- merge them
+  //       int largest_blob_id = -1;
+  //       for (set<long>::iterator it=matches.begin(); it!=matches.end(); ++it) {
+  //         long blob_id = *it;
+  //         if (largest_blob_id == -1 || blob_map[blob_id].mask.size() > blob_map[largest_blob_id].mask.size()) {
+  //           largest_blob_id = blob_id;
+  //         }
+  //       }
+  //       Blob& largest = blob_map[largest_blob_id];
+  //       for (set<long>::iterator it=matches.begin(); it!=matches.end(); ++it) {
+  //         long blob_id = *it;
+  //         if (largest.id == blob_id)
+  //           continue;
+  //         Blob& b = blob_map[blob_id];
+  //         for (set<point>::iterator pit = b.mask.begin(); pit!=b.mask.end(); pit++) {
+  //           const point& p = *pit; //b->mask[l];
+  //           assert(blob_matrix[p.y][p.x] == b.id);
+  //           blob_matrix[p.y][p.x] = largest.id;
+  //         }
+  //         largest.consume(b);
+  //         blob_map.erase(b.id);
+  //       }
+  //       largest.add_pixel(j,i);
+  //       blob_matrix[i][j] = largest.id;
+  //     }
+  //     matches.clear();
+  //   }
+  // }
 
-  // Populate neighbors
-  for (int i = 0; i < screen_height; i++) {
-    for (int j = 0; j < screen_width; j++) {
-      int b_id = blob_matrix[i][j];
-      Blob& b = blob_map[b_id];
-      if (j+1 < screen_width && b_id != blob_matrix[i][j+1]) {
-        b.add_neighbor(blob_matrix[i][j+1]);
-        blob_map[blob_matrix[i][j+1]].add_neighbor(b.id);
-      }
-      if (i+1 < screen_height && b_id != blob_matrix[i+1][j]) {
-        b.add_neighbor(blob_matrix[i+1][j]);
-        blob_map[blob_matrix[i+1][j]].add_neighbor(b.id);
-      }
-    }
-  }
-  double end = omp_get_wtime();
-  cout << "Blob Detection: " << end-start << endl;
+  // // Populate neighbors
+  // for (int i = 0; i < screen_height; i++) {
+  //   for (int j = 0; j < screen_width; j++) {
+  //     int b_id = blob_matrix[i][j];
+  //     Blob& b = blob_map[b_id];
+  //     if (j+1 < screen_width && b_id != blob_matrix[i][j+1]) {
+  //       b.add_neighbor(blob_matrix[i][j+1]);
+  //       blob_map[blob_matrix[i][j+1]].add_neighbor(b.id);
+  //     }
+  //     if (i+1 < screen_height && b_id != blob_matrix[i+1][j]) {
+  //       b.add_neighbor(blob_matrix[i+1][j]);
+  //       blob_map[blob_matrix[i+1][j]].add_neighbor(b.id);
+  //     }
+  //   }
+  // }
+  // double end = omp_get_wtime();
+  // cout << "Blob Detection: " << end-start << endl;
 };
 
 void SelfDetectionAgent::find_blob_matches(map<long,Blob>& blobs) {

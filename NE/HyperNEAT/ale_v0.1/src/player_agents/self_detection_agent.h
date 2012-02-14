@@ -75,23 +75,21 @@ struct swath {
 /* The blob is a region of contiguous color found in the game screen. */
 struct Blob {
   int color;            // Color of this blob
-  set<point> mask;      // The pixels composing this blob
   set<long> neighbors;  // Neighboring blob ids
+  char* mask;           // Pixel mask
+  int size;             // Number of pixels
   int x_min, x_max, y_min, y_max; // Bounding box of blob region
   int x_velocity, y_velocity; // Velocity of the blob
   long parent_id; long child_id;  // Pointers to ourself in the last and next timestep
   long id;               // Used for the comparator function. Should be unique.
 
   Blob();
-  Blob(int _color, long _id);
+  Blob(int _color, long _id, int _x_min, int _x_max, int _y_min, int _y_max);
 
   void update_minmax(int x, int y);
   void add_pixel(int x, int y);
   void add_neighbor(long neighbor_id);
   point get_centroid();
-
-  // Capture all the points associated with another blob
-  void consume(const Blob& other);
 
   // Computes our velocity relative to a given blob. Velocity is based on
   // centroids of both blobs.
@@ -102,11 +100,7 @@ struct Blob {
 
   // Computes the percentage of pixels that overlap between two blobs.
   // Note that color is not taken into consideration!
-  float get_percentage_absolute_overlap(const Blob& other);
-
-  // Normalizes the two blobs according to the x_min, y_min and computes
-  // a pixel overlap. Does not consider the color of the blobs.
-  float get_percentage_relative_overlap(const Blob& other);
+  float get_percentage_overlap(const Blob& other);
 
   // Spits out an all things considered blob match. Takes into account:
   // 1. color 2. distance 3. overlap 4. area 5. density
@@ -115,8 +109,6 @@ struct Blob {
   // Find the blob that most closely resembles this blob. Do not consider
   // any of the blobs in the excluded set.
   long find_matching_blob(map<long,Blob>& blobs, set<long>& excluded);
-
-  void check_bounding_box();
 
   void to_string();
 
