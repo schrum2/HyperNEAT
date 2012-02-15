@@ -41,17 +41,26 @@ Blob::Blob () {
   id = -1;
 };
 
+Blob::~Blob() {
+  // delete mask;
+};
+
 Blob::Blob (int _color, long _id, int _x_min, int _x_max, int _y_min, int _y_max) {
   color = _color;
   x_min = _x_min;
   x_max = _x_max;
   y_min = _y_min;
   y_max = _y_max;
+  height = y_max - y_min + 1;
+  width = x_max - x_min + 1;
   x_velocity = 0; y_velocity = 0;
   size = 0;
   parent_id = -1; child_id = -1;
   id = _id;
-  mask = new char[(x_max - x_min)*(y_max - y_min)/8 + 1];
+  // Do not need extra byte if modulo 8 is zero
+  mask = new char[width*height/8 + 1];
+  for (int i=0; i<width*height/8 + 1; ++i)
+    mask[i] = 0x0;
 };
 
 void Blob::update_minmax(int x, int y) {
@@ -61,9 +70,34 @@ void Blob::update_minmax(int x, int y) {
   y_max = max(y, y_max);
 };
 
-void Blob::add_pixel(int x, int y) {
-  // TODO
+void Blob::add_pixel_abs(int absx, int absy) {
+  int relx = absx - x_min;
+  int rely = absy - y_min;
+  int block = (width * rely + relx) / 8;
+  int indx_in_block = (width * rely + relx) % 8;
+  mask[block] = mask[block] | (1 << (7-indx_in_block));
   size++;
+};
+
+void Blob::add_pixel_rel(int relx, int rely) {
+  int block = (width * rely + relx) / 8;
+  int indx_in_block = (width * rely + relx) % 8;
+  mask[block] = mask[block] | (1 << (7-indx_in_block));
+  size++;
+};
+
+bool Blob::get_pixel_abs(int absx, int absy) {
+  int relx = absx - x_min;
+  int rely = absy - y_min;
+  int block = (width * rely + relx) / 8;
+  int indx_in_block = (width * rely + relx) % 8;
+  return mask[block] & (1 << (7-indx_in_block));
+};
+
+bool Blob::get_pixel_rel(int relx, int rely) {
+  int block = (width * rely + relx) / 8;
+  int indx_in_block = (width * rely + relx) % 8;
+  return mask[block] & (1 << (7-indx_in_block));
 };
 
 void Blob::add_neighbor(long neighbor_id) {
@@ -139,6 +173,19 @@ long Blob::find_matching_blob(map<long,Blob>& blobs, set<long>& excluded) {
 
 void Blob::to_string() {
   printf("Blob: %p BB: (%d,%d)->(%d,%d) Size: %d Col: %d\n",this,x_min,y_min,x_max,y_max,size,color);
+
+  int width = x_max - x_min + 1;
+  for (int y=0; y<height; ++y) {
+    printf("\n");
+    for (int x=0; x<width; ++x) {
+      if (get_pixel_rel(x,y))
+        printf("1");
+      else
+        printf("0");
+    }
+  }
+  printf("\n");
+  cin.get();
 };
 
 Prototype::Prototype (CompositeObject& obj, map<long,Blob>& blob_map) {
@@ -364,7 +411,7 @@ Action SelfDetectionAgent::agent_step(const IntMatrix* screen_matrix,
   find_connected_components2(*screen_matrix, curr_blobs);
 
   if (blob_hist.size() > 1) {
-    find_blob_matches(curr_blobs);
+    //find_blob_matches(curr_blobs);
 
     // Merge blobs into objects
     // update_existing_objs();
@@ -389,15 +436,21 @@ Action SelfDetectionAgent::agent_step(const IntMatrix* screen_matrix,
     // }
 
     // Plot blobs
-    // int region_color = 256;
-    // for (map<long,Blob>::iterator it=curr_blobs.begin(); it!=curr_blobs.end(); ++it) {
-    //   const Blob& b = it->second;
-    //   region_color++;
-    //   for (set<point>::iterator pit=b.mask.begin(); pit!=b.mask.end(); ++pit) {
-    //     const point& p = *pit;
-    //     region_matrix[p.y][p.x] = region_color;
-    //   }
-    // }
+    int region_color = 256;
+    for (map<long,Blob>::iterator it=curr_blobs.begin(); it!=curr_blobs.end(); ++it) {
+      Blob& b = it->second;
+      region_color++;
+      for (int y=0; y<b.height; ++y) {
+        for (int x=0; x<b.width; ++x) {
+          if (b.get_pixel_rel(x,y))
+            region_matrix[b.y_min+y][b.x_min+x] = region_color;
+        }
+      }
+      // for (set<point>::iterator pit=b.mask.begin(); pit!=b.mask.end(); ++pit) {
+      //   const point& p = *pit;
+      //   region_matrix[p.y][p.x] = region_color;
+      // }
+    }
 
     // Plot objects
     // int region_color = 256;
@@ -590,7 +643,7 @@ void SelfDetectionAgent::find_connected_components2(const IntMatrix& screen_matr
         // Add all of s' pixels to b as well as s' parent's pixels
         do {
           for (int i=0; i<s->x.size(); ++i)
-            b.add_pixel(s->x[i],s->y[i]);
+            b.add_pixel_abs(s->x[i],s->y[i]);
           swath_map[s] = b.id;
           s = s->parent;
         } while (s != NULL);
@@ -600,7 +653,7 @@ void SelfDetectionAgent::find_connected_components2(const IntMatrix& screen_matr
         Blob& b = blob_map[blob_parent_id];
         do {
           for (int i=0; i<s->x.size(); ++i)
-            b.add_pixel(s->x[i],s->y[i]);
+            b.add_pixel_abs(s->x[i],s->y[i]);
           swath_map[s] = b.id;
           s = s->parent;
         } while (s != p);
@@ -612,21 +665,6 @@ void SelfDetectionAgent::find_connected_components2(const IntMatrix& screen_matr
   for (map<swath*,long>::iterator it=swath_map.begin(); it!=swath_map.end(); ++it) {
     delete it->first;
   }
-
-
-  // int region_color = 256;
-  // map<swath*,int> swath_map;
-  // for (int y=0; y<screen_height; ++y) {
-  //   for (int x=0; x<screen_width; ++x) {
-  //     swath* s = swath_mat[y][x];
-  //     while (s->parent != NULL)
-  //       s = s->parent;
-  //     if (swath_map.find(s) == swath_map.end()) {
-  //       swath_map[s] = region_color++;
-  //     }
-  //     region_matrix[y][x] = swath_map[s];
-  //   }
-  // }
 
   // Populate neighbors
   // for (int i = 0; i < screen_height; i++) {

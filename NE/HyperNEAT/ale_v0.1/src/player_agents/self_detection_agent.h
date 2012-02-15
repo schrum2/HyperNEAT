@@ -79,15 +79,20 @@ struct Blob {
   char* mask;           // Pixel mask
   int size;             // Number of pixels
   int x_min, x_max, y_min, y_max; // Bounding box of blob region
+  int height, width;    // Width and height of the blob
   int x_velocity, y_velocity; // Velocity of the blob
   long parent_id; long child_id;  // Pointers to ourself in the last and next timestep
-  long id;               // Used for the comparator function. Should be unique.
+  long id;              // Used for the comparator function. Should be unique.
 
   Blob();
   Blob(int _color, long _id, int _x_min, int _x_max, int _y_min, int _y_max);
+  ~Blob();
 
   void update_minmax(int x, int y);
-  void add_pixel(int x, int y);
+  void add_pixel_abs(int absx, int absy);
+  void add_pixel_rel(int relx, int rely);
+  bool get_pixel_abs(int absx, int absy);
+  bool get_pixel_rel(int relx, int rely);
   void add_neighbor(long neighbor_id);
   point get_centroid();
 
