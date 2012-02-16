@@ -16,6 +16,20 @@
 #include "player_agent.h"
 #include <set>
 
+// Operations for working on pixel masks
+void add_pixel(int width, int height, int relx, int rely, vector<char>& mask) {
+  int block = (width * rely + relx) / 8;
+  int indx_in_block = (width * rely + relx) % 8;
+  mask[block] = mask[block] | (1 << (7-indx_in_block));
+};
+
+bool get_pixel(int width, int height, int relx, int rely, vector<char>& mask) {
+  int block = (width * rely + relx) / 8;
+  int indx_in_block = (width * rely + relx) % 8;
+  return mask[block] & (1 << (7-indx_in_block));
+};
+// End pixel mask operations
+
 // Search a map for a key and returns default value if not found
 template <typename K, typename V>
 V GetWithDef(const std::map <K,V> & m, const K & key, const V & defval ) {
@@ -41,6 +55,16 @@ float compute_entropy(const std::map <K,int> & m, int count_sum) {
   }
   return velocity_entropy;
 };
+
+// Counts the number of 1 bits in a char. Taken from stack overflow
+const int oneBits[] = {0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4};
+int count_ones(unsigned char x) {
+  int results;
+  results = oneBits[x&0x0f];
+  results += oneBits[x>>4];
+  return results;
+};
+
 
 struct point {
   int x, y;
@@ -89,10 +113,10 @@ struct Blob {
   ~Blob();
 
   void update_minmax(int x, int y);
-  void add_pixel_abs(int absx, int absy);
-  void add_pixel_rel(int relx, int rely);
-  bool get_pixel_abs(int absx, int absy);
-  bool get_pixel_rel(int relx, int rely);
+  /* void add_pixel_abs(int absx, int absy); */
+  /* void add_pixel_rel(int relx, int rely); */
+  /* bool get_pixel_abs(int absx, int absy); */
+  /* bool get_pixel_rel(int relx, int rely); */
   void add_neighbor(long neighbor_id);
   point get_centroid();
 
@@ -102,10 +126,6 @@ struct Blob {
 
   // Computes the euclidean distance between the blobs centroids
   float get_centroid_dist(const Blob& other);
-
-  // Computes the percentage of pixels that overlap between two blobs.
-  // Note that color is not taken into consideration!
-  float get_percentage_overlap(const Blob& other);
 
   // Spits out an all things considered blob match. Takes into account:
   // 1. color 2. distance 3. overlap 4. area 5. density
@@ -126,48 +146,52 @@ struct Blob {
 struct CompositeObject {
   long id;
   set<long> blob_ids;
+  vector<char> mask;
   int x_velocity, y_velocity;
   int x_min, x_max, y_min, y_max; // Bounding box
+  int width, height;
+  int size;
   int frames_since_last_movement;
 
   CompositeObject();
   CompositeObject(int x_vel, int y_vel, long _id);
   ~CompositeObject();
 
-  void update_minmax(const Blob& b);
+  void clean();
+  // Updates the bounding box from a blob
+  void update_bounding_box(const Blob& b);
+  /* void add_pixel_rel(int relx, int rely); */
   void add_blob(const Blob& b);
   point get_centroid() { return point((x_max+x_min)/2,(y_max+y_min)/2); };
-
-  // Computes the bounding box based on all the current objects.
-  void compute_boundingbox(map<long,Blob>& blob_map);
 
   // Attempts to expand the composite object by looking for any blobs who are
   // connected and have the same velocity
   void expand(map<long,Blob>& blob_map);
 
-  // Computes a pixel match between this object and another
-  float get_pixel_match(const CompositeObject& other);
-
-  void check_bounding_box(map<long,Blob>& blob_map);
+  // Builds the mask from the current set of blobs
+  void computeMask(map<long,Blob>& blob_map);
 };
 
 /* A prototype represents a class of objects. */
 struct Prototype {
   int id;
   set<long> obj_ids; // List of ids of objects belonging to this class
-  set<point> mask;
-  int x_min, x_max, y_min, y_max; // Bounding box
+  vector<char> mask;
+  int width, height;
+  int size;
 
   long seen_count;
   int frames_since_last_seen;
   int times_seen_this_frame;
-  int color;
   bool is_valid;
   float value;
   
-  Prototype (CompositeObject& obj, map<long,Blob>& blob_map);
+  Prototype(CompositeObject& obj, map<long,Blob>& blob_map);
 
-  float get_pixel_match(CompositeObject& other, map<long,Blob>& blob_map);
+  /* void add_pixel_rel(int relx, int rely); */
+
+  // How closely does an object resemble this prototype?
+  float get_pixel_match(CompositeObject& obj);
 };
 
 
@@ -187,7 +211,6 @@ class SelfDetectionAgent : public PlayerAgent {
   virtual void display_screen(const IntMatrix& screen_matrix);
 
   void find_connected_components(const IntMatrix& screen_matrix, map<long,Blob>& blobs);
-  void find_connected_components2(const IntMatrix& screen_matrix, map<long,Blob>& blobs);
 
   // Matches blobs found in the current timestep with those from
   // the last time step
