@@ -76,7 +76,7 @@ struct swath {
 struct Blob {
   int color;            // Color of this blob
   set<long> neighbors;  // Neighboring blob ids
-  char* mask;           // Pixel mask
+  vector<char> mask;    // Pixel mask -- we may want an array here
   int size;             // Number of pixels
   int x_min, x_max, y_min, y_max; // Bounding box of blob region
   int height, width;    // Width and height of the blob
