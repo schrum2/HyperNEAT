@@ -210,6 +210,11 @@ class SelfDetectionAgent : public PlayerAgent {
 
   virtual void display_screen(const IntMatrix& screen_matrix);
 
+  void plot_blobs(IntMatrix& screen_matrix);   // Plots the blobs on screen
+  void plot_objects(IntMatrix& screen_matrix); // Plots the objects on screen
+  void plot_prototypes(IntMatrix& screen_matrix); // Plots the prototypes on screen
+  void plot_self(IntMatrix& screen_matrix);    // Plots the self blob
+
   void find_connected_components(const IntMatrix& screen_matrix, map<long,Blob>& blobs);
 
   // Matches blobs found in the current timestep with those from
@@ -235,17 +240,10 @@ class SelfDetectionAgent : public PlayerAgent {
   // Assumes identify self has already been called.
   point get_self_centroid();
 
-  int get_num_regions(IntMatrix& regions);
-  virtual void plot_regions(IntMatrix& screen_matrix);
-
   int screen_width, screen_height;
   int max_history_len;
   deque<IntMatrix> screen_hist;
   deque<Action> action_hist;
-
-  int curr_num_regions;
-  int prev_num_regions;
-  IntMatrix region_matrix;
 
   long blob_ids;
   long obj_ids;
