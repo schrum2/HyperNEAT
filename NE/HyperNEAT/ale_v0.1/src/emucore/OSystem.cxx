@@ -433,7 +433,7 @@ bool OSystem::createConsole(const string& romfile)
   p_export_screen = new ExportScreen(this); //ALE
   if (mySettings->getBool("display_screen", true)) {
     bool use_bass = mySettings->getBool("use_bass",true) || mySettings->getString("player_agent") == "bass_agent" || mySettings->getString("player_agent") == "model_agent";
-    p_display_screen = new DisplayScreen(use_bass);
+    p_display_screen = new DisplayScreen(use_bass,p_export_screen);
   } else {
     p_display_screen = NULL;
   }

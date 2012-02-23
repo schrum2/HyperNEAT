@@ -1,40 +1,32 @@
 #include "display_screen.h"
 
-DisplayScreen::DisplayScreen(bool use_bass) {
+
+DisplayScreen::DisplayScreen(bool use_bass, ExportScreen* _export_screen):
+  export_screen(_export_screen)
+{
   /* Initialise SDL Video */
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     printf("Could not initialize SDL: %s\n", SDL_GetError());
     exit(1);
   }
 
-  screen_width = 337;
+  screen_width  = 337;
+  screen_height = 420;
+
   if (use_bass)
     screen_height = 750;
-  else
-    screen_height = 420;
 
-	
-  /* Open a 640 x 480 screen */
-  screen = SDL_SetVideoMode(screen_width,screen_height, 0, SDL_HWPALETTE|SDL_DOUBLEBUF);
+  screen = SDL_SetVideoMode(screen_width,screen_height, 0, SDL_HWPALETTE|SDL_DOUBLEBUF|SDL_RESIZABLE);
 	
   if (screen == NULL) {
     printf("Couldn't set screen mode to 640 x 480: %s\n", SDL_GetError());
     exit(1);
   }
-
-  //atexit(SDL_Quit);
-  //atexit(exit);
-
   /* Set the screen title */
-  //SDL_WM_SetCaption(romName, NULL);
+  SDL_WM_SetCaption("A.L.E. Viz", NULL);
 }
 
 DisplayScreen::~DisplayScreen() {
-  /* Free the image */
-  // if (image != NULL) {
-  //   SDL_FreeSurface(image);
-  // }
-	
   /* Shut down SDL */
   SDL_Quit();
 }
@@ -45,7 +37,6 @@ void DisplayScreen::display_png(const string& filename) {
   if ( !image ) {
     printf ( "IMG_Load: %s\n", IMG_GetError () );
   } 
-
 
   // Draws the image on the screen:
   SDL_Rect rcDest = { 0, 0, 2*image->w, 2*image->h };
@@ -61,11 +52,44 @@ void DisplayScreen::display_png(const string& filename) {
   //SDL_Delay(16);
 }
 
+void DisplayScreen::display_screen(IntMatrix& screen_matrix, int image_widht, int image_height) {
+  poll(); // Check for event
+  Uint32 rmask, gmask, bmask, amask;
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+  rmask = 0xff000000;
+  gmask = 0x00ff0000;
+  bmask = 0x0000ff00;
+  amask = 0x000000ff;
+#else
+  rmask = 0x000000ff;
+  gmask = 0x0000ff00;
+  bmask = 0x00ff0000;
+  amask = 0xff000000;
+#endif
+
+  SDL_Surface* my_surface = SDL_CreateRGBSurface(SDL_SWSURFACE,image_widht,image_height,32,rmask,gmask,bmask,amask);
+
+  int r, g, b;
+  for (int y=0; y<image_height; ++y) {
+    for (int x=0; x<image_widht; ++x) {
+      export_screen->get_rgb_from_pallete(screen_matrix[y][x], r, g, b);
+      pixelRGBA(my_surface,x,y,r,g,b,255);
+    }
+  }
+
+  SDL_Surface* zoomed = zoomSurface(my_surface,screen->w/(double)image_widht,screen->h/(double)image_height,0);
+  SDL_BlitSurface(zoomed, NULL, screen, NULL);
+
+  SDL_Flip(screen);
+  SDL_FreeSurface(my_surface);
+  SDL_FreeSurface(zoomed);
+}
+
 void DisplayScreen::display_bass_png(const string& filename) {
   poll(); // Check for quit event
   image = IMG_Load(filename.c_str());
   if ( !image ) {
-    printf ( "IMG_Load: %s\n", IMG_GetError () );
+    printf("IMG_Load: %s\n", IMG_GetError());
   } 
 
   // Draws the image on the screen:
@@ -92,36 +116,9 @@ void DisplayScreen::poll() {
       case SDL_QUIT:
         exit(0);
         break;
+      case SDL_VIDEORESIZE:
+        screen = SDL_SetVideoMode(event.resize.w,event.resize.h, 0, SDL_HWPALETTE|SDL_DOUBLEBUF|SDL_RESIZABLE);
+        break;
       }
   }
 };
-
-
-
-// SDL_Surface *loadImage(char *name)
-// {
-//   /* Load the image using SDL Image */
-//   SDL_Surface *temp = IMG_Load(name);
-//   SDL_Surface *image;
-	
-//   if (temp == NULL) {
-//     printf("Failed to load image %s\n", name);
-//     return NULL;
-//   }
-	
-//   /* Make the background transparent */
-//   SDL_SetColorKey(temp, (SDL_SRCCOLORKEY|SDL_RLEACCEL), SDL_MapRGB(temp->format, 0, 0, 0));
-	
-//   /* Convert the image to the screen's native format */
-//   image = SDL_DisplayFormat(temp);
-	
-//   SDL_FreeSurface(temp);
-	
-//   if (image == NULL) {
-//     printf("Failed to convert image %s to native format\n", name);
-//     return NULL;
-//   }
-	
-//   /* Return the processed image */
-//   return image;
-// }

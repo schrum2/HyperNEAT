@@ -899,11 +899,12 @@ void SelfDetectionAgent::display_screen(const IntMatrix& screen_matrix) {
 
   //plot_blobs(screen_cpy);
   //plot_objects(screen_cpy);
-  plot_prototypes(screen_cpy);
-  plot_self(screen_cpy);
+  //plot_prototypes(screen_cpy);
+  //plot_self(screen_cpy);
   
   //cin.get();
-  PlayerAgent::display_screen(screen_cpy);
+  //PlayerAgent::display_screen(screen_cpy);
+  p_osystem->p_display_screen->display_screen(screen_cpy, screen_width, screen_height);
 };
 
 void SelfDetectionAgent::plot_blobs(IntMatrix& screen_matrix) {

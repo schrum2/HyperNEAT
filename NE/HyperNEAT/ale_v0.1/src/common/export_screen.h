@@ -64,12 +64,13 @@ class ExportScreen {
 	 ******************************************************************** */        
 	void save_heat_plot(FloatMatrix* pm_matrix, 
 										 const string& filename);
-										 
-    protected:
+
         /* *********************************************************************
             Gets the RGB values for a given screen value from the current pallete
          ******************************************************************** */    
         void get_rgb_from_pallete(int val, int& r, int& g, int& b) const;
+										 
+    protected:
 
         /* *********************************************************************
             Initilizes the custom pallete

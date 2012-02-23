@@ -17,13 +17,13 @@
 #include <set>
 
 // Operations for working on pixel masks
-void add_pixel(int width, int height, int relx, int rely, vector<char>& mask) {
+static void add_pixel(int width, int height, int relx, int rely, vector<char>& mask) {
   int block = (width * rely + relx) / 8;
   int indx_in_block = (width * rely + relx) % 8;
   mask[block] = mask[block] | (1 << (7-indx_in_block));
 };
 
-bool get_pixel(int width, int height, int relx, int rely, vector<char>& mask) {
+static bool get_pixel(int width, int height, int relx, int rely, vector<char>& mask) {
   int block = (width * rely + relx) / 8;
   int indx_in_block = (width * rely + relx) % 8;
   return mask[block] & (1 << (7-indx_in_block));
@@ -32,14 +32,14 @@ bool get_pixel(int width, int height, int relx, int rely, vector<char>& mask) {
 
 // Search a map for a key and returns default value if not found
 template <typename K, typename V>
-V GetWithDef(const std::map <K,V> & m, const K & key, const V & defval ) {
-   typename std::map<K,V>::const_iterator it = m.find( key );
-   if ( it == m.end() ) {
-      return defval;
-   }
-   else {
-      return it->second;
-   }
+  V GetWithDef(const std::map <K,V> & m, const K & key, const V & defval ) {
+  typename std::map<K,V>::const_iterator it = m.find( key );
+  if ( it == m.end() ) {
+    return defval;
+  }
+  else {
+    return it->second;
+  }
 };
 
 // Calculates the information entropy of a random variable whose values and
@@ -58,7 +58,7 @@ float compute_entropy(const std::map <K,int> & m, int count_sum) {
 
 // Counts the number of 1 bits in a char. Taken from stack overflow
 const int oneBits[] = {0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4};
-int count_ones(unsigned char x) {
+static int count_ones(unsigned char x) {
   int results;
   results = oneBits[x&0x0f];
   results += oneBits[x>>4];
