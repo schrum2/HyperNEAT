@@ -509,18 +509,5 @@ void PlayerAgent::display_screen(const IntMatrix& screen_matrix) {
   if (!b_display_screen)
     return;
   
-  ostringstream filename;
-  char buffer [50];
-  
-  sprintf (buffer, "%09lld", i_frame_counter);
-  filename << "exported_screens/toDisplay_frame_" << buffer << ".png";
-
-  // Export screen to png
-  p_osystem->p_export_screen->save_png(&screen_matrix, filename.str());
-
-  // Display the screen from the png file
-  p_osystem->p_display_screen->display_png(filename.str());
-
-  // Remove png file if it wasn't there in first place
-  remove(filename.str().c_str());
+  p_osystem->p_display_screen->display_screen(screen_matrix, screen_matrix[0].size(), screen_matrix.size());
 }

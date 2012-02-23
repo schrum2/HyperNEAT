@@ -11,18 +11,19 @@
 #include "export_screen.h"
 
 class DisplayScreen {
-
  public:
   DisplayScreen(bool use_bass, ExportScreen* export_screen);
   virtual ~DisplayScreen();
 
-  void display_screen(IntMatrix& screen_matrix, int image_widht, int image_height);
+  void display_screen(const IntMatrix& screen_matrix, int image_widht, int image_height);
   void display_png(const string& filename);
   void display_bass_png(const string& filename);
   void poll();
 
   int screen_height;
   int screen_width;
+
+  bool paused;
   
   SDL_Surface *screen, *image;
   ExportScreen* export_screen;

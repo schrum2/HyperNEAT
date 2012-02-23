@@ -2,7 +2,7 @@
 
 
 DisplayScreen::DisplayScreen(bool use_bass, ExportScreen* _export_screen):
-  export_screen(_export_screen)
+  paused(false), export_screen(_export_screen)
 {
   /* Initialise SDL Video */
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -52,7 +52,7 @@ void DisplayScreen::display_png(const string& filename) {
   //SDL_Delay(16);
 }
 
-void DisplayScreen::display_screen(IntMatrix& screen_matrix, int image_widht, int image_height) {
+void DisplayScreen::display_screen(const IntMatrix& screen_matrix, int image_widht, int image_height) {
   poll(); // Check for event
   Uint32 rmask, gmask, bmask, amask;
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
@@ -111,14 +111,30 @@ void DisplayScreen::display_bass_png(const string& filename) {
 void DisplayScreen::poll() {
   SDL_Event event;
   while(SDL_PollEvent(&event)) {
-    switch (event.type)
-      {
-      case SDL_QUIT:
-        exit(0);
+    switch (event.type) {
+    case SDL_QUIT:
+      exit(0);
+      break;
+    case SDL_VIDEORESIZE:
+      screen = SDL_SetVideoMode(event.resize.w,event.resize.h, 0, SDL_HWPALETTE|SDL_DOUBLEBUF|SDL_RESIZABLE);
+      break;
+    // case SDL_MOUSEBUTTONDOWN:
+    //   printf("Mouse button %d pressed at (%d,%d)\n",
+    //          event.button.button, event.button.x, event.button.y);
+    //   break;
+    case SDL_KEYDOWN:
+      switch(event.key.keysym.sym){
+      case SDLK_SPACE:
+        paused = !paused;
+        while(paused) {
+          poll();
+          SDL_Delay(10);
+        }
         break;
-      case SDL_VIDEORESIZE:
-        screen = SDL_SetVideoMode(event.resize.w,event.resize.h, 0, SDL_HWPALETTE|SDL_DOUBLEBUF|SDL_RESIZABLE);
+      default:
         break;
       }
+      break;
+    }
   }
 };
