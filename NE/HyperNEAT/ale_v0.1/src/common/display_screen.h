@@ -10,6 +10,11 @@
 #include "common_constants.h"
 #include "export_screen.h"
 
+class SDLEventHandler {
+ public:
+  virtual void handleSDLEvent(const SDL_Event& event) = 0;
+};
+
 class DisplayScreen {
  public:
   DisplayScreen(bool use_bass, ExportScreen* export_screen);
@@ -19,6 +24,7 @@ class DisplayScreen {
   void display_png(const string& filename);
   void display_bass_png(const string& filename);
   void poll();
+  void registerEventHandler(SDLEventHandler* handler) { handlers.push_back(handler); };
 
   int screen_height;
   int screen_width;
@@ -27,6 +33,8 @@ class DisplayScreen {
   
   SDL_Surface *screen, *image;
   ExportScreen* export_screen;
+
+  std::vector<SDLEventHandler*> handlers;
 };
 
 #endif

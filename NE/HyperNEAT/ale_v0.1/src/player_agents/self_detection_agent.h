@@ -65,7 +65,6 @@ static int count_ones(unsigned char x) {
   return results;
 };
 
-
 struct point {
   int x, y;
 
@@ -195,7 +194,7 @@ struct Prototype {
 };
 
 
-class SelfDetectionAgent : public PlayerAgent {
+class SelfDetectionAgent : public PlayerAgent, public SDLEventHandler {
  public:
   SelfDetectionAgent(GameSettings* _game_settings, OSystem* _osystem);
         
@@ -240,6 +239,8 @@ class SelfDetectionAgent : public PlayerAgent {
   // Assumes identify self has already been called.
   point get_self_centroid();
 
+  void handleSDLEvent(const SDL_Event& event);
+
   int screen_width, screen_height;
   int max_history_len;
   deque<IntMatrix> screen_hist;
@@ -256,6 +257,9 @@ class SelfDetectionAgent : public PlayerAgent {
   deque<map<long,Blob> >  blob_hist;
   deque<RegionObjectList> raw_object_hist;
   deque<RegionObjectList> merged_object_hist;
+
+  long focused_obj_id; // The focused object is selected by a click
+  int display_mode;    // Which graphical representation should we display?
 
   // Parameters used for shape tracking
   float f_max_perc_difference;

@@ -281,6 +281,7 @@ SelfDetectionAgent::SelfDetectionAgent(GameSettings* _game_settings, OSystem* _o
   PlayerAgent(_game_settings, _osystem),
   max_history_len(50), //numeric_limits<int>::max()),
   blob_ids(0), obj_ids(0), self_id(-1),
+  focused_obj_id(-1), display_mode(0),
   prototype_ids(0),//(piyushk)
   prototype_value(1.0) //(piyushk)
 {
@@ -300,6 +301,8 @@ SelfDetectionAgent::SelfDetectionAgent(GameSettings* _game_settings, OSystem* _o
     free_colors.insert(i);
   }
 
+  // Register ourselves as an SDL_Event handler
+  p_osystem->p_display_screen->registerEventHandler(this);
 };
 
 // Returns a random action from the set of possible actions
@@ -893,16 +896,89 @@ void SelfDetectionAgent::merge_objects(float similarity_threshold) {
   
 };
 
+void SelfDetectionAgent::handleSDLEvent(const SDL_Event& event) {
+  switch(event.type) {
+  case SDL_MOUSEBUTTONDOWN:
+    if (event.button.button == 1) {
+      int sdl_screen_width = p_osystem->p_display_screen->screen->w;
+      int sdl_screen_height = p_osystem->p_display_screen->screen->h;
+      int approx_x = (screen_width * event.button.x) / sdl_screen_width;
+      int approx_y = (screen_height * event.button.y) / sdl_screen_height;
+      // Which object contains this point?
+      focused_obj_id = -1;
+      for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); ++it) {
+        CompositeObject& obj = it->second;
+        if (approx_x >= obj.x_min && approx_x <= obj.x_max &&
+            approx_y >= obj.y_min && approx_y <= obj.y_max) {
+          focused_obj_id = obj.id;
+        }
+      }
+      display_screen(screen_hist.back());
+    }
+    break;
+
+  case SDL_KEYDOWN:
+    switch(event.key.keysym.sym) {
+    case SDLK_0:
+      display_mode = 0;
+      break;
+    case SDLK_1:
+      display_mode = 1;
+      break;
+    case SDLK_2:
+      display_mode = 2;
+      break;
+    case SDLK_3:
+      display_mode = 3;
+      break;
+    default:
+      break;
+    }
+    display_screen(screen_hist.back());
+    break;
+    
+  case SDL_VIDEORESIZE:
+    display_screen(screen_hist.back());
+    break;
+
+  default:
+    break;
+  }
+  
+};
+
 // Overrides the normal display screen method to alter our display
 void SelfDetectionAgent::display_screen(const IntMatrix& screen_matrix) {
   IntMatrix screen_cpy(screen_matrix);
 
-  //plot_blobs(screen_cpy);
-  //plot_objects(screen_cpy);
-  //plot_prototypes(screen_cpy);
-  //plot_self(screen_cpy);
+  switch (display_mode) {
+  case 1:
+    plot_blobs(screen_cpy);
+    break;
+  case 2:
+    plot_objects(screen_cpy);
+    break;
+  case 3:
+    plot_prototypes(screen_cpy);
+    break;
+  default:
+    break;
+  }
   
-  //cin.get();
+  // Display focused object
+  if (composite_objs.find(focused_obj_id) != composite_objs.end()) {
+    CompositeObject& obj = composite_objs[focused_obj_id];
+    int box_color = 256;
+    for (int x=obj.x_min; x<=obj.x_max; ++x) {
+      screen_cpy[obj.y_min-1][x] = box_color;
+      screen_cpy[obj.y_max+1][x] = box_color;
+    }
+    for (int y=obj.y_min; y<=obj.y_max; ++y) {
+      screen_cpy[y][obj.x_min-1] = box_color;
+      screen_cpy[y][obj.x_max+1] = box_color;
+    }
+  }
+
   PlayerAgent::display_screen(screen_cpy);
 };
 

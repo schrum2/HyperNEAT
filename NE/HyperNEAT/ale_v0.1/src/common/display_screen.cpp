@@ -32,7 +32,6 @@ DisplayScreen::~DisplayScreen() {
 }
 
 void DisplayScreen::display_png(const string& filename) {
-  poll(); // Check for quit event
   image = IMG_Load(filename.c_str());
   if ( !image ) {
     printf ( "IMG_Load: %s\n", IMG_GetError () );
@@ -49,11 +48,10 @@ void DisplayScreen::display_png(const string& filename) {
   SDL_FreeSurface(image);
   SDL_FreeSurface(image2);
   SDL_FreeSurface(screen);
-  //SDL_Delay(16);
+  poll(); // Check for quit event
 }
 
 void DisplayScreen::display_screen(const IntMatrix& screen_matrix, int image_widht, int image_height) {
-  poll(); // Check for event
   Uint32 rmask, gmask, bmask, amask;
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
   rmask = 0xff000000;
@@ -83,10 +81,10 @@ void DisplayScreen::display_screen(const IntMatrix& screen_matrix, int image_wid
   SDL_Flip(screen);
   SDL_FreeSurface(my_surface);
   SDL_FreeSurface(zoomed);
+  poll(); // Check for event
 }
 
 void DisplayScreen::display_bass_png(const string& filename) {
-  poll(); // Check for quit event
   image = IMG_Load(filename.c_str());
   if ( !image ) {
     printf("IMG_Load: %s\n", IMG_GetError());
@@ -106,6 +104,7 @@ void DisplayScreen::display_bass_png(const string& filename) {
   SDL_FreeSurface(image2);
   SDL_FreeSurface(screen);
   //SDL_Delay(16);
+  poll(); // Check for quit event
 }
 
 void DisplayScreen::poll() {
@@ -119,9 +118,6 @@ void DisplayScreen::poll() {
       screen = SDL_SetVideoMode(event.resize.w,event.resize.h, 0, SDL_HWPALETTE|SDL_DOUBLEBUF|SDL_RESIZABLE);
       break;
     // case SDL_MOUSEBUTTONDOWN:
-    //   printf("Mouse button %d pressed at (%d,%d)\n",
-    //          event.button.button, event.button.x, event.button.y);
-    //   break;
     case SDL_KEYDOWN:
       switch(event.key.keysym.sym){
       case SDLK_SPACE:
@@ -134,7 +130,11 @@ void DisplayScreen::poll() {
       default:
         break;
       }
-      break;
+    }
+    
+    // Give our event handlers a chance to deal with this event
+    for (int i=0; i<handlers.size(); ++i) {
+      handlers[i]->handleSDLEvent(event);
     }
   }
 };
