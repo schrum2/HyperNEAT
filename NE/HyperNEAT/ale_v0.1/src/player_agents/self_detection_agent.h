@@ -151,6 +151,7 @@ struct CompositeObject {
   int width, height;
   int size;
   int frames_since_last_movement;
+  int age;  // # of timesteps since this object was discovered
 
   CompositeObject();
   CompositeObject(int x_vel, int y_vel, long _id);
@@ -169,6 +170,8 @@ struct CompositeObject {
 
   // Builds the mask from the current set of blobs
   void computeMask(map<long,Blob>& blob_map);
+
+  void to_string();
 };
 
 /* A prototype represents a class of objects. */
@@ -186,8 +189,6 @@ struct Prototype {
   float value;
   
   Prototype(CompositeObject& obj, map<long,Blob>& blob_map);
-
-  /* void add_pixel_rel(int relx, int rely); */
 
   // How closely does an object resemble this prototype?
   float get_pixel_match(CompositeObject& obj);
@@ -213,6 +214,7 @@ class SelfDetectionAgent : public PlayerAgent, public SDLEventHandler {
   void plot_objects(IntMatrix& screen_matrix); // Plots the objects on screen
   void plot_prototypes(IntMatrix& screen_matrix); // Plots the prototypes on screen
   void plot_self(IntMatrix& screen_matrix);    // Plots the self blob
+  void box_object(CompositeObject& obj, IntMatrix& screen_matrix, int color); // Draws a box around an object
 
   void find_connected_components(const IntMatrix& screen_matrix, map<long,Blob>& blobs);
 
@@ -245,6 +247,7 @@ class SelfDetectionAgent : public PlayerAgent, public SDLEventHandler {
   int max_history_len;
   deque<IntMatrix> screen_hist;
   deque<Action> action_hist;
+  deque<map<long,Blob> >  blob_hist;
 
   long blob_ids;
   long obj_ids;
@@ -252,14 +255,11 @@ class SelfDetectionAgent : public PlayerAgent, public SDLEventHandler {
   map<long,Blob>            curr_blobs;      // Map of blob ids to blobs for the current frame
   map<long,CompositeObject> composite_objs;  // Map of obj ids to objs for the current frame
   vector<Prototype>         obj_classes;     // Classes of objects
-  long self_id; // ID of the blob in curr_blobs which corresponds to the "self"
-
-  deque<map<long,Blob> >  blob_hist;
-  deque<RegionObjectList> raw_object_hist;
-  deque<RegionObjectList> merged_object_hist;
+  long self_id; // ID of the object which corresponds to the "self"
 
   long focused_obj_id; // The focused object is selected by a click
   int display_mode;    // Which graphical representation should we display?
+  bool display_self;   // Should the results of self detection be displayed?
 
   // Parameters used for shape tracking
   float f_max_perc_difference;

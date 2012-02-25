@@ -187,6 +187,7 @@ CompositeObject::CompositeObject(int x_vel, int y_vel, long _id) {
   id = _id;
   frames_since_last_movement = 0;
   size = 0;
+  age = 0;
 };
 
 CompositeObject::~CompositeObject() {};
@@ -277,11 +278,15 @@ void CompositeObject::computeMask(map<long,Blob>& blob_map) {
   }
 };
 
+void CompositeObject::to_string() {
+  printf("Composite Object %ld: Size %d Velocity (%d,%d) FramesSinceLastMovement %d\n",id,size,x_velocity,y_velocity,frames_since_last_movement);
+};
+
 SelfDetectionAgent::SelfDetectionAgent(GameSettings* _game_settings, OSystem* _osystem) : 
   PlayerAgent(_game_settings, _osystem),
   max_history_len(50), //numeric_limits<int>::max()),
   blob_ids(0), obj_ids(0), self_id(-1),
-  focused_obj_id(-1), display_mode(0),
+  focused_obj_id(-1), display_mode(0), display_self(false),
   prototype_ids(0),//(piyushk)
   prototype_value(1.0) //(piyushk)
 {
@@ -337,7 +342,6 @@ void SelfDetectionAgent::process_image(const IntMatrix* screen_matrix, Action ac
 
     // Identify which object we are
     identify_self();
-    assert(curr_blobs.find(self_id) != curr_blobs.end());
   }
 
   // Save State and action history
@@ -612,6 +616,7 @@ void SelfDetectionAgent::update_existing_objs() {
 
   for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); it++) {
     CompositeObject& obj = it->second;
+    obj.age++;
     new_blob_ids.clear();
     
     // Update the blobs to their equivalents in the next frame
@@ -713,76 +718,90 @@ void SelfDetectionAgent::sanitize_objects() {
 
 void SelfDetectionAgent::identify_self() {
   float max_info_gain = -1;
-  long best_blob_id = -1;
-  for (map<long,Blob>::iterator it=curr_blobs.begin(); it!=curr_blobs.end(); ++it) {
-    long b_id = it->first;
-
-    int blob_history_len = 0;
-    vector<pair<int,int> > velocity_hist;
-    map<pair<int,int>,int> velocity_counts;
-
-    assert(curr_blobs.find(b_id) != curr_blobs.end());
-    Blob* b = &curr_blobs[b_id];
-
-    // Get the velocity history of this blob
-    while (b->parent_id >= 0 && blob_history_len < max_history_len) {
-      // Push back the velocity
-      pair<int,int> vel(b->x_velocity, b->y_velocity);
-      velocity_hist.push_back(vel);
-      velocity_counts[vel] = GetWithDef(velocity_counts,vel,0) + 1;
-
-      blob_history_len++;
-
-      // Get the parent
-      map<long,Blob>& old_blobs = blob_hist[blob_hist.size() - blob_history_len];
-      long parent_id = b->parent_id;
-      assert(old_blobs.find(parent_id) != old_blobs.end());
-      b = &old_blobs[parent_id];
-    }
-
-    // How many times was each action performed?
-    map<Action,int> action_counts;
-    vector<Action> act_vec;
-    for (int i=0; i<blob_history_len; ++i) {
-      Action a = action_hist[action_hist.size()-i-1];
-      act_vec.push_back(a);
-      action_counts[a] = GetWithDef(action_counts,a,0) + 1;
-    }
-
-    assert(act_vec.size() == velocity_hist.size());
-
-    // Calculate H(velocities)
-    float velocity_entropy = compute_entropy(velocity_counts,blob_history_len);
-
-    // Calculate H(velocity|a)
-    float action_entropy = 0;
-    for (map<Action,int>::iterator it2=action_counts.begin(); it2!=action_counts.end(); ++it2) {
-      Action a = it2->first;
-      int count = it2->second;
-      float p_a = count / (float) blob_history_len;
-      map<pair<int,int>,int> selective_counts;
-      int selective_total = 0;
-      for (int i=0; i<blob_history_len; ++i) {
-        if (act_vec[i] == a) {
-          pair<int,int> vel = velocity_hist[i];
-          selective_counts[vel] = GetWithDef(selective_counts,vel,0) + 1;
-          selective_total++;
-        }
-      }
-      float selective_entropy = compute_entropy(selective_counts,selective_total);
-      action_entropy += p_a * selective_entropy;
-    }
-
-    float info_gain = velocity_entropy - action_entropy;
-    if (info_gain > max_info_gain) {
-      max_info_gain = info_gain;
-      best_blob_id = b_id;
+  long best_obj_id = -1;
+  int oldest = 0;
+  for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); ++it) {
+    long obj_id = it->first;
+    CompositeObject& obj = it->second;
+    if (obj.age > oldest) {
+      self_id = obj_id;
+      oldest = obj.age;
     }
   }
-  //printf("Max info gain: %f\n",max_info_gain);
-  //best_blob->to_string();
-  self_id = best_blob_id;
 };
+
+// void SelfDetectionAgent::identify_self() {
+//   float max_info_gain = -1;
+//   long best_blob_id = -1;
+//   for (map<long,Blob>::iterator it=curr_blobs.begin(); it!=curr_blobs.end(); ++it) {
+//     long b_id = it->first;
+
+//     int blob_history_len = 0;
+//     vector<pair<int,int> > velocity_hist;
+//     map<pair<int,int>,int> velocity_counts;
+
+//     assert(curr_blobs.find(b_id) != curr_blobs.end());
+//     Blob* b = &curr_blobs[b_id];
+
+//     // Get the velocity history of this blob
+//     while (b->parent_id >= 0 && blob_history_len < max_history_len) {
+//       // Push back the velocity
+//       pair<int,int> vel(b->x_velocity, b->y_velocity);
+//       velocity_hist.push_back(vel);
+//       velocity_counts[vel] = GetWithDef(velocity_counts,vel,0) + 1;
+
+//       blob_history_len++;
+
+//       // Get the parent
+//       map<long,Blob>& old_blobs = blob_hist[blob_hist.size() - blob_history_len];
+//       long parent_id = b->parent_id;
+//       assert(old_blobs.find(parent_id) != old_blobs.end());
+//       b = &old_blobs[parent_id];
+//     }
+
+//     // How many times was each action performed?
+//     map<Action,int> action_counts;
+//     vector<Action> act_vec;
+//     for (int i=0; i<blob_history_len; ++i) {
+//       Action a = action_hist[action_hist.size()-i-1];
+//       act_vec.push_back(a);
+//       action_counts[a] = GetWithDef(action_counts,a,0) + 1;
+//     }
+
+//     assert(act_vec.size() == velocity_hist.size());
+
+//     // Calculate H(velocities)
+//     float velocity_entropy = compute_entropy(velocity_counts,blob_history_len);
+
+//     // Calculate H(velocity|a)
+//     float action_entropy = 0;
+//     for (map<Action,int>::iterator it2=action_counts.begin(); it2!=action_counts.end(); ++it2) {
+//       Action a = it2->first;
+//       int count = it2->second;
+//       float p_a = count / (float) blob_history_len;
+//       map<pair<int,int>,int> selective_counts;
+//       int selective_total = 0;
+//       for (int i=0; i<blob_history_len; ++i) {
+//         if (act_vec[i] == a) {
+//           pair<int,int> vel = velocity_hist[i];
+//           selective_counts[vel] = GetWithDef(selective_counts,vel,0) + 1;
+//           selective_total++;
+//         }
+//       }
+//       float selective_entropy = compute_entropy(selective_counts,selective_total);
+//       action_entropy += p_a * selective_entropy;
+//     }
+
+//     float info_gain = velocity_entropy - action_entropy;
+//     if (info_gain > max_info_gain) {
+//       max_info_gain = info_gain;
+//       best_blob_id = b_id;
+//     }
+//   }
+//   //printf("Max info gain: %f\n",max_info_gain);
+//   //best_blob->to_string();
+//   self_id = best_blob_id;
+// };
 
 point SelfDetectionAgent::get_self_centroid() {
   if (curr_blobs.find(self_id) == curr_blobs.end())
@@ -911,6 +930,7 @@ void SelfDetectionAgent::handleSDLEvent(const SDL_Event& event) {
         if (approx_x >= obj.x_min && approx_x <= obj.x_max &&
             approx_y >= obj.y_min && approx_y <= obj.y_max) {
           focused_obj_id = obj.id;
+          obj.to_string();
         }
       }
       display_screen(screen_hist.back());
@@ -923,13 +943,16 @@ void SelfDetectionAgent::handleSDLEvent(const SDL_Event& event) {
       display_mode = 0;
       break;
     case SDLK_1:
-      display_mode = 1;
+      display_mode = display_mode == 1 ? 0 : 1;
       break;
     case SDLK_2:
-      display_mode = 2;
+      display_mode = display_mode == 2 ? 0 : 2;
       break;
     case SDLK_3:
-      display_mode = 3;
+      display_mode = display_mode == 3 ? 0 : 3;
+      break;
+    case SDLK_4:
+      display_self = !display_self;
       break;
     default:
       break;
@@ -964,26 +987,22 @@ void SelfDetectionAgent::display_screen(const IntMatrix& screen_matrix) {
   default:
     break;
   }
+
+  if (display_self)
+    plot_self(screen_cpy);
   
   // Display focused object
   if (composite_objs.find(focused_obj_id) != composite_objs.end()) {
     CompositeObject& obj = composite_objs[focused_obj_id];
     int box_color = 256;
-    for (int x=obj.x_min; x<=obj.x_max; ++x) {
-      screen_cpy[obj.y_min-1][x] = box_color;
-      screen_cpy[obj.y_max+1][x] = box_color;
-    }
-    for (int y=obj.y_min; y<=obj.y_max; ++y) {
-      screen_cpy[y][obj.x_min-1] = box_color;
-      screen_cpy[y][obj.x_max+1] = box_color;
-    }
+    box_object(obj,screen_cpy,box_color);
   }
 
   PlayerAgent::display_screen(screen_cpy);
 };
 
 void SelfDetectionAgent::plot_blobs(IntMatrix& screen_matrix) {
-  int region_color = 256;
+  int region_color = 257;
   for (map<long,Blob>::iterator it=curr_blobs.begin(); it!=curr_blobs.end(); ++it) {
     Blob& b = it->second;
     region_color++;
@@ -1017,6 +1036,18 @@ void SelfDetectionAgent::plot_objects(IntMatrix& screen_matrix) {
   }
 };
 
+// Draws a box around the an object
+void SelfDetectionAgent::box_object(CompositeObject& obj, IntMatrix& screen_matrix, int color) {
+  for (int x=obj.x_min; x<=obj.x_max; ++x) {
+    screen_matrix[obj.y_min-1][x] = color;
+    screen_matrix[obj.y_max+1][x] = color;
+  }
+  for (int y=obj.y_min; y<=obj.y_max; ++y) {
+    screen_matrix[y][obj.x_min-1] = color;
+    screen_matrix[y][obj.x_max+1] = color;
+  }
+};
+
 void SelfDetectionAgent::plot_prototypes(IntMatrix& screen_matrix) {
   // Set the color for the bg
   for (int y=0; y<screen_height; ++y) {
@@ -1046,11 +1077,9 @@ void SelfDetectionAgent::plot_prototypes(IntMatrix& screen_matrix) {
 };
 
 void SelfDetectionAgent::plot_self(IntMatrix& screen_matrix) {
-  Blob& self_blob = curr_blobs[self_id];
-  for (int y=0; y<self_blob.height; ++y) {
-    for (int x=0; x<self_blob.width; ++x) {
-      if (get_pixel(self_blob.width, self_blob.height, x, y, self_blob.mask))
-        screen_matrix[self_blob.y_min+y][self_blob.x_min+x] = 6;
-    }
+  int self_color = 258;
+  if (composite_objs.find(self_id) != composite_objs.end()) {
+    CompositeObject& o = composite_objs[self_id];
+    box_object(o,screen_matrix,self_color);
   }
 };
