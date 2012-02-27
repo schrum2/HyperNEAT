@@ -188,6 +188,8 @@ CompositeObject::CompositeObject(int x_vel, int y_vel, long _id) {
   frames_since_last_movement = 0;
   size = 0;
   age = 0;
+  width = 0;
+  height = 0;
 };
 
 CompositeObject::~CompositeObject() {};
@@ -201,6 +203,8 @@ void CompositeObject::clean() {
   blob_ids.clear();
   mask.clear();
   size = 0;
+  width = 0;
+  height = 0;
 };
 
 void CompositeObject::update_bounding_box(const Blob& b) {
@@ -208,6 +212,8 @@ void CompositeObject::update_bounding_box(const Blob& b) {
   x_max = max(b.x_max, x_max);
   y_min = min(b.y_min, y_min);
   y_max = max(b.y_max, y_max);
+  width = x_max - x_min +1;
+  height = y_max - y_min +1;
 };
 
 void CompositeObject::add_blob(const Blob& b) {
@@ -253,16 +259,13 @@ void CompositeObject::expand(map<long,Blob>& blob_map) {
 };
 
 void CompositeObject::computeMask(map<long,Blob>& blob_map) {
+  size = 0;
   mask.clear();
   
   // Create pixel mask
-  width = x_max - x_min + 1;
-  height = y_max - y_min + 1;
-  
   for (int i=0; i<width*height/8 + 1; ++i)
     mask.push_back(0x0);
 
-  // Set the Prototype's pixel mask to that of the composite obj it was constructed from
   for (set<long>::iterator it=blob_ids.begin(); it!=blob_ids.end(); ++it) {
     long b_id = *it;
     assert(blob_map.find(b_id) != blob_map.end());
@@ -578,35 +581,6 @@ void SelfDetectionAgent::find_blob_matches(map<long,Blob>& blobs) {
   }
 };
 
-// Merge equivalent blobs into a single composite object
-void SelfDetectionAgent::merge_blobs(map<long,Blob>& blobs) {
-  set<long> checked;
-  
-  // Add all the blobs in the existing objects to the list of checked blobs
-  for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); it++) {
-    CompositeObject& obj = it->second;
-    checked.insert(obj.blob_ids.begin(), obj.blob_ids.end());
-  }
-
-  for (map<long,Blob>::iterator it=blobs.begin(); it!=blobs.end(); ++it) {
-    Blob& b = it->second;
-
-    if (checked.find(b.id) != checked.end())
-      continue;
-    
-    // Only create blobs when velocity is greater than zero
-    if (b.x_velocity != 0 || b.y_velocity != 0) {
-      CompositeObject obj(b.x_velocity, b.y_velocity, obj_ids++);
-      obj.add_blob(b);
-      obj.expand(blobs);
-      obj.computeMask(blobs);
-      composite_objs[obj.id] = obj;
-      checked.insert(obj.blob_ids.begin(), obj.blob_ids.end());
-    }
-    checked.insert(b.id);
-  }
-};
-
 // Update the current blobs that we already have
 void SelfDetectionAgent::update_existing_objs() {
   set<long> used_blob_ids; // A blob becomes used when it is integrated into an existing object
@@ -619,7 +593,7 @@ void SelfDetectionAgent::update_existing_objs() {
     obj.age++;
     new_blob_ids.clear();
     
-    // Update the blobs to their equivalents in the next frame
+    // Update the object's blobs to their equivalents in the next frame
     for (set<long>::iterator bit=obj.blob_ids.begin(); bit!=obj.blob_ids.end(); bit++) {
       long b_id = *bit;
       assert(old_blobs.find(b_id) != old_blobs.end());
@@ -637,7 +611,7 @@ void SelfDetectionAgent::update_existing_objs() {
       continue;
     }
 
-    // Checks that the object is still cohesive and velocity consistent
+    // Checks that the new blobs are velocity consistent
     long first_id = *(new_blob_ids.begin());
     Blob& first = curr_blobs[first_id];
     bool velocity_consistent = true;
@@ -652,7 +626,7 @@ void SelfDetectionAgent::update_existing_objs() {
       } 
     }
 
-    // This works if object is still cohesive
+    // Update the object with new blobs
     if (velocity_consistent) {
       obj.clean();
       obj.x_velocity = first.x_velocity;
@@ -663,7 +637,7 @@ void SelfDetectionAgent::update_existing_objs() {
         Blob& b = curr_blobs[b_id];
         obj.add_blob(b);
       }
-      // Expand the object if it is non-stationary
+      // Expand the object if it is non-stationary and has a change in bounding box
       if (obj.x_velocity != 0 || obj.y_velocity != 0)
         obj.expand(curr_blobs);
       obj.computeMask(curr_blobs);
@@ -682,19 +656,51 @@ void SelfDetectionAgent::update_existing_objs() {
   }
 };
 
-void SelfDetectionAgent::sanitize_objects() {
+// Merge equivalent blobs into a single composite object
+void SelfDetectionAgent::merge_blobs(map<long,Blob>& blobs) {
+  set<long> checked;
+  
+  // Add all the blobs in the existing objects to the list of checked blobs
+  for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); it++) {
+    CompositeObject& obj = it->second;
+    checked.insert(obj.blob_ids.begin(), obj.blob_ids.end());
+  }
 
+  // Now create objects from any blobs which aren't already accounted for
+  for (map<long,Blob>::iterator it=blobs.begin(); it!=blobs.end(); ++it) {
+    Blob& b = it->second;
+
+    if (checked.find(b.id) != checked.end())
+      continue;
+    
+    // Only create blobs when velocity is greater than zero
+    if (b.x_velocity != 0 || b.y_velocity != 0) {
+      CompositeObject obj(b.x_velocity, b.y_velocity, obj_ids++);
+      obj.add_blob(b);
+      obj.expand(blobs); //TODO: This expand could use blobs in use by other objects....
+      obj.computeMask(blobs);
+      composite_objs[obj.id] = obj;
+      for (set<long>::iterator bit=obj.blob_ids.begin(); bit!=obj.blob_ids.end(); ++bit) {
+        assert(checked.find(*bit) == checked.end());
+      }
+      checked.insert(obj.blob_ids.begin(), obj.blob_ids.end());
+    }
+    checked.insert(b.id);
+  }
+};
+
+void SelfDetectionAgent::sanitize_objects() {
   vector<long> to_remove;
 
   for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); it++) {
     CompositeObject& obj = it->second;
 
     // (piyushk) if blob is too small or the velocity is 0, then remove the object
-    if ((obj.x_max - obj.x_min) * (obj.y_max - obj.y_min) < 15) {
+    if (obj.size < 15) {
       to_remove.push_back(obj.id);
       continue;
     }
-    if (obj.frames_since_last_movement > 10) {
+    if (obj.frames_since_last_movement > 50) {
       to_remove.push_back(obj.id);
       continue;
     }
@@ -703,7 +709,6 @@ void SelfDetectionAgent::sanitize_objects() {
     } else {
       obj.frames_since_last_movement = 0;
     }
-    //std::cout << "  " << (obj.x_max - obj.x_min) * (obj.y_max - obj.y_min) << std::endl;
   }
 
   // Walk through list in reverse removing objects
@@ -711,97 +716,109 @@ void SelfDetectionAgent::sanitize_objects() {
     assert(composite_objs.find(to_remove[i]) != composite_objs.end());
     composite_objs.erase(to_remove[i]); 
   }
-
-  // std::cout << "Haha! " << composite_objs.size();
-
 }
-
-void SelfDetectionAgent::identify_self() {
-  float max_info_gain = -1;
-  long best_obj_id = -1;
-  int oldest = 0;
-  for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); ++it) {
-    long obj_id = it->first;
-    CompositeObject& obj = it->second;
-    if (obj.age > oldest) {
-      self_id = obj_id;
-      oldest = obj.age;
-    }
-  }
-};
 
 // void SelfDetectionAgent::identify_self() {
 //   float max_info_gain = -1;
-//   long best_blob_id = -1;
-//   for (map<long,Blob>::iterator it=curr_blobs.begin(); it!=curr_blobs.end(); ++it) {
-//     long b_id = it->first;
-
-//     int blob_history_len = 0;
-//     vector<pair<int,int> > velocity_hist;
-//     map<pair<int,int>,int> velocity_counts;
-
-//     assert(curr_blobs.find(b_id) != curr_blobs.end());
-//     Blob* b = &curr_blobs[b_id];
-
-//     // Get the velocity history of this blob
-//     while (b->parent_id >= 0 && blob_history_len < max_history_len) {
-//       // Push back the velocity
-//       pair<int,int> vel(b->x_velocity, b->y_velocity);
-//       velocity_hist.push_back(vel);
-//       velocity_counts[vel] = GetWithDef(velocity_counts,vel,0) + 1;
-
-//       blob_history_len++;
-
-//       // Get the parent
-//       map<long,Blob>& old_blobs = blob_hist[blob_hist.size() - blob_history_len];
-//       long parent_id = b->parent_id;
-//       assert(old_blobs.find(parent_id) != old_blobs.end());
-//       b = &old_blobs[parent_id];
-//     }
-
-//     // How many times was each action performed?
-//     map<Action,int> action_counts;
-//     vector<Action> act_vec;
-//     for (int i=0; i<blob_history_len; ++i) {
-//       Action a = action_hist[action_hist.size()-i-1];
-//       act_vec.push_back(a);
-//       action_counts[a] = GetWithDef(action_counts,a,0) + 1;
-//     }
-
-//     assert(act_vec.size() == velocity_hist.size());
-
-//     // Calculate H(velocities)
-//     float velocity_entropy = compute_entropy(velocity_counts,blob_history_len);
-
-//     // Calculate H(velocity|a)
-//     float action_entropy = 0;
-//     for (map<Action,int>::iterator it2=action_counts.begin(); it2!=action_counts.end(); ++it2) {
-//       Action a = it2->first;
-//       int count = it2->second;
-//       float p_a = count / (float) blob_history_len;
-//       map<pair<int,int>,int> selective_counts;
-//       int selective_total = 0;
-//       for (int i=0; i<blob_history_len; ++i) {
-//         if (act_vec[i] == a) {
-//           pair<int,int> vel = velocity_hist[i];
-//           selective_counts[vel] = GetWithDef(selective_counts,vel,0) + 1;
-//           selective_total++;
-//         }
+//   long best_obj_id = -1;
+//   int oldest = 0;
+//   for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); ++it) {
+//     long obj_id = it->first;
+//     CompositeObject& obj = it->second;
+//     //cout <<"Obj: " << obj_id << " age " << obj.age<< endl;
+//     for (set<long>::iterator bit=obj.blob_ids.begin(); bit!=obj.blob_ids.end(); ++bit) {
+//       long b_id = *bit;
+//       assert(curr_blobs.find(b_id) != curr_blobs.end());
+//       int hist_len = 0;
+//       Blob* b = &curr_blobs[b_id];
+//       //cout << "\tBlob " << b_id << " (" << b->x_velocity << "," << b->y_velocity << ") ";
+//       while (b->parent_id >= 0 && hist_len < max_history_len) {
+//         hist_len++;
+//         map<long,Blob>& old_blobs = blob_hist[blob_hist.size() - hist_len];
+//         long parent_id = b->parent_id;
+//         assert(old_blobs.find(parent_id) != old_blobs.end());
+//         b = &old_blobs[parent_id];
+//         //cout << " (" << b->x_velocity << "," << b->y_velocity << ") ";
 //       }
-//       float selective_entropy = compute_entropy(selective_counts,selective_total);
-//       action_entropy += p_a * selective_entropy;
-//     }
-
-//     float info_gain = velocity_entropy - action_entropy;
-//     if (info_gain > max_info_gain) {
-//       max_info_gain = info_gain;
-//       best_blob_id = b_id;
+//       //cout << endl;
+//       //cout << "\tHistoryLen: " << hist_len << endl;
 //     }
 //   }
-//   //printf("Max info gain: %f\n",max_info_gain);
-//   //best_blob->to_string();
-//   self_id = best_blob_id;
+//   //cin.get();
 // };
+
+void SelfDetectionAgent::identify_self() {
+  float max_info_gain = -1;
+  long best_blob_id = -1;
+  for (map<long,Blob>::iterator it=curr_blobs.begin(); it!=curr_blobs.end(); ++it) {
+    long b_id = it->first;
+
+    int blob_history_len = 0;
+    vector<pair<int,int> > velocity_hist;
+    map<pair<int,int>,int> velocity_counts;
+
+    assert(curr_blobs.find(b_id) != curr_blobs.end());
+    Blob* b = &curr_blobs[b_id];
+
+    // Get the velocity history of this blob
+    while (b->parent_id >= 0 && blob_history_len < max_history_len) {
+      // Push back the velocity
+      pair<int,int> vel(b->x_velocity, b->y_velocity);
+      velocity_hist.push_back(vel);
+      velocity_counts[vel] = GetWithDef(velocity_counts,vel,0) + 1;
+
+      blob_history_len++;
+
+      // Get the parent
+      map<long,Blob>& old_blobs = blob_hist[blob_hist.size() - blob_history_len];
+      long parent_id = b->parent_id;
+      assert(old_blobs.find(parent_id) != old_blobs.end());
+      b = &old_blobs[parent_id];
+    }
+
+    // How many times was each action performed?
+    map<Action,int> action_counts;
+    vector<Action> act_vec;
+    for (int i=0; i<blob_history_len; ++i) {
+      Action a = action_hist[action_hist.size()-i-1];
+      act_vec.push_back(a);
+      action_counts[a] = GetWithDef(action_counts,a,0) + 1;
+    }
+
+    assert(act_vec.size() == velocity_hist.size());
+
+    // Calculate H(velocities)
+    float velocity_entropy = compute_entropy(velocity_counts,blob_history_len);
+
+    // Calculate H(velocity|a)
+    float action_entropy = 0;
+    for (map<Action,int>::iterator it2=action_counts.begin(); it2!=action_counts.end(); ++it2) {
+      Action a = it2->first;
+      int count = it2->second;
+      float p_a = count / (float) blob_history_len;
+      map<pair<int,int>,int> selective_counts;
+      int selective_total = 0;
+      for (int i=0; i<blob_history_len; ++i) {
+        if (act_vec[i] == a) {
+          pair<int,int> vel = velocity_hist[i];
+          selective_counts[vel] = GetWithDef(selective_counts,vel,0) + 1;
+          selective_total++;
+        }
+      }
+      float selective_entropy = compute_entropy(selective_counts,selective_total);
+      action_entropy += p_a * selective_entropy;
+    }
+
+    float info_gain = velocity_entropy - action_entropy;
+    if (info_gain > max_info_gain) {
+      max_info_gain = info_gain;
+      best_blob_id = b_id;
+    }
+  }
+  //printf("Max info gain: %f\n",max_info_gain);
+  //best_blob->to_string();
+  self_id = best_blob_id;
+};
 
 point SelfDetectionAgent::get_self_centroid() {
   if (curr_blobs.find(self_id) == curr_blobs.end())
