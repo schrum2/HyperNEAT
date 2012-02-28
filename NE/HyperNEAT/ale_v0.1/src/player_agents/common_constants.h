@@ -77,7 +77,7 @@ enum e_colors {
   WHITE = 7
 };
 
-string action_to_string(Action a);
+std::string action_to_string(Action a);
 
 enum EpisodeStatus {
     INITIAL_DELAY,          // The delay at the very beginning of the game

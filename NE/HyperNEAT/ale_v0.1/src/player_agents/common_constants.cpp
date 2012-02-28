@@ -15,7 +15,7 @@
 
 #include "common_constants.h"
 
-string action_to_string(Action a) {
+std::string action_to_string(Action a) {
 	static string tmp_action_to_string[] = {
 		 "PLAYER_A_NOOP"          
 		,"PLAYER_A_FIRE"          

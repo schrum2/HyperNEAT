@@ -243,6 +243,8 @@ class SelfDetectionAgent : public PlayerAgent {
 
   void handleSDLEvent(const SDL_Event& event);
 
+  void printVelHistory(CompositeObject& obj);
+
   int screen_width, screen_height;
   int max_history_len;
   deque<IntMatrix> screen_hist;

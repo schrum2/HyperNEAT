@@ -926,7 +926,31 @@ void SelfDetectionAgent::merge_objects(float similarity_threshold) {
   //   }
   //   std::cout << p.id << " " << p.value << " " << p.seen_count << " " << p.times_seen_this_frame << " " << p.frames_since_last_seen << std::endl;
   // }
-  
+};
+
+void SelfDetectionAgent::printVelHistory(CompositeObject& obj) {
+  for (set<long>::iterator it=obj.blob_ids.begin(); it!=obj.blob_ids.end(); ++it) {
+    long b_id = *it;
+    
+    assert(curr_blobs.find(b_id) != curr_blobs.end());
+    Blob* b = &curr_blobs[b_id];
+    printf("Blob %ld: ",b_id);
+    // Get the velocity history of this blob
+    int blob_history_len = 1;
+    while (b->parent_id >= 0 && blob_history_len < max_history_len) {
+      // Push back the velocity
+      pair<int,int> vel(b->x_velocity, b->y_velocity);
+      blob_history_len++;
+      string action_name = action_to_string(action_hist[action_hist.size() - blob_history_len]);
+      printf("%s (%d,%d)\n",action_name.c_str(), b->x_velocity, b->y_velocity);
+      // Get the parent
+      map<long,Blob>& old_blobs = blob_hist[blob_hist.size() - blob_history_len];
+      long parent_id = b->parent_id;
+      assert(old_blobs.find(parent_id) != old_blobs.end());
+      b = &old_blobs[parent_id];
+    }
+    printf("\n");
+  }  
 };
 
 void SelfDetectionAgent::handleSDLEvent(const SDL_Event& event) {
@@ -945,6 +969,7 @@ void SelfDetectionAgent::handleSDLEvent(const SDL_Event& event) {
             approx_y >= obj.y_min && approx_y <= obj.y_max) {
           focused_obj_id = obj.id;
           obj.to_string();
+          printVelHistory(obj);
         }
       }
       display_screen(screen_hist.back());
