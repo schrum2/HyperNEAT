@@ -206,7 +206,7 @@ class VisualProcessor : public SDLEventHandler {
   // return the results.
   void process_image(const IntMatrix* screen_matrix, Action a);
 
-  virtual void display_screen(const IntMatrix& screen_matrix);
+  virtual void display_screen(IntMatrix& screen_matrix);
 
   void plot_blobs(IntMatrix& screen_matrix);   // Plots the blobs on screen
   void plot_objects(IntMatrix& screen_matrix); // Plots the objects on screen

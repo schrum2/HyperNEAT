@@ -307,6 +307,9 @@ VisualProcessor::VisualProcessor(OSystem* _osystem) :
   for (int i = 258; i < 512; i++) {
     free_colors.insert(i);
   }
+  
+  // Register ourselves as an event handler
+  p_osystem->p_display_screen->registerEventHandler(this);
 };
 
 void VisualProcessor::process_image(const IntMatrix* screen_matrix, Action action) {
@@ -958,7 +961,8 @@ void VisualProcessor::handleSDLEvent(const SDL_Event& event) {
           printVelHistory(obj);
         }
       }
-      display_screen(screen_hist.back());
+      if (screen_hist.size() >= 1)
+        display_screen(screen_hist.back());
     }
     break;
 
@@ -982,11 +986,13 @@ void VisualProcessor::handleSDLEvent(const SDL_Event& event) {
     default:
       break;
     }
-    display_screen(screen_hist.back());
+    if (screen_hist.size() >= 1)
+      display_screen(screen_hist.back());
     break;
     
   case SDL_VIDEORESIZE:
-    display_screen(screen_hist.back());
+    if (screen_hist.size() >= 1)
+      display_screen(screen_hist.back());
     break;
 
   default:
@@ -997,9 +1003,7 @@ void VisualProcessor::handleSDLEvent(const SDL_Event& event) {
 };
 
 // Overrides the normal display screen method to alter our display
-void VisualProcessor::display_screen(const IntMatrix& screen_matrix) {
-  IntMatrix screen_cpy(screen_matrix);
-
+void VisualProcessor::display_screen(IntMatrix& screen_cpy) {
   switch (display_mode) {
   case 1:
     plot_blobs(screen_cpy);
@@ -1023,7 +1027,6 @@ void VisualProcessor::display_screen(const IntMatrix& screen_matrix) {
     int box_color = 256;
     box_object(obj,screen_cpy,box_color);
   }
-  //PlayerAgent::display_screen(screen_cpy);
 };
 
 void VisualProcessor::plot_blobs(IntMatrix& screen_matrix) {
