@@ -30,6 +30,7 @@ class DisplayScreen {
   int screen_width;
 
   bool paused;
+  bool poll_for_events;
   
   SDL_Surface *screen, *image;
   ExportScreen* export_screen;

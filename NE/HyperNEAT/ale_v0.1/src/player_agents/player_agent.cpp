@@ -116,6 +116,10 @@ PlayerAgent::PlayerAgent(GameSettings* _game_settings, OSystem* _osystem) :
   i_curr_expl_act_index = 0;
   i_curr_act_frame_count = i_init_act_explor_count;
   b_reward_on_this_frame = false;
+
+  if (b_display_screen) {
+    p_osystem->p_display_screen->registerEventHandler(this);
+  }
 }
 
 /* **********************************************************************
@@ -140,7 +144,7 @@ PlayerAgent::~PlayerAgent() {
    will decides the next action based on the desired algorithm.
    The implementation in the superclass takes care of restarting the 
    game at the end, pressing the first action (if defined), and 
-   countin frames and episodes. It should be called from all 
+   counting frames and episodes. It should be called from all 
    overriden functions
    ******************************************************************** */
 Action PlayerAgent::agent_step(const IntMatrix* screen_matrix, 
@@ -323,6 +327,11 @@ Action PlayerAgent::agent_step(const IntMatrix* screen_matrix,
     }
     break;
   }
+
+  case HUMAN_CONTROLLING:
+    return waitForKeypress();
+    break;
+
   default:
     assert(false); // we should never reach here
   }
@@ -510,4 +519,80 @@ void PlayerAgent::display_screen(const IntMatrix& screen_matrix) {
     return;
   
   p_osystem->p_display_screen->display_screen(screen_matrix, screen_matrix[0].size(), screen_matrix.size());
+}
+
+void PlayerAgent::handleSDLEvent(const SDL_Event& event) {
+  switch(event.type) {
+  case SDL_KEYDOWN:
+    switch(event.key.keysym.sym) {
+    case SDLK_p:
+      if (e_episode_status == AGENT_ACTING) {
+        cout << "Starting Human Control. Press Q to exit." << endl;
+        e_episode_status = HUMAN_CONTROLLING;
+      }
+    default:
+      break;
+    }
+
+  default:
+    break;
+  }
+}
+
+Action PlayerAgent::waitForKeypress() {
+  // Disable polling
+  p_osystem->p_display_screen->poll_for_events = false;
+  Action a = LAST_ACTION_INDEX;
+  while (a == LAST_ACTION_INDEX) {
+    SDL_Delay(50); // Set amount of sleep time
+    SDL_PumpEvents();
+    Uint8 * keymap = SDL_GetKeyState(0);
+    if (keymap[SDLK_q]) {
+      e_episode_status = AGENT_ACTING;
+      a = UNDEFINED;
+      p_osystem->p_display_screen->poll_for_events = true;
+      // Trips
+    } else if (keymap[SDLK_UP] && keymap[SDLK_RIGHT] && keymap[SDLK_SPACE]) {
+      a = PLAYER_A_UPRIGHTFIRE;
+    } else if (keymap[SDLK_UP] && keymap[SDLK_LEFT] && keymap[SDLK_SPACE]) {
+      a = PLAYER_A_UPLEFTFIRE;
+    } else if (keymap[SDLK_DOWN] && keymap[SDLK_RIGHT] && keymap[SDLK_SPACE]) {
+      a = PLAYER_A_DOWNRIGHTFIRE;
+    } else if (keymap[SDLK_DOWN] && keymap[SDLK_LEFT] && keymap[SDLK_SPACE]) {
+      a = PLAYER_A_DOWNLEFTFIRE;
+
+      // Doubs
+    } else if (keymap[SDLK_UP] && keymap[SDLK_LEFT]) {
+      a = PLAYER_A_UPLEFT;
+    } else if (keymap[SDLK_UP] && keymap[SDLK_RIGHT]) {
+      a = PLAYER_A_UPRIGHT;
+    } else if (keymap[SDLK_DOWN] && keymap[SDLK_LEFT]) {
+      a = PLAYER_A_DOWNLEFT;
+    } else if (keymap[SDLK_DOWN] && keymap[SDLK_RIGHT]) {
+      a = PLAYER_A_DOWNRIGHT;
+    } else if (keymap[SDLK_UP] && keymap[SDLK_SPACE]) {
+      a = PLAYER_A_UPFIRE;
+    } else if (keymap[SDLK_DOWN] && keymap[SDLK_SPACE]) {
+      a = PLAYER_A_DOWNFIRE;
+    } else if (keymap[SDLK_LEFT] && keymap[SDLK_SPACE]) {
+      a = PLAYER_A_LEFTFIRE;
+    } else if (keymap[SDLK_RIGHT] && keymap[SDLK_SPACE]) {
+      a = PLAYER_A_RIGHTFIRE;
+
+      // Singles
+    } else if (keymap[SDLK_SPACE]) {
+      a = PLAYER_A_FIRE;
+    } else if (keymap[SDLK_RETURN]) {
+      a = PLAYER_A_NOOP;
+    } else if (keymap[SDLK_LEFT]) {
+      a = PLAYER_A_LEFT;
+    } else if (keymap[SDLK_RIGHT]) {
+      a = PLAYER_A_RIGHT;
+    } else if (keymap[SDLK_UP]) {
+      a = PLAYER_A_UP;
+    } else if (keymap[SDLK_DOWN]) {
+      a = PLAYER_A_DOWN;
+    } 
+  }
+  return a;
 }

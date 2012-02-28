@@ -308,9 +308,6 @@ SelfDetectionAgent::SelfDetectionAgent(GameSettings* _game_settings, OSystem* _o
   for (int i = 258; i < 512; i++) {
     free_colors.insert(i);
   }
-
-  // Register ourselves as an SDL_Event handler
-  p_osystem->p_display_screen->registerEventHandler(this);
 };
 
 // Returns a random action from the set of possible actions
@@ -984,7 +981,8 @@ void SelfDetectionAgent::handleSDLEvent(const SDL_Event& event) {
   default:
     break;
   }
-  
+  // Pass the event to the superclass
+  PlayerAgent::handleSDLEvent(event);
 };
 
 // Overrides the normal display screen method to alter our display

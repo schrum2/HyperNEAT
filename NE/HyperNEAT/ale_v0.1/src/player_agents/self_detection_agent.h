@@ -195,7 +195,7 @@ struct Prototype {
 };
 
 
-class SelfDetectionAgent : public PlayerAgent, public SDLEventHandler {
+class SelfDetectionAgent : public PlayerAgent { 
  public:
   SelfDetectionAgent(GameSettings* _game_settings, OSystem* _osystem);
         

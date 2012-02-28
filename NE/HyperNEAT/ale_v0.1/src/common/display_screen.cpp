@@ -2,7 +2,7 @@
 
 
 DisplayScreen::DisplayScreen(bool use_bass, ExportScreen* _export_screen):
-  paused(false), export_screen(_export_screen)
+  paused(false), poll_for_events(true), export_screen(_export_screen)
 {
   /* Initialise SDL Video */
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -48,7 +48,8 @@ void DisplayScreen::display_png(const string& filename) {
   SDL_FreeSurface(image);
   SDL_FreeSurface(image2);
   SDL_FreeSurface(screen);
-  poll(); // Check for quit event
+  if (poll_for_events)
+    poll(); // Check for quit event
 }
 
 void DisplayScreen::display_screen(const IntMatrix& screen_matrix, int image_widht, int image_height) {
@@ -81,7 +82,8 @@ void DisplayScreen::display_screen(const IntMatrix& screen_matrix, int image_wid
   SDL_Flip(screen);
   SDL_FreeSurface(my_surface);
   SDL_FreeSurface(zoomed);
-  poll(); // Check for event
+  if (poll_for_events)
+    poll(); // Check for quit event
 }
 
 void DisplayScreen::display_bass_png(const string& filename) {
@@ -104,7 +106,8 @@ void DisplayScreen::display_bass_png(const string& filename) {
   SDL_FreeSurface(image2);
   SDL_FreeSurface(screen);
   //SDL_Delay(16);
-  poll(); // Check for quit event
+  if (poll_for_events)
+    poll(); // Check for quit event
 }
 
 void DisplayScreen::poll() {

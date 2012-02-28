@@ -83,8 +83,9 @@ enum EpisodeStatus {
     INITIAL_DELAY,          // The delay at the very beginning of the game
     RESTART_DELAY,          // Delay after restarting the game
     START_EPISODE,          // We are about to start the episode
-	ACTION_EXPLOR,			// Exploration by trying individual actions
+    ACTION_EXPLOR,          // Exploration by trying individual actions
     AGENT_ACTING,           // we are in the middle of an episode
+    HUMAN_CONTROLLING,      // The end user is controlling the game
 };
 
 

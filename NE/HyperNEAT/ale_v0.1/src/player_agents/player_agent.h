@@ -22,7 +22,7 @@
 #include "background_detector.h"
 #include "class_discovery.h"
 
-class PlayerAgent  {
+class PlayerAgent : public SDLEventHandler {
   /* *************************************************************************
      This is an abstract class and should be the Superclass for all
      agent classes that want to interact with stella
@@ -119,6 +119,17 @@ class PlayerAgent  {
   static PlayerAgent* generate_agent_instance(GameSettings* _game_settings,
                                               OSystem* _osystem);
         
+  /* *********************************************************************
+     Handles SDL events such as allowing the player to control the screen
+     using the keyboard.
+     * ****************************************************************** */
+  void handleSDLEvent(const SDL_Event& event);
+
+  /* *********************************************************************
+     Capture's the user's keypress. Used for controlling the game.
+     * ****************************************************************** */
+  Action waitForKeypress();
+
   int i_episode_counter;			  // number of episodes we have seen
   long long i_frame_counter;        // number of frames we have seen
   long long i_episode_first_frame;  // The frame where the episode starts
