@@ -961,8 +961,12 @@ void VisualProcessor::handleSDLEvent(const SDL_Event& event) {
           printVelHistory(obj);
         }
       }
-      if (screen_hist.size() >= 1)
-        display_screen(screen_hist.back());
+      // Update the screen
+      if (screen_hist.size() >= 1) {
+        IntMatrix screen_cpy(screen_hist.back());
+        display_screen(screen_cpy);
+        p_osystem->p_display_screen->display_screen(screen_cpy, screen_cpy[0].size(), screen_cpy.size());
+      }
     }
     break;
 
@@ -986,13 +990,21 @@ void VisualProcessor::handleSDLEvent(const SDL_Event& event) {
     default:
       break;
     }
-    if (screen_hist.size() >= 1)
-      display_screen(screen_hist.back());
+    // Update the screen
+    if (screen_hist.size() >= 1) {
+      IntMatrix screen_cpy(screen_hist.back());
+      display_screen(screen_cpy);
+      p_osystem->p_display_screen->display_screen(screen_cpy, screen_cpy[0].size(), screen_cpy.size());
+    }
     break;
     
   case SDL_VIDEORESIZE:
-    if (screen_hist.size() >= 1)
-      display_screen(screen_hist.back());
+    // Update the screen
+    if (screen_hist.size() >= 1) {
+      IntMatrix screen_cpy(screen_hist.back());
+      display_screen(screen_cpy);
+      p_osystem->p_display_screen->display_screen(screen_cpy, screen_cpy[0].size(), screen_cpy.size());
+    }
     break;
 
   default:
