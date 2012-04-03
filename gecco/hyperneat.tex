@@ -26,7 +26,7 @@
 %
 % For tracking purposes - this is V3.1SP - APRIL 2009
 
-\documentclass{acm_proc_article-sp}
+\documentclass{sig-alternate}
 %\usepackage[pdftex]{graphicx}
 \usepackage{url}
 \usepackage{algorithm}
@@ -41,7 +41,11 @@
 \long\def\commentm#1{{\bf **M: #1**}}
 
 \begin{document}
-
+\conferenceinfo{GECCO'12,} {July 7--11, 2012, Philadelphia, Pennsylvania, USA.}
+\CopyrightYear{2012}
+\crdata{978-1-4503-1177-9/12/07}
+\clubpenalty=10000
+\widowpenalty = 10000
 \title{HyperNEAT-GGP: A HyperNEAT-based \\Atari General Game Player}
 %\subtitle{[Extended Abstract]
 %% \titlenote{A full version of this paper is available as
@@ -167,7 +171,7 @@ Despite the variability of game dynamics, all Atari games share a standard inter
 
 \begin{figure}[t]
 \begin{center}
-\includegraphics[width=.5\columnwidth]{figures/asterix.png}
+\includegraphics[width=.5\columnwidth]{figures/asterix}
 \end{center}
 \caption{Asterix, one of the many games available for the Atari 2600.}
 \label{fig:asterix}
@@ -282,10 +286,10 @@ Having computed the information entropy over $b$'s full velocity history, Algori
 
 \begin{figure*}
   \centering
-  \subfloat[Object Classes]{\label{fig:classes}\includegraphics[width=0.196\textwidth]{figures/objClasses.png}}\hspace{.1in}
-  \subfloat[Grid Overlay]{\label{fig:grid}\includegraphics[width=0.2\textwidth]{figures/grid-overlay.png}}\hspace{.1in}
-  \subfloat[ANN Input]{\label{fig:anninput}\includegraphics[width=0.2\textwidth]{figures/ann-input.png}}\hspace{.1in}
-  \subfloat[ANN Output]{\label{fig:annoutput}\includegraphics[width=0.2\textwidth]{figures/action-selection.png}}
+  \subfloat[Object Classes]{\label{fig:classes}\includegraphics[width=0.196\textwidth]{figures/objClasses}}\hspace{.1in}
+  \subfloat[Grid Overlay]{\label{fig:grid}\includegraphics[width=0.2\textwidth]{figures/grid-overlay}}\hspace{.1in}
+  \subfloat[ANN Input]{\label{fig:anninput}\includegraphics[width=0.2\textwidth]{figures/ann-input}}\hspace{.1in}
+  \subfloat[ANN Output]{\label{fig:annoutput}\includegraphics[width=0.2\textwidth]{figures/action-selection}}
  \caption{The interface between visual processing framework and the HyperNEAT ANN. Classes of objects are discretized into a grid whose cells are fed to the input nodes of the ANN via a map from object classes to real numbers. After running the ANN, activations of the output layer in cells adjacent to the detected self are used to select which action the agent should take. In this case, the agent would move up since that adjacent cell has the highest activation.}
  \label{fig:interface}
 \end{figure*}
@@ -316,7 +320,7 @@ The visual processing and self-identification components of the code require a s
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[width=\columnwidth]{figures/condor-hyperneat-small.png}
+\includegraphics[width=\columnwidth]{figures/condor-hyperneat-small}
 \end{center}
 \caption{Parallel evaluations on the Condor framework.}
 \label{fig:condor}
@@ -340,7 +344,7 @@ Freeway is an Atari game similar to the arcade game \textit{Frogger}. The player
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[width=\columnwidth]{figures/freeway-results.png}
+\includegraphics[width=\columnwidth]{figures/freeway-results}
 \end{center}
 \caption{HyperNEAT-GGP learning performance on the Freeway game. Average fitness of the population along with the champion fitness for each generation are displayed. Error bars represent standard deviation. The fitness of an individual corresponds exactly to its game score. As the figure shows, effective Freeway policies are found in early generations.}
 \label{fig:freeway-curve}
@@ -353,7 +357,7 @@ In Asterix, the player controls a unit called Asterix with the objective of coll
 
 \begin{figure}[ht]
 \begin{center}
-\includegraphics[width=\columnwidth]{figures/asterix-results.png}
+\includegraphics[width=\columnwidth]{figures/asterix-results}
 \end{center}
 \caption{HyperNEAT-GGP learning performance on the Asterix game. The average fitness of the population along with the champion at each generation in the Asterix game. Error bars represent standard deviation. Fitness of an individual corresponds exactly to their game score. As the figure shows, policies are continually improved throughout the course of the 250 generations.}
 \label{fig:asterix-curve}
