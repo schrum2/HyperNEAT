@@ -163,19 +163,20 @@ This paper considers the challenge of enabling agents to learn with as little do
 \section{Introduction}
 A major challenge for AI is to develop agents that can learn and perform many different tasks. To this end, this paper aims at developing a learning agent capable of playing a large number of games with as little domain specific knowledge as possible. Famous game playing AI systems such as Deep Blue for chess, Watson for Jeopardy, and TD-Gammon for backgammon~\cite{tesauro_94} all demonstrate that with enough manpower and ingenuity it is possible to tackle AI challenges that may have previously seemed insurmountable. Unlike these game intelligences which were created and tuned specifically for a single task, the game playing agent described herein must be general enough to tackle many different Atari 2600 games.
 
-This work focuses on Atari 2600 games, a middle ground between classic board games and newer, graphically intensive video games. Atari games, like traditional board games, provide opportunities for agents to benefit from a solid understanding of the game's dynamics and allow for careful planning. At the same time these games, like modern video games, incorporate reasonably complex visual representations that need to be processed and interpreted. Dynamics of these games vary wildly from Checkers to Space Invaders, necessitating the use of general learning algorithms.
+This work focuses on learning to play Atari 2600 games, a middle ground between classic board games and newer, graphically intensive video games. The Atari 2600 is strictly at least as complicated as most board games (since games such as chess and checkers have been created for the Atari) yet contains none of the 3-D graphics of newer video games. Like traditional board games, the Atari provides opportunities for agents to benefit from a solid understanding of the game's dynamics and allows for careful planning. At the same time, like modern video games, the Atari incorporates simple visual representations that need to be processed and interpreted. Dynamics of Atari games vary wildly from Checkers to Space Invaders, necessitating the use of general learning algorithms.
 
 %Games have long been considered a fruitful domain for the study of AI. Seminal work on game playing includes Samuel's checkers playing program\cite{samuel_59} and Tesauro's TD-Gammon. The allure of games lies in the fact that they represent problems challenging enough to interest humans yet abstract enough to be easily captured and modeled inside of computer programs. Many traditional games such as Chess, Checkers, and Backgammon already have AI agents capable of outperforming human experts. However, new games are continually being created, many of which now incorporate sophisticated graphics and realistic physics. 
 
 Despite the variability of game dynamics, all Atari games share a standard interface designed for humans to interact with and enjoy. Game state is conveyed to the player through a 2D game screen, and in response, the player controls game elements by manipulating a four-directional joystick and a single button. This standard interface, combined with the large number of available games, makes Atari a convenient platform for AI researchers. 
 
 \begin{figure}[t]
-\begin{center}
-\includegraphics[width=.5\columnwidth]{figures/asterix}
-\end{center}
-\caption{Asterix, one of the many games available for the Atari 2600.}
-\label{fig:asterix}
+  \centering
+  \subfloat{\label{fig:asterix}\includegraphics[width=0.205\textwidth]{figures/asterix}}\hspace{.1in}
+  \subfloat{\label{fig:freeway}\includegraphics[width=0.2\textwidth]{figures/freeway}}\hspace{.1in}
+ \caption{Asterix and Freeway, two of the many games available for the Atari 2600.}
+ \label{fig:interface}
 \end{figure}
+
 
 This paper presents HyperNEAT-GGP, an agent which uses an evolutionary algorithm called Hypercube-based NeuroEvolution of Augmenting Topologies (HyperNEAT)~\cite{gauci08}. Unlike most other approaches, HyperNEAT is capable of exploiting geometric regularities present in the 2D game screen in order to evolve highly effective game playing policies. This paper applies HyperNEAT-GGP to two Atari games.
 
@@ -203,7 +204,7 @@ First, the Atari console has a large collection of games. These games vary great
 
 Second, a number of open-source Atari emulators exist, including projects such as Atari Learning Environment (ALE)\footnote{http://yavar.naddaf.name/ale/} that are designed specifically to accommodate learning agents. Furthermore, since the Atari 2600 CPU ran at 1.19 megahertz, modern emulators can run at high speeds of up to 2000 frames per second, making evaluation of agents and algorithms fast.
 
-Third, the Atari state and action interface is simple enough for learning agents, but complex enough to control many different games. The state of an Atari game can be described relatively simply by its 2D graphics (containing between 8 and 256 colors depending on the color mode and a native resolution of $160\times 210$), elementary sound effects, and 128 bytes of console RAM. The discrete action space for Atari consists of four possible directions of movement for the joystick and one button. Combinations of these two controls yield a total of 18 possible actions.
+Third, the Atari state and action interface is simple enough for learning agents, but complex enough to control many different games. The state of an Atari game can be described relatively simply by its 2D graphics (containing between 8 and 256 colors depending on the color mode and a native resolution of $160\times 210$), elementary sound effects, and 128 bytes of console RAM. The discrete action space for Atari consists of eight directions of movement for the joystick (up, down, left, right, up\&left, up\&right, etc) as well as a single button. This button can be pressed alone or simultaneously with any of the joystick movements. Including \textit{NO-OP}, this yields a total of 18 possible actions.
 
 Having motivated the Atari as a suitable research platform for the development of general game playing agents, the next challenge is developing a capable HyperNEAT-based learning agent.
 
@@ -235,7 +236,7 @@ The ANN's input representation will be discussed further in Section \ref{sec:int
 This section describes the components of HyperNEAT-GGP. The main points are the manner in which the raw Atari game screen is processed to form an overhead representation amenable to HyperNEAT and the parallel framework used to speed up evolution.
 
 \subsection{Visual Processing}
-For nearly any machine learning problem, the question of how to encode the state space is of great importance. Similar to Verbancsics and Stanley's example, HyperNEAT-GGP uses an overhead object representation of the current game screen. Since the Atari provides only the raw pixels of the screen as input, a visual processing stack identifies objects and game entities without a priori knowledge of a specific game~\cite{naddaf10}. A graphical depiction of this stack is shown in Figure \ref{fig:visproc}.
+For nearly any machine learning problem, the question of how to encode the state space is of great importance. Similar to Verbancsics and Stanley's example, HyperNEAT-GGP uses an overhead object representation of the current game screen. Since the Atari provides only the raw pixels of the screen as input, a visual processing stack identifies objects and game entities without a priori knowledge of a specific game~\cite{naddaf10}. A graphical depiction of this stack is shown in Figure \ref{fig:visproc}. While it is likely possible to learn from the raw screen's pixels, object detection requires little work and reduces the complexity of the learning task by eliminating pixels not directly relevant to playing the game.
 
 \begin{figure*}[htp]
 \begin{center}
