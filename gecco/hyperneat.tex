@@ -161,11 +161,9 @@ This paper considers the challenge of enabling agents to learn with as little do
 %% \keywords{ACM proceedings, \LaTeX, text tagging} % NOT required for Proceedings
 
 \section{Introduction}
-A major challenge for AI is to develop agents that can learn and perform many different tasks. To this end, this paper aims at developing a learning agent capable of playing a large number of games with as little domain specific knowledge as possible. Famous game playing AI systems such as Deep Blue for chess, Watson for Jeopardy, and TD-Gammon for backgammon~\cite{tesauro_94} all demonstrate that with enough manpower and ingenuity it is possible to tackle AI challenges that may have previously seemed insurmountable. Unlike these game intelligences which were created and tuned specifically for a single task, the game playing agent described herein must be general enough to tackle many different Atari 2600 games.
+A major challenge for AI is to develop agents that can learn and perform many different tasks. To this end, this paper aims at developing a learning agent capable of playing a large number of games with as little domain specific knowledge as possible. Famous game playing AI systems such as Deep Blue for chess, Watson for Jeopardy, and TD-Gammon for backgammon~\cite{tesauro_94} all demonstrate that with enough manpower and ingenuity it is possible to tackle AI challenges that may have previously seemed insurmountable. Unlike these game intelligences which were created and tuned specifically for a single task, the game playing agent described herein must be general enough to tackle many different Atari 2600 games. This requires general intelligence to be built into the agent itself rather than sophisticated single-purpose algorithms.
 
 This work focuses on learning to play Atari 2600 games, a middle ground between classic board games and newer, graphically intensive video games. The Atari 2600 is strictly at least as complicated as most board games (since games such as chess and checkers have been created for the Atari) yet contains none of the 3-D graphics of newer video games. Like traditional board games, the Atari provides opportunities for agents to benefit from a solid understanding of the game's dynamics and allows for careful planning. At the same time, like modern video games, the Atari incorporates simple visual representations that need to be processed and interpreted. Dynamics of Atari games vary wildly from Checkers to Space Invaders, necessitating the use of general learning algorithms.
-
-%Games have long been considered a fruitful domain for the study of AI. Seminal work on game playing includes Samuel's checkers playing program\cite{samuel_59} and Tesauro's TD-Gammon. The allure of games lies in the fact that they represent problems challenging enough to interest humans yet abstract enough to be easily captured and modeled inside of computer programs. Many traditional games such as Chess, Checkers, and Backgammon already have AI agents capable of outperforming human experts. However, new games are continually being created, many of which now incorporate sophisticated graphics and realistic physics. 
 
 Despite the variability of game dynamics, all Atari games share a standard interface designed for humans to interact with and enjoy. Game state is conveyed to the player through a 2D game screen, and in response, the player controls game elements by manipulating a four-directional joystick and a single button. This standard interface, combined with the large number of available games, makes Atari a convenient platform for AI researchers. 
 
@@ -174,13 +172,19 @@ Despite the variability of game dynamics, all Atari games share a standard inter
   \subfloat{\label{fig:asterix}\includegraphics[width=0.205\textwidth]{figures/asterix}}\hspace{.1in}
   \subfloat{\label{fig:freeway}\includegraphics[width=0.2\textwidth]{figures/freeway}}\hspace{.1in}
  \caption{Asterix and Freeway, two of the many games available for the Atari 2600.}
- \label{fig:interface}
+ \label{fig:samplegames}
 \end{figure}
 
+This paper presents HyperNEAT-GGP, an agent which uses an evolutionary algorithm called Hypercube-based NeuroEvolution of Augmenting Topologies (HyperNEAT)~\cite{gauci08}. Unlike most other approaches, HyperNEAT is capable of exploiting geometric regularities present in the 2D game screen in order to evolve highly effective game playing policies. This paper applies HyperNEAT-GGP to the two Atari games shown in Figure \ref{fig:samplegames}, Freeway and Asterix.
 
-This paper presents HyperNEAT-GGP, an agent which uses an evolutionary algorithm called Hypercube-based NeuroEvolution of Augmenting Topologies (HyperNEAT)~\cite{gauci08}. Unlike most other approaches, HyperNEAT is capable of exploiting geometric regularities present in the 2D game screen in order to evolve highly effective game playing policies. This paper applies HyperNEAT-GGP to two Atari games.
+Freeway and Asterix were selected because their game dynamics were sufficiently different from each other. Additionally they are amenable to HyperNEAT, because both games include an on-screen entity which is being controlled by the player and have relatively simple dynamics. Briefly, the objectives of each game are as follows:
 
-The next section contains related work. Section \ref{sec:hyperneat} covers the basics of HyperNEAT and how it is able to take advantage of game geometry. Next, Section \ref{sec:approach} presents our visual processing architecture and parallel computing framework. Experiments are presented in Section \ref{sec:experiments}, followed by future work and conclusions.
+In Freeway the player controls a chicken as it crosses a ten lane highway filled with traffic in an effort to ``get to the other side.'' The chicken is allowed to move only up, down, or remain in place. Colliding with a car results in the chicken being thrown a distance towards the bottom of the screen. Each time a chicken reaches the top of the screen, the player is rewarded a point and the chicken respawns at the bottom of the screen. Gameplay continues for two minutes and sixteen seconds. 
+
+In Asterix the player controls a unit called Asterix in his quest to collect as many objects as possible while avoiding deadly lyres. Asterix can move in any of the four cardinal directions and receives 50 score whenever he collects a magic potion. Asterix loses a life when he touches a lyre and when Asterix has exhausted his supply of lives the game ends. Lyres and collectible objects spawn along the edges of the screen and move horizontally. Objects gain speed as the game progresses, necessitating quick reflexes and decisions.
+
+The next section contains related work. Section \ref{sec:atari} discusses the merits of the Atari 2600 console as a research platform. Section \ref{sec:hyperneat} covers the basics of HyperNEAT and how it is able to take advantage of game geometry. Next, Section \ref{sec:approach} presents our visual processing architecture and parallel computing framework. Experiments are presented in Section \ref{sec:experiments}, followed by future work and conclusions.
+
 
 \section{Related Work}
 \label{sec:background}
@@ -188,7 +192,9 @@ The study of general intelligence through the development of general game playin
 
 While motivations are similar, the work reported in this paper differs from GGP in that Atari games are not formalized in such an abstract representation. Atari games convey state through a visual representation, and the dynamics of the game must first be learned before strategies can be formulated. Additionally, HyperNEAT-GGP currently only considers single player games as opposed to GGP players who compete against each other.
 
-Another species of general game playing agents is found at the annual Ms Pac-Man competition. Like HyperNEAT-GGP, Ms Pac-Man agents utilize actual screen representations~\cite{pacmancompetition} and must deal with non-determinism introduced by delays in processing the game screen. Successful entries in this competition have now far exceeded novice human players \cite{sigevolution2007}. HyperNEAT-GGP uses an approach similar to the Ms Pac-Man agents in that both agents extract objects from the game screen. However, the object detection and game playing machinery used by HyperNEAT-GGP must be generally applicable enough to handle multiple games rather than specialized toward a single game such as Ms Pac-Man.
+Another class of game playing agents which learns from graphical representations is found at the annual Ms Pac-Man competition. Like HyperNEAT-GGP, Ms Pac-Man agents utilize actual screen representations~\cite{pacmancompetition} and must deal with non-determinism introduced by delays in processing the game screen. Successful entries in this competition have now far exceeded novice human players \cite{sigevolution2007}. HyperNEAT-GGP uses an approach similar to the Ms Pac-Man agents in that both agents extract objects from the game screen. However, the object detection and game playing machinery used by HyperNEAT-GGP must be generally applicable enough to handle multiple games rather than specialized toward a single game such as Ms Pac-Man.
+
+Moving into 3D environments, backpropagation and Lamarckian neuroevolution were used to train a neural network visual controller for agents in the Quake II environment \cite{parker09}. In order to process the 3D game screen, the agents used an artificial retina consisting of 28 grayscale blocks arranged into grid spanning the width of the game screen. Like the human retina, more blocks were clustered near the center of the visual field to allow the agent to better recognize if the target was directly ahead. The resulting agent was able to navigate a room with a large central pillar, seek out an enemy, and shoot it. HyperNEAT-GGP extracts information from the game screen; however even the most graphically complicated Atari 2600 games such as Battlezone and Enduro offer only crude representations of true 3D environments such as those found in Quake II and other modern video games. 
 
 To the best of our knowledge, the first work on Atari game playing was an R-Max learning agent which employed an Object-oriented MDP representation~\cite{duik08}. Objects were detected in the game screen of the popular Atari game, \emph{Pitfall}. The agent was able to make it past the first screen. Subsequent work on learning in Atari games includes that of Naddaf~\cite{naddaf10}. Naddaf modified the popular Atari 2600 emulator, Stella, in order to allow it to be easily controlled by computer programs such as learning agents. Naddaf quantified the performance of several reinforcement learning and search agents over 50 different Atari games. Reinforcement learning agents included a gradient descent Sarsa$(\lambda)$ agent with linear function approximation, capable of learning from feature vectors generated from either the game screen or the console RAM. Search tree agents include full tree search and UCT-based agents. Also motivated by the desire to create general game playing agents, Naddaf compiled experimental results of RL and search tree agents in over 50 Atari games. More than just a experimental benchmark, this work served as the inspiration for much of the visual processing described in Section \ref{sec:approach}.
 
@@ -210,7 +216,7 @@ Having motivated the Atari as a suitable research platform for the development o
 
 \section{HyperNEAT}
 \label{sec:hyperneat}
-This section reviews the fundamentals of the HyperNEAT learning algorithm. HyperNEAT is an extension of the Neuro Evolution of Augmenting Topologies (NEAT) algorithm~\cite{stanley02}. NEAT evolves the topology and weights of an Artificial Neural Network (ANN) that is applied directly to the problem of interest. In contrast, HyperNEAT, introduced by Gauci and Stanley~\cite{gauci08}, evolves an \emph{indirect encoding} called a Compositional Pattern Producing Network (CPPN). The CPPN is then used to define the weights of an ANN that produces a solution for the problem. Furthermore, because the CPPN is aware of domain geometry, the ANN it encodes implicitly contains knowledge about geometric relationships present in a given domain. This encoding allows HyperNEAT to take advantage of geometric regularities present in many board and 2D games, such as those in Atari 2600.
+This section reviews the fundamentals of the HyperNEAT learning algorithm. HyperNEAT is an extension of the Neuro Evolution of Augmenting Topologies (NEAT) algorithm~\cite{stanley02}. NEAT evolves the topology and weights of an Artificial Neural Network (ANN) that is applied directly to the problem of interest. In contrast, HyperNEAT, introduced by Gauci and Stanley~\cite{gauci08}, evolves an \emph{indirect encoding} called a Compositional Pattern Producing Network (CPPN). The CPPN is then used to define the weights of an ANN that produces a solution for the problem. Furthermore, because the CPPN is aware of domain geometry, the ANN it encodes implicitly contains knowledge about geometric relationships present in a given domain. In comparison to standard NEAT, HyperNEAT's encoding allows it to take advantage of geometric regularities present in many board and 2D games, such as those in Atari 2600. 
 
 Specifically, HyperNEAT works in four stages:
 
@@ -333,7 +339,7 @@ One practical problem while using the framework was that certain fitness evaluat
 
 \section{Experimental Setup}
 \label{sec:experiments}
-The experimental setup was the same for both Freeway and Asterix: HyperNEAT-GGP was run for 250 generations, with 100 individuals in each generation and a substrate resolution of $16\times 21$. All individuals were evaluated on the Atari simulator using the same random seed. Results are averaged across multiple runs of HyperNEAT-GGP evolution and compared with previous results obtained using reinforcement learning \cite{naddaf10}. 
+The experimental setup was the same for both Freeway and Asterix: HyperNEAT-GGP was run for 250 generations, with 100 individuals in each generation and a substrate resolution of $16\times 21$. All individuals learn from scratch and were evaluated on the Atari simulator using the same random seed. Results are averaged across multiple runs of HyperNEAT-GGP evolution and compared with previous results obtained using reinforcement learning \cite{naddaf10}. 
 
 \section{Results}
 \label{sec:results}
@@ -391,10 +397,10 @@ The learning process steadily improves the fitness through the entirety of 250 g
 \end{tabular}
 \end{center}
 \label{tab:results-table}
-\caption{Game scores obtained in the Freeway and Asterix games. HyperNEAT-GGP substantially outperforms related RL techniques on both Freeway and Asterix.}
+\caption{Game scores obtained in the Freeway and Asterix games. HyperNEAT-GGP substantially outperforms Sarsa$(\lambda)$ on both Freeway and Asterix.}
 \end{table}
 
-Results show excellent performance by HyperNEAT-GGP on the Asterix and Freeway games. However, to extend HyperNEAT-GGP to play arbitrary games in the Atari simulator, some future work is required.
+Results show excellent performance by HyperNEAT-GGP on the Asterix and Freeway games. Informal comparisons with agents controlled by the authors of this paper indicate that HyperNEAT-GGP achieves scores on par with human play. However, to extend HyperNEAT-GGP to play arbitrary games in the Atari simulator, some future work is required.
 
 \section{Future Work}
 \label{sec:futurework}
@@ -418,7 +424,7 @@ The second area of future work involves developing a better way to handle a larg
 %% \label{fig:possiblearch}
 %% \end{figure}
 
-Finally, the visual processing stack could be made more robust. Specifically, objects are sometimes lost when they change shape or rotate. Self-identification could also be improved by incorporating additional information about how long each object has been on-screen, with the assumption that the self object remains on screen while other objects are transitory. Further changes are encountered with self objects which retain velocity -- such as the spaceship in Asteroids. 
+Finally, the visual processing stack could be made more robust. Specifically, objects are sometimes lost when they change shape or rotate. Additionally unmoving objects such as walls are not detected. This introduces difficulties in games such as Pac-man where static objects are essential to the game dynamics. Finally self-identification could also be improved by incorporating additional information about how long each object has been on-screen, with the assumption that the self object remains on screen while other objects are transitory. Further changes are encountered with self objects which retain velocity -- such as the spaceship in Asteroids. 
 
 Addressing these areas of future work will go a long way towards making HyperNEAT-GGP more generally applicable to Atari games.
 
