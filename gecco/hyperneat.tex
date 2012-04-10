@@ -311,11 +311,9 @@ After extracting object classes as well as the location of the self from the raw
 
 Figure \ref{fig:interface} shows an example of how object classes are given as input to the substrate layer of the ANN. Since the ANN input nodes can only take real-valued activations, each class of objects must be mapped to a real number. Thus a mapping from object classes to real values is maintained. Upon discovery of new object classes, real values are incrementally added to the map in a non-decreasing fashion. Next, since the ANN contains a $16\times 21$ grid of input nodes, the raw game screen must also be discretized by a factor of ten in each dimension from the native resolution of $160\times 210$. Figure \ref{fig:grid} shows an example discretization. Following this step, each cell that contains an object is fed as input to the ANN with a real valued activation corresponding to the mapping of that object class. Cells devoid of objects are given input activations of zero. The ANN is run in a standard feed-forward manner, producing activations of the nodes in the $16\times 21$ output layer (Figure \ref{fig:annoutput}). Action selection involves locating the cell corresponding to the detected self object (colored blue in Figure \ref{fig:annoutput}). The activation of this cell as well as the activations of the four adjacent cells (shown with red arrows) are compared and the action corresponding to the arrow in the highest of these five cells is returned (or no-op if the self square has the highest value). This method of action selection supports up to five possible actions. Future work involves extending this framework to support more complex actions such a button presses and combinations of joystick and button-press actions.
 
-\subsection{Parallel Implementation}
-\label{sec:condor}
-The visual processing and self-identification components of the code require a significant amount of processing time each frame. Depending on the game being played, evaluating a single individual can take anywhere between a few seconds to five minutes. Initial experiments indicated that HyperNEAT would need to run for \textit{at least} 250 generations with 100 individuals per generation to obtain representative results. These parameters make it infeasible to run the entire computation on a single machine in a reasonable amount of time. To speed up evolution, the framework exploits the parallel nature of this approach by evaluating each individual on a separate machine. This framework makes use of the Condor distributed processing cluster \cite{thain2005distributed} to run a massive number of Atari simulations in parallel. A similar framework has been used in the past to speed up the optimization of robot soccer agents in simulation using CMA-ES\cite{Urieli+MKBS:2010}. The HyperNEAT implementation of Verbancsics~\cite{verbancsics10} was also modified to run in parallel on the Condor cluster.
-
-% To this end, we exploit the embarassingly parallel nature of the evaluating a number of individuals in a single generation. We use the Depending on the game being played in the Atari simulator, a single evaluation of an individual can last from anything between a few seconds to 2 or 3 minutes. While keeping the evolution parameters to as low as 100 individuals and 300 generations, it is still not possible to obtain results in sufficient time on a single machine. To mitigate this problem, we exploit the embarassingly parallel nature of evaluating individuals. We have modifed the HyperNEAT codebase to run on the Condor cluster, by adapting the framework developed by Yinon Bentor and Patrick MacAlpine.\footnote{This framework was initially developed in a previous iteration of the CS394N class. Since then it has been used by the AustinVilla Robot Soccer team for optimizing policy parameters for various soccer related tasks using evolutionary strategies such as CMA-ES.}
+%% \subsection{Parallel Implementation}
+%% \label{sec:condor}
+%% The visual processing and self-identification components of the code require a significant amount of processing time each frame. Depending on the game being played, evaluating a single individual can take anywhere between a few seconds to five minutes. Initial experiments indicated that HyperNEAT would need to run for \textit{at least} 250 generations with 100 individuals per generation to obtain representative results. These parameters make it infeasible to run the entire computation on a single machine in a reasonable amount of time. To speed up evolution, the framework exploits the parallel nature of this approach by evaluating each individual on a separate machine. This framework makes use of the Condor distributed processing cluster \cite{thain2005distributed} to run a massive number of Atari simulations in parallel. A similar framework has been used in the past to speed up the optimization of robot soccer agents in simulation using CMA-ES\cite{Urieli+MKBS:2010}. The HyperNEAT implementation of Verbancsics~\cite{verbancsics10} was also modified to run in parallel on the Condor cluster.
 
 % \begin{figure*}[ht]
 % \begin{center}
@@ -325,21 +323,33 @@ The visual processing and self-identification components of the code require a s
 % \label{fig:condor}
 % \end{figure*}
 
-\begin{figure}[ht]
-\begin{center}
-\includegraphics[width=\columnwidth]{figures/condor-hyperneat-small}
-\end{center}
-\caption{Parallel evaluations on the Condor framework.}
-\label{fig:condor}
-\end{figure}
+%% \begin{figure}[ht]
+%% \begin{center}
+%% \includegraphics[width=\columnwidth]{figures/condor-hyperneat-small}
+%% \end{center}
+%% \caption{Parallel evaluations on the Condor framework.}
+%% \label{fig:condor}
+%% \end{figure}
 
-Figure \ref{fig:condor} details how parallel evaluations are performed using the Condor cluster. Once a generation is produced, all the individuals of that generation are evaluated on separate machines in parallel. After all evaluations have been completed, the fitness values are gathered and a new population is produced. This process is then repeated for each successive generation. 
-
-One practical problem while using the framework was that certain fitness evaluations do not complete and were assigned the minimum score. As a result, some individuals may be lost before maturing enough to improve other members of the population. Although such a situation is not ideal, we believe the evolutionary process is robust enough to compensate. This hypothesis is corroborated by the steady increase of the average champion fitness in the experiments (see Fig. \ref{fig:asterix-curve}). 
+%% Figure \ref{fig:condor} details how parallel evaluations are performed using the Condor cluster. Once a generation is produced, all the individuals of that generation are evaluated on separate machines in parallel. After all evaluations have been completed, the fitness values are gathered and a new population is produced. This process is then repeated for each successive generation. 
 
 \section{Experimental Setup}
 \label{sec:experiments}
-The experimental setup was the same for both Freeway and Asterix: HyperNEAT-GGP was run for 250 generations, with 100 individuals in each generation and a substrate resolution of $16\times 21$. All individuals learn from scratch and were evaluated on the Atari simulator using the same random seed. Results are averaged across multiple runs of HyperNEAT-GGP evolution and compared with previous results obtained using reinforcement learning \cite{naddaf10}. 
+The experimental setup was the same for both Freeway and Asterix: HyperNEAT-GGP was run for 250 generations, with 100 individuals in each generation and a substrate resolution of $16\times 21$. All individuals learn from scratch and were evaluated on the Atari simulator using the same random seed. Evaluations of the 100 individuals in each generation were performed in parallel on a Condor cluster, resulting in each generation taking several minutes of wall-clock time to evaluate. Results are averaged across five runs of HyperNEAT-GGP evolution and compared with previous results obtained using gradient descent Sarsa$(\lambda)$ with linear function approximation\cite{naddaf10}. 
+
+\section{Sarsa-Lambda agents}
+\label{sec:sarsa}
+Throughout the experimental section, HyperNEAT-GGP is compared against the temporal difference reinforcement learning method known as Sarsa$(\lambda)$. Due to the large size of the state space, the Sarsa$(\lambda)$ agent uses linear function approximation in which each state-action is represented by a vector of $n$ values $\Phi(s)$, known as the feature vector, where $n << |S|$. To estimate the value of state-action, a vector of parameters $\theta$ is used to create a linear combination as follows: $Q_t(s,a) = \sum_{i=1}^n \theta_t(i) \Phi(s) (i)$.
+
+At each timestep Sarsa$(\lambda)$ updates all state-action pairs in the following manner: $Q_{t+1}(s,a) = Q_t(s,a) + \alpha \delta e_t(s,a)$, where $\delta = r_t + \gamma Q_t(s_{t+1},a_{t+1}) - Q_t(s_t,a_t)$. $e_t(s,a)$ is known as the eligibility of state-action $(s,a)$ and is decayed by a factor of $\gamma \lambda$ at each timestep. However, the eligibility trace for the latest state-action $e(s_t,a_t)$ is set to 1. Full a full description of Sarsa$(\lambda)$ see chapter ? in \cite{Sutton and barto}.
+
+Since the agent uses linear function approximation, a vector of eligibility traces is maintained for each item in the feature vector. As before, these eligibility traces are decayed by $\gamma \lambda$ in each timestep and set to 1 if the associated feature is active in the current timestep. At each timestep the parameter vector is updated as follows: $\theta_{t+1} = \theta_t + \alpha \delta e_t$ where $\delta$ is defined as before and $\alpha$ is the learning rate. 
+
+Different variations of the Sarsa$(\lambda)$ agent use different feature vectors to represent the state of the Atari game. Sarsa$(\lambda)$-BASS (Basic Abstraction of Screen Shots) discretizes the screen into a binary vector $v_l$ of length 14x18x8 where 14 and 18 are the width and height of the discretized screen and 8 is the number of possible colors in SECAM mode. Next it creates another binary vector $v_q$ which contains the pairwise ANDs of all items in $v_l$. Thus the full feature vector $\Phi_a$ is a $(|v_l| + |v_q|) \times |A|$ bit binary vector representing an abstraction of the raw game screen. 
+
+Sarsa$(\lambda)$-DISCO (Detecting Instances of Class Objects) uses an object detection framework similar to the one outlined in this paper to detect classes of objects present in the current screen. To generate $\Phi$ it encodes the absolute location of each object class on the screen as well as the tile-coded relative position and velocity for each pair of object classes. Since there many be multiple instances of each object class present on a given screen and $\Phi$ is required to have a fixed length, tile-coded positions and velocities are found for each instance and summed. 
+
+Finally, Sarsa$(\lambda)$-RAM uses a state representation based on the 1024 bits of random access memory (RAM) available to the Atari console. A binary vector $v_l$ is created which represents the each of the 1024 bits of memory. Next another binary vector $v_q$ encodes the ANDs of all bits in $v_l$. $\Phi$ is a direct concatenation of $v_l$ and $v_q$. For detailed descriptions of these learning agents, see Chapter 2 of \cite{naddaf10}.
 
 \section{Results}
 \label{sec:results}
@@ -432,18 +442,7 @@ Addressing these areas of future work will go a long way towards making HyperNEA
 \label{sec:conclusion}
 This paper introduces HyperNEAT-GGP, a HyperNEAT-based general Atari game playing agent. Many Atari games contain geometric regularities in the two-dimensional space of the game screen. This structure allows HyperNEAT to quickly learn effective policies. To reduce the complexity of learning from the raw game screen, HyperNEAT-GGP employs a game-independent visual processing hierarchy designed to identify classes of objects as well as the entity that the player controls on the game screen. Identified objects are provided as input to HyperNEAT. Due to the computational overhead of visual processing applied to each game screen, a parallel architecture is used to evaluate multiple individuals simultaneously. Results were presented for two Atari games, \textit{Freeway} and \textit{Asterix}. In both cases, HyperNEAT-GGP was shown to outperform previous reinforcement learning benchmarks~\cite{naddaf10}. While no single Atari game, if studied in isolation and given extensive feature engineering, likely poses too great a challenge for modern AI techniques, the full collection of over 900 Atari games presents a daunting task for a single learning agent. HyperNEAT-GGP represents a first step towards the ambitious goal of creating an agent capable of learning and seamlessly transitioning between many different tasks.
 
-
-
 %\end{document}  % This is where a 'short' article might terminate
-
-%ACKNOWLEDGMENTS are optional
-%% \section{Acknowledgments}
-%% This section is optional; it is a location for you
-%% to acknowledge grants, funding, editing assistance and
-%% what have you.  In the present case, for example, the
-%% authors would like to thank Gerald Murray of ACM for
-%% his help in codifying this \textit{Author's Guide}
-%% and the \textbf{.cls} and \textbf{.tex} files that it describes.
 
 %
 % The following two commands are all you need in the
@@ -457,3 +456,7 @@ This paper introduces HyperNEAT-GGP, a HyperNEAT-based general Atari game playin
 % to resolve all references
 
 \end{document}
+
+
+\section{Acknowledgments}
+Need to write grants here!
