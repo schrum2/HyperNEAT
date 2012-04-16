@@ -330,7 +330,7 @@ void VisualProcessor::process_image(const IntMatrix* screen_matrix, Action actio
     merge_objects(.96);
 
     // Identify which object we are
-    //identify_self();
+    identify_self();
   }
 
   // Save State and action history
@@ -733,78 +733,78 @@ void VisualProcessor::sanitize_objects() {
 //   //cin.get();
 // };
 
-// void VisualProcessor::identify_self() {
-//   float max_info_gain = -1;
-//   long best_blob_id = -1;
-//   for (map<long,Blob>::iterator it=curr_blobs.begin(); it!=curr_blobs.end(); ++it) {
-//     long b_id = it->first;
+void VisualProcessor::identify_self() {
+  float max_info_gain = -1;
+  long best_blob_id = -1;
+  for (map<long,Blob>::iterator it=curr_blobs.begin(); it!=curr_blobs.end(); ++it) {
+    long b_id = it->first;
 
-//     int blob_history_len = 0;
-//     vector<pair<int,int> > velocity_hist;
-//     map<pair<int,int>,int> velocity_counts;
+    int blob_history_len = 0;
+    vector<pair<int,int> > velocity_hist;
+    map<pair<int,int>,int> velocity_counts;
 
-//     assert(curr_blobs.find(b_id) != curr_blobs.end());
-//     Blob* b = &curr_blobs[b_id];
+    assert(curr_blobs.find(b_id) != curr_blobs.end());
+    Blob* b = &curr_blobs[b_id];
 
-//     // Get the velocity history of this blob
-//     while (b->parent_id >= 0 && blob_history_len < max_history_len) {
-//       // Push back the velocity
-//       pair<int,int> vel(b->x_velocity, b->y_velocity);
-//       velocity_hist.push_back(vel);
-//       velocity_counts[vel] = GetWithDef(velocity_counts,vel,0) + 1;
+    // Get the velocity history of this blob
+    while (b->parent_id >= 0 && blob_history_len < max_history_len) {
+      // Push back the velocity
+      pair<int,int> vel(b->x_velocity, b->y_velocity);
+      velocity_hist.push_back(vel);
+      velocity_counts[vel] = GetWithDef(velocity_counts,vel,0) + 1;
 
-//       blob_history_len++;
+      blob_history_len++;
 
-//       // Get the parent
-//       map<long,Blob>& old_blobs = blob_hist[blob_hist.size() - blob_history_len];
-//       long parent_id = b->parent_id;
-//       assert(old_blobs.find(parent_id) != old_blobs.end());
-//       b = &old_blobs[parent_id];
-//     }
+      // Get the parent
+      map<long,Blob>& old_blobs = blob_hist[blob_hist.size() - blob_history_len];
+      long parent_id = b->parent_id;
+      assert(old_blobs.find(parent_id) != old_blobs.end());
+      b = &old_blobs[parent_id];
+    }
 
-//     // How many times was each action performed?
-//     map<Action,int> action_counts;
-//     vector<Action> act_vec;
-//     for (int i=0; i<blob_history_len; ++i) {
-//       Action a = action_hist[action_hist.size()-i-1];
-//       act_vec.push_back(a);
-//       action_counts[a] = GetWithDef(action_counts,a,0) + 1;
-//     }
+    // How many times was each action performed?
+    map<Action,int> action_counts;
+    vector<Action> act_vec;
+    for (int i=0; i<blob_history_len; ++i) {
+      Action a = action_hist[action_hist.size()-i-1];
+      act_vec.push_back(a);
+      action_counts[a] = GetWithDef(action_counts,a,0) + 1;
+    }
 
-//     assert(act_vec.size() == velocity_hist.size());
+    assert(act_vec.size() == velocity_hist.size());
 
-//     // Calculate H(velocities)
-//     float velocity_entropy = compute_entropy(velocity_counts,blob_history_len);
+    // Calculate H(velocities)
+    float velocity_entropy = compute_entropy(velocity_counts,blob_history_len);
 
-//     // Calculate H(velocity|a)
-//     float action_entropy = 0;
-//     for (map<Action,int>::iterator it2=action_counts.begin(); it2!=action_counts.end(); ++it2) {
-//       Action a = it2->first;
-//       int count = it2->second;
-//       float p_a = count / (float) blob_history_len;
-//       map<pair<int,int>,int> selective_counts;
-//       int selective_total = 0;
-//       for (int i=0; i<blob_history_len; ++i) {
-//         if (act_vec[i] == a) {
-//           pair<int,int> vel = velocity_hist[i];
-//           selective_counts[vel] = GetWithDef(selective_counts,vel,0) + 1;
-//           selective_total++;
-//         }
-//       }
-//       float selective_entropy = compute_entropy(selective_counts,selective_total);
-//       action_entropy += p_a * selective_entropy;
-//     }
+    // Calculate H(velocity|a)
+    float action_entropy = 0;
+    for (map<Action,int>::iterator it2=action_counts.begin(); it2!=action_counts.end(); ++it2) {
+      Action a = it2->first;
+      int count = it2->second;
+      float p_a = count / (float) blob_history_len;
+      map<pair<int,int>,int> selective_counts;
+      int selective_total = 0;
+      for (int i=0; i<blob_history_len; ++i) {
+        if (act_vec[i] == a) {
+          pair<int,int> vel = velocity_hist[i];
+          selective_counts[vel] = GetWithDef(selective_counts,vel,0) + 1;
+          selective_total++;
+        }
+      }
+      float selective_entropy = compute_entropy(selective_counts,selective_total);
+      action_entropy += p_a * selective_entropy;
+    }
 
-//     float info_gain = velocity_entropy - action_entropy;
-//     if (info_gain > max_info_gain) {
-//       max_info_gain = info_gain;
-//       best_blob_id = b_id;
-//     }
-//   }
-//   //printf("Max info gain: %f\n",max_info_gain);
-//   //best_blob->to_string();
-//   self_id = best_blob_id;
-// };
+    float info_gain = velocity_entropy - action_entropy;
+    if (info_gain > max_info_gain) {
+      max_info_gain = info_gain;
+      best_blob_id = b_id;
+    }
+  }
+  //printf("Max info gain: %f\n",max_info_gain);
+  //best_blob->to_string();
+  self_id = best_blob_id;
+};
 
 point VisualProcessor::get_self_centroid() {
   if (curr_blobs.find(self_id) == curr_blobs.end())
@@ -1118,8 +1118,17 @@ void VisualProcessor::plot_prototypes(IntMatrix& screen_matrix) {
 
 void VisualProcessor::plot_self(IntMatrix& screen_matrix) {
   int self_color = 258;
-  if (composite_objs.find(self_id) != composite_objs.end()) {
-    CompositeObject& o = composite_objs[self_id];
-    box_object(o,screen_matrix,self_color);
+  // if (composite_objs.find(self_id) != composite_objs.end()) {
+  //   CompositeObject& o = composite_objs[self_id];
+  //   box_object(o,screen_matrix,self_color);
+  // }
+  if (curr_blobs.find(self_id) != curr_blobs.end()) {
+      Blob& b = curr_blobs[self_id];
+      for (int y=0; y<b.height; ++y) {
+          for (int x=0; x<b.width; ++x) {
+              if (get_pixel(b.width, b.height, x, y, b.mask))
+                  screen_matrix[b.y_min+y][b.x_min+x] = self_color;
+          }
+      }
   }
 };
