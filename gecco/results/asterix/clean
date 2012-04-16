@@ -1,8 +1,8 @@
 #!/bin/bash
 
-for i in {0..9..1}
+for i in {0..4..1}
 do
-  grep "Champion fitness" nohup$i.out | sed 's/Champion fitness: //g' > $i-champion.csv
-  grep "overall_average" nohup$i.out | sed 's/Generation [0-9]*: overall_average = //g' > $i-average.csv
+  grep "Champion fitness" ~/projects/HyperNEAT/NE/HyperNEAT/out/asterix_results/run$i/expr.log | sed 's/Champion fitness: //g' > $i-champion.csv
+  grep "overall_average"  ~/projects/HyperNEAT/NE/HyperNEAT/out/asterix_results/run$i/expr.log | sed 's/Generation [0-9]*: overall_average = //g' > $i-average.csv
 done
 

@@ -4,7 +4,7 @@ import csv
 import numpy
 import matplotlib.pyplot as plt
 
-numFiles = 10
+numFiles = 5
 numGenerations = 250
 errorbarStep = 25
 filenames = ['champion','average']
@@ -61,11 +61,11 @@ for file_number in range(len(filenames)):
 
   plt.errorbar(generations_error,means_error,yerr=stddev_error,fmt=None,ecolor=color,label='_nolegend_',linewidth=linewidth,capsize=2*linewidth,mew=linewidth)
   plt.plot(generations, means, color+style, label=legend_val, linewidth=linewidth)
-plt.legend()
+plt.legend(loc=4)
 plt.xlim(0,255)
 plt.ylim(0,35)
-#plt.show()
 plt.grid()
 plt.xlabel('Number of generations')
 plt.ylabel('Fitness')
-plt.savefig('figure.png', bbox_inches='tight', dpi=200)
+#plt.savefig('figure.png', bbox_inches='tight', dpi=200)
+plt.show()
