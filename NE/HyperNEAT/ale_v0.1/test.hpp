@@ -5,7 +5,7 @@ string str_welcome = "A.L.E: Atari 2600 Learning Environment (version " + str_ve
 + "[Powered by Stella]\n"
 + "Use -help for help screen.";
 OSystem* theOSystem = (OSystem*) NULL;
-GameController* p_game_controllr  = NULL;
+InternalController* p_game_controllr  = NULL;
 
 static size_t time_start; 
 static size_t time_end; 
@@ -105,93 +105,16 @@ void initializeEmulator(string rom_file, bool display_screen) {
   }
 
   // Generate the GameController
-  if (theOSystem->settings().getString("game_controller") == "fifo") {
-    p_game_controllr = new FIFOController(theOSystem);
-    theOSystem->setGameController(p_game_controllr);
-    cout << "Games will be controlled trhough FIFO pipes." << endl;
-  } else {
-    p_game_controllr = new InternalController(theOSystem);
-    theOSystem->setGameController(p_game_controllr);
-    cout << "Games will be controlled internally, " << 
+  p_game_controllr = new InternalController(theOSystem);
+  theOSystem->setGameController(p_game_controllr);
+  cout << "Games will be controlled internally, " << 
       "through the assigned player Agent" << endl;
-  }
+
   // Set the Pallete 
   theOSystem->console().setPalette("standard");
 }
 
 void display_screen(const IntMatrix& pm_screen_matrix) {
-  // Display screen
-  static long long int frame = 0;
-  ostringstream filename;
-  char buffer [50];
-
-  sprintf (buffer, "%09lld", frame++);
-  filename << "exported_screens/toDisplay_frame_" << buffer << ".png";
-
-  theOSystem->p_export_screen->save_png(&pm_screen_matrix, filename.str());
-  theOSystem->p_display_screen->display_png(filename.str());
-  remove(filename.str().c_str());
+    p_game_controllr->getPlayerAgentLeft()->display_screen(pm_screen_matrix);
 };
 
-// int test(int argc, char* argv[]) {
-//   initializeEmulator();
-
-//   // Media assets
-//   MediaSource& mediasrc = theOSystem->console().mediaSource();
-//   int screen_width = mediasrc.width();
-//   int screen_height = mediasrc.height();
-//   IntMatrix pm_screen_matrix; // 2D Matrix containing screen pixel colors
-//   for (int i=0; i<screen_height; ++i) { // Initialize our matrix
-//     IntVect row;
-//     for (int j=0; j<screen_width; ++j)
-//       row.push_back(-1);
-//     pm_screen_matrix.push_back(row);
-//   }
-
-//   InternalController* controller = (InternalController*) theOSystem->getGameController();
-//   SelfDetectionAgent* self_detection_agent = (SelfDetectionAgent*) controller->getPlayerAgentLeft();
-//   GameSettings* game_settings = controller->getGameSettings();
-
-//   // Main Loop
-//   int skip_frames_num = game_settings->i_skip_frames_num;
-//   int frame_skip_ctr = 0;
-//   Action action = RESET;
-//   time_start = time(NULL);
-//   for (int frame=0; frame<100000; frame++) {
-//     if (frame_skip_ctr++ >= skip_frames_num) {
-//       frame_skip_ctr = 0;
-
-//       // Get the latest screen
-//       int ind_i, ind_j;
-//       uInt8* pi_curr_frame_buffer = mediasrc.currentFrameBuffer();
-//       for (int i = 0; i < screen_width * screen_height; i++) {
-//         uInt8 v = pi_curr_frame_buffer[i];
-//         ind_i = i / screen_width;
-//         ind_j = i - (ind_i * screen_width);
-//         pm_screen_matrix[ind_i][ind_j] = v;
-//       }
-
-//       // Get the object representation
-//       self_detection_agent->process_image(&pm_screen_matrix, action);
-
-//       // Choose Action
-//       if (frame <5) action = RESET;
-//       else action = PLAYER_A_UP;
-
-//       // Display the screen
-//       display_screen(pm_screen_matrix);
-//     }
-
-//     // Apply action to simulator and update the simulator
-//     theOSystem->applyAction(action);
-
-//     if (frame % 1000 == 0) {
-//       time_end = time(NULL);
-//       double avg = ((double)frame)/(time_end - time_start);
-//       cerr << "Average main loop iterations per sec = " << avg << endl;
-//     }
-//   }
-
-//   cleanup();
-//   return 0;
-// }
