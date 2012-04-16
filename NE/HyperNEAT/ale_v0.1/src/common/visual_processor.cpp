@@ -308,8 +308,9 @@ VisualProcessor::VisualProcessor(OSystem* _osystem) :
     free_colors.insert(i);
   }
   
-  // Register ourselves as an event handler
-  p_osystem->p_display_screen->registerEventHandler(this);
+  // Register ourselves as an event handler if a screen is present
+  if (p_osystem->p_display_screen)
+      p_osystem->p_display_screen->registerEventHandler(this);
 };
 
 void VisualProcessor::process_image(const IntMatrix* screen_matrix, Action action) {
