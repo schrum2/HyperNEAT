@@ -56,10 +56,11 @@ int HyperNEAT_main(int argc,char **argv) {
 
   } else {
     cout << "Syntax for passing command-line options to HyperNEAT (do not actually type '(' or ')' ):\n";
-    cout << "./atari_evaluate [-R (seed)] -I (datafile) -P (populationfile) -N (individualId) -F (fitnessFile)\n";
+    cout << "./atari_visualize [-R (seed)] -I (datafile) -P (populationfile) -N (individualId) -F (fitnessFile) -G (ROMfile)\n";
     cout << "\t\t(datafile) HyperNEAT experiment data file - typically data/AtariExperiment.dat\n";
     cout << "\t\t(populationfile) current population file containing all the individuals - typically generationXX.xml.gz\n";
     cout << "\t\t(individualId) unsigned int specifying which particular individual from the above population file we are evaluating\n";
+    cout << "\t\t(ROMfile) the atari games file which should be loaded\n";
   }
 
   NEAT::Globals::deinit();

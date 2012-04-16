@@ -15,6 +15,7 @@ namespace HCUBE
     
     InternalController* controller;
     SelfDetectionAgent* self_detection_agent;
+    VisualProcessor* visProc;
     GameSettings* game_settings;
     string rom_file;
     bool display_active;

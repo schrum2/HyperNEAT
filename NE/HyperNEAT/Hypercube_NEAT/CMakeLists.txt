@@ -514,6 +514,7 @@ ADD_EXECUTABLE(
   ../ale_v0.1/src/common/export_screen.o
   ../ale_v0.1/src/common/display_screen.o
   ../ale_v0.1/src/common/vector_matrix_tools.o
+  ../ale_v0.1/src/common/visual_processor.o
   ../ale_v0.1/src/control/fifo_controller.o
   ../ale_v0.1/src/control/game_controller.o
   ../ale_v0.1/src/control/internal_controller.o
@@ -616,6 +617,7 @@ ADD_EXECUTABLE(
   ../ale_v0.1/src/common/export_screen.o
   ../ale_v0.1/src/common/display_screen.o
   ../ale_v0.1/src/common/vector_matrix_tools.o
+  ../ale_v0.1/src/common/visual_processor.o
   ../ale_v0.1/src/control/fifo_controller.o
   ../ale_v0.1/src/control/game_controller.o
   ../ale_v0.1/src/control/internal_controller.o
@@ -719,6 +721,7 @@ ADD_EXECUTABLE(
   ../ale_v0.1/src/common/export_screen.o
   ../ale_v0.1/src/common/display_screen.o
   ../ale_v0.1/src/common/vector_matrix_tools.o
+  ../ale_v0.1/src/common/visual_processor.o
   ../ale_v0.1/src/control/fifo_controller.o
   ../ale_v0.1/src/control/game_controller.o
   ../ale_v0.1/src/control/internal_controller.o

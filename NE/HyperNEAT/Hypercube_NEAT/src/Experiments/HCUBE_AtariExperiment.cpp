@@ -110,6 +110,7 @@ namespace HCUBE
     System* emulator_system = &theOSystem->console().system();
     controller = (InternalController*) theOSystem->getGameController();
     self_detection_agent = (SelfDetectionAgent*) controller->getPlayerAgentLeft();
+    visProc = &(self_detection_agent->visProc);
     game_settings = controller->getGameSettings();
     // Initialize Atari Stuff - fin
 
@@ -161,14 +162,14 @@ namespace HCUBE
         game_ended = game_settings->is_end_of_game(&screen_matrix,&ram_content,frame);
 
         // Get the object representation
-        self_detection_agent->process_image(&screen_matrix, action);
+        visProc->process_image(&screen_matrix, action);
 
         substrate.getNetwork()->reinitialize(); // Set value of all nodes to zero
         substrate.getNetwork()->dummyActivation();
 
         // Set substrate value for all objects (of a certain size)
-        for (int i=0; i<self_detection_agent->obj_classes.size(); i++) {
-          Prototype& proto = self_detection_agent->obj_classes[i];
+        for (int i=0; i<visProc->obj_classes.size(); i++) {
+          Prototype& proto = visProc->obj_classes[i];
 
           if (!proto.is_valid) // not a strong enough prototype yet
             continue;
@@ -181,8 +182,8 @@ namespace HCUBE
           // Assign values to each of the objects
           for (set<long>::iterator it=proto.obj_ids.begin(); it!=proto.obj_ids.end(); it++) {
             long obj_id = *it;
-            assert(self_detection_agent->composite_objs.find(obj_id) != self_detection_agent->composite_objs.end());
-            point obj_centroid = self_detection_agent->composite_objs[obj_id].get_centroid();
+            assert(visProc->composite_objs.find(obj_id) != visProc->composite_objs.end());
+            point obj_centroid = visProc->composite_objs[obj_id].get_centroid();
             int adj_x = obj_centroid.x * substrate_width / pixel_screen_width;
             int adj_y = obj_centroid.y * substrate_height / pixel_screen_height;
             substrate.setValue((Node(adj_x,adj_y,0)),assigned_value);
@@ -190,7 +191,7 @@ namespace HCUBE
         }
 
         // Set substrate value for self
-        point self_centroid = self_detection_agent->get_self_centroid();
+        point self_centroid = visProc->get_self_centroid();
         int self_x = -1, self_y = -1;
         if (self_centroid.x >= 0 && self_centroid.y >= 0) {
           self_x = self_centroid.x * substrate_width / pixel_screen_width;

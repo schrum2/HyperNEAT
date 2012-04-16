@@ -17,31 +17,6 @@
 #include <set>
 #include "visual_processor.h"
 
-// Search a map for a key and returns default value if not found
-template <typename K, typename V>
-  V GetWithDef(const std::map <K,V> & m, const K & key, const V & defval ) {
-  typename std::map<K,V>::const_iterator it = m.find( key );
-  if ( it == m.end() ) {
-    return defval;
-  }
-  else {
-    return it->second;
-  }
-};
-
-// Calculates the information entropy of a random variable whose values and
-// frequencies are provided by the map m.
-template <typename K>
-float compute_entropy(const std::map <K,int> & m, int count_sum) {
-  float velocity_entropy = 0;
-  typename std::map<K,int>::const_iterator it;
-  for (it=m.begin(); it!=m.end(); ++it) {
-    int count = it->second;
-    float p_x = count / (float) count_sum;
-    velocity_entropy -= p_x * log(p_x);
-  }
-  return velocity_entropy;
-};
 
 class SelfDetectionAgent : public PlayerAgent { 
  public:
@@ -52,12 +27,7 @@ class SelfDetectionAgent : public PlayerAgent {
                             const IntVect* console_ram, 
                             int frame_number);
 
-  // Looks through objects attempting to find one that we are controlling
-  void identify_self();
-
   void display_screen(const IntMatrix& screen_matrix);
-
-  void printVelHistory(CompositeObject& obj);
 
   VisualProcessor visProc;
   int screen_width, screen_height;
