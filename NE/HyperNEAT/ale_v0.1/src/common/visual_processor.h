@@ -243,6 +243,9 @@ class VisualProcessor : public SDLEventHandler {
 
   void printVelHistory(CompositeObject& obj);
 
+  void exportMask(int width, int height, vector<char>& mask, const string& filename);
+  void importMask(int& width, int& height, vector<char>& mask, const string& filename);
+
   OSystem* p_osystem;
   int screen_width, screen_height;
   int max_history_len;
