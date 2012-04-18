@@ -37,7 +37,7 @@ static bool get_pixel(int width, int height, int relx, int rely, vector<char>& m
 template <typename K, typename V>
     V GetWithDef(const std::map <K,V> & m, const K & key, const V & defval ) {
     typename std::map<K,V>::const_iterator it = m.find( key );
-    if ( it == m.end() ) {
+    if (it == m.end()) {
         return defval;
     }
     else {

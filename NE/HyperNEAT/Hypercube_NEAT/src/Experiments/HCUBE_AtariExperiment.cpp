@@ -199,6 +199,16 @@ namespace HCUBE
           substrate.setValue((Node(self_x,self_y,0)),1.0);
         }
 
+        // TODO: Print the node values here
+        printf("");
+        for (int y=0; y<substrate_height; ++y) {
+            for (int x=0; x<substrate_width; ++x) {
+                float val = substrate.getValue(Node(x,y,0));
+                printf("%1.2f ");
+            }
+            printf("\n");
+        }
+
         substrate.getNetwork()->update();
 
         // Choose which action to take

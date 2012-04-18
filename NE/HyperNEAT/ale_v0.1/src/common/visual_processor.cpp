@@ -17,6 +17,8 @@
 #include <boost/lexical_cast.hpp>
 
 #define IMAGE_FILENAME "images"
+#define SELF_IMAGE_PREFIX "selfimage-"
+#define SELF_IMAGE_SUFFIX ".bin"
 
 swath::swath(int _color, int _x, int _y) {
     color = _color;
@@ -836,9 +838,12 @@ void VisualProcessor::identify_self() {
 };
 
 point VisualProcessor::get_self_centroid() {
-    if (curr_blobs.find(self_id) == curr_blobs.end())
+    // if (curr_blobs.find(self_id) == curr_blobs.end())
+    //     return point(-1,-1);
+    // return curr_blobs[self_id].get_centroid();
+    if (composite_objs.find(self_id) == composite_objs.end())
         return point(-1,-1);
-    return curr_blobs[self_id].get_centroid();
+    return composite_objs[self_id].get_centroid();
 };
 
 // Merges together objects into classes of objects
@@ -1055,7 +1060,7 @@ void VisualProcessor::tagSelfObject() {
 
         // Select which file to write to
         for (int i=1; ; i++) {
-            string filename = "selfimage-" + boost::lexical_cast<std::string>(i) + ".bin";
+            string filename = SELF_IMAGE_PREFIX + boost::lexical_cast<std::string>(i) + SELF_IMAGE_SUFFIX;
             p /= filename;
             if (exists(p) && is_regular_file(p))
                 p = p.parent_path();
@@ -1075,7 +1080,7 @@ void VisualProcessor::loadSelfObject() {
 
     // Select which file to write to
     for (int i=1; ; i++) {
-        string filename = "selfimage-" + boost::lexical_cast<std::string>(i) + ".bin";
+        string filename = SELF_IMAGE_PREFIX + boost::lexical_cast<std::string>(i) + SELF_IMAGE_SUFFIX;
         p /= filename;
         if (exists(p) && is_regular_file(p)) {
             CompositeObject obj;
