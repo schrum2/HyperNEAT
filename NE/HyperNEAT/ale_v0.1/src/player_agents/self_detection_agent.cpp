@@ -15,7 +15,7 @@
 #include <omp.h>
 
 SelfDetectionAgent::SelfDetectionAgent(GameSettings* _game_settings, OSystem* _osystem) : 
-  PlayerAgent(_game_settings, _osystem), visProc(_osystem)
+    PlayerAgent(_game_settings, _osystem), visProc(_osystem, _game_settings)
 {
   // Get the height and width of the screen
   MediaSource& mediasrc = p_osystem->console().mediaSource();

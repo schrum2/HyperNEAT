@@ -13,6 +13,10 @@
 #include <limits>
 #include <sstream>
 #include <omp.h>
+#include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
+
+#define IMAGE_FILENAME "images"
 
 swath::swath(int _color, int _x, int _y) {
     color = _color;
@@ -281,12 +285,22 @@ void CompositeObject::computeMask(map<long,Blob>& blob_map) {
     }
 };
 
+bool CompositeObject::maskEquals(const CompositeObject& other) {
+    if (width != other.width || height != other.height || mask.size() != other.mask.size())
+        return false;
+    for (int i=0; i<mask.size(); i++)
+        if (mask[i] != other.mask[i])
+            return false;
+    return true;
+};
+
 void CompositeObject::to_string() {
     printf("Composite Object %ld: Size %d Velocity (%d,%d) FramesSinceLastMovement %d\n",id,size,x_velocity,y_velocity,frames_since_last_movement);
 };
 
-VisualProcessor::VisualProcessor(OSystem* _osystem) : 
+VisualProcessor::VisualProcessor(OSystem* _osystem, GameSettings* _game_settings) : 
     p_osystem(_osystem),
+    game_settings(_game_settings),
     max_history_len(50), //numeric_limits<int>::max()),
     blob_ids(0), obj_ids(0), self_id(-1),
     focused_obj_id(-1), display_mode(0), display_self(false),
@@ -307,6 +321,9 @@ VisualProcessor::VisualProcessor(OSystem* _osystem) :
     for (int i = 258; i < 512; i++) {
         free_colors.insert(i);
     }
+
+    // Load up saved self images
+    loadSelfObject();
   
     // Register ourselves as an event handler if a screen is present
     if (p_osystem->p_display_screen)
@@ -331,7 +348,18 @@ void VisualProcessor::process_image(const IntMatrix* screen_matrix, Action actio
         merge_objects(.96);
 
         // Identify which object we are
-        identify_self();
+        //identify_self();
+
+        // Identify the self based on the list of self objects
+        for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); it++) {
+            CompositeObject& obj = it->second;
+            for (int i=0; i<self_objects.size(); ++i) {
+                if (self_objects[i].maskEquals(obj)) {
+                    self_id = obj.id;
+                    break;
+                }
+            }
+        }
     }
 
     // Save State and action history
@@ -983,7 +1011,6 @@ void VisualProcessor::importMask(int& width, int& height, vector<char>& mask, co
         fin.read((char *)(&height), sizeof(height));
 
         // Read the file mask
-        printf("Staring mask: ");
         while (1) {
             char c;
             fin.get(c);
@@ -1001,6 +1028,77 @@ void VisualProcessor::importMask(int& width, int& height, vector<char>& mask, co
     }
 };
 
+void VisualProcessor::tagSelfObject() {
+    if (composite_objs.find(focused_obj_id) == composite_objs.end()) {
+        printf("No object focused. Please click an object and try again.\n");
+    } else {
+        CompositeObject& obj = composite_objs[focused_obj_id];
+        obj.computeMask(curr_blobs); // Recompute the object's mask just to be sure
+
+        // Check to make sure we don't alreayd have a self object load which is identical to this object
+        for (int j=0; j<self_objects.size(); ++j) {
+            if (self_objects[j].maskEquals(obj)) {
+                printf("Found matching self object in memory.\n");
+                return;
+            }
+        }
+        self_objects.push_back(obj);
+
+        using namespace boost::filesystem;
+
+        // Take care of the directory creation
+        path p(IMAGE_FILENAME);
+        string rom_name = game_settings->s_rom_file;
+        p /= rom_name;
+        if (!exists(p) || !is_directory(p))
+            create_directories(p);
+
+        // Select which file to write to
+        for (int i=1; ; i++) {
+            string filename = "selfimage-" + boost::lexical_cast<std::string>(i) + ".bin";
+            p /= filename;
+            if (exists(p) && is_regular_file(p))
+                p = p.parent_path();
+            else
+                break;
+        }
+        printf("Exporting self prototype to %s.\n",p.string().c_str());
+        exportMask(obj.width, obj.height, obj.mask, p.string());
+    }
+};
+
+void VisualProcessor::loadSelfObject() {
+    using namespace boost::filesystem;
+    path p(IMAGE_FILENAME);
+    string rom_name = game_settings->s_rom_file;
+    p /= rom_name;
+
+    // Select which file to write to
+    for (int i=1; ; i++) {
+        string filename = "selfimage-" + boost::lexical_cast<std::string>(i) + ".bin";
+        p /= filename;
+        if (exists(p) && is_regular_file(p)) {
+            CompositeObject obj;
+            importMask(obj.width, obj.height, obj.mask, p.string());
+            printf("Loading self-image: %s\n",p.string().c_str());
+
+            // Check to make sure there isn't a duplicate self object already in memory
+            bool found_match = false;
+            for (int j=0; j<self_objects.size(); ++j) {
+                if (self_objects[j].maskEquals(obj)) {
+                    found_match = true;
+                    break;
+                }
+            }
+
+            if (!found_match)
+                self_objects.push_back(obj);
+
+            p = p.parent_path();
+        } else
+            break;
+    }
+}
 
 void VisualProcessor::handleSDLEvent(const SDL_Event& event) {
     switch(event.type) {
@@ -1048,13 +1146,7 @@ void VisualProcessor::handleSDLEvent(const SDL_Event& event) {
             display_self = !display_self;
             break;
         case SDLK_s:
-            if (composite_objs.find(focused_obj_id) == composite_objs.end()) {
-                printf("No object focused. Please click an object and try again.\n");
-            } else {
-                printf("Exporting self prototype.\n");
-                CompositeObject& obj = composite_objs[focused_obj_id];
-                exportMask(obj.width, obj.height, obj.mask, "mask.bin");
-            }
+            tagSelfObject();
             break;
         default:
             break;
@@ -1187,17 +1279,17 @@ void VisualProcessor::plot_prototypes(IntMatrix& screen_matrix) {
 
 void VisualProcessor::plot_self(IntMatrix& screen_matrix) {
     int self_color = 258;
-    // if (composite_objs.find(self_id) != composite_objs.end()) {
-    //   CompositeObject& o = composite_objs[self_id];
-    //   box_object(o,screen_matrix,self_color);
-    // }
-    if (curr_blobs.find(self_id) != curr_blobs.end()) {
-        Blob& b = curr_blobs[self_id];
-        for (int y=0; y<b.height; ++y) {
-            for (int x=0; x<b.width; ++x) {
-                if (get_pixel(b.width, b.height, x, y, b.mask))
-                    screen_matrix[b.y_min+y][b.x_min+x] = self_color;
-            }
-        }
+    if (composite_objs.find(self_id) != composite_objs.end()) {
+      CompositeObject& o = composite_objs[self_id];
+      box_object(o,screen_matrix,self_color);
     }
+    // if (curr_blobs.find(self_id) != curr_blobs.end()) {
+    //     Blob& b = curr_blobs[self_id];
+    //     for (int y=0; y<b.height; ++y) {
+    //         for (int x=0; x<b.width; ++x) {
+    //             if (get_pixel(b.width, b.height, x, y, b.mask))
+    //                 screen_matrix[b.y_min+y][b.x_min+x] = self_color;
+    //         }
+    //     }
+    // }
 };
