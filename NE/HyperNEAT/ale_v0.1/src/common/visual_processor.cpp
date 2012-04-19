@@ -838,11 +838,9 @@ void VisualProcessor::identify_self() {
 };
 
 point VisualProcessor::get_self_centroid() {
-    // if (curr_blobs.find(self_id) == curr_blobs.end())
-    //     return point(-1,-1);
-    // return curr_blobs[self_id].get_centroid();
-    if (composite_objs.find(self_id) == composite_objs.end())
+    if (composite_objs.find(self_id) == composite_objs.end()) {
         return point(-1,-1);
+    }
     return composite_objs[self_id].get_centroid();
 };
 

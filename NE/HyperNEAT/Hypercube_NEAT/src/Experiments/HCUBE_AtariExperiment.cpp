@@ -177,7 +177,12 @@ namespace HCUBE
             continue;
 
           // Map object classes to values
-          float assigned_value = proto.value;
+          //float assigned_value = proto.value;
+          float assigned_value = 0;
+          if (proto.size == 41) // HACK: Hardcoded mapping from object classes to values
+              assigned_value = 2;
+          else if (proto.size == 42)
+              assigned_value = -1;
 
           // Assign values to each of the objects
           for (set<long>::iterator it=proto.obj_ids.begin(); it!=proto.obj_ids.end(); it++) {
@@ -196,48 +201,44 @@ namespace HCUBE
         if (self_centroid.x >= 0 && self_centroid.y >= 0) {
           self_x = self_centroid.x * substrate_width / pixel_screen_width;
           self_y = self_centroid.y * substrate_height / pixel_screen_height;
-          substrate.setValue((Node(self_x,self_y,0)),1.0);
+          substrate.setValue(Node(self_x,self_y,0),1.0);
         }
 
-        // TODO: Print the node values here
-        printf("");
-        for (int y=0; y<substrate_height; ++y) {
-            for (int x=0; x<substrate_width; ++x) {
-                float val = substrate.getValue(Node(x,y,0));
-                printf("%1.2f ");
-            }
-            printf("\n");
-        }
+        // for (int y=0; y<substrate_height; ++y) {
+        //     for (int x=0; x<substrate_width; ++x) {
+        //         float val = substrate.getValue(Node(x,y,0));
+        //         printf("%1.0f ",val);
+        //     }
+        //     printf("\n");
+        // }
+        // printf("\n");
+        // cin.get();
 
         substrate.getNetwork()->update();
 
         // Choose which action to take
-        if (self_x < 0 || self_y < 0) {
-          action = PLAYER_A_NOOP;
-        } else {
-          float noop_val = substrate.getValue((Node(self_x,self_y,1)));
-          float up_val   = (self_y <= 0) ? noop_val : substrate.getValue((Node(self_x,self_y-1,1)));
-          float down_val = (self_y >= substrate_height-1) ? noop_val : substrate.getValue((Node(self_x,self_y+1,1)));
-          float left_val = (self_x <= 0) ? noop_val : substrate.getValue((Node(self_x-1,self_y,1)));
-          float right_val= (self_x >= substrate_width-1) ? noop_val : substrate.getValue((Node(self_x+1,self_y,1)));
+        float noop_val = substrate.getValue((Node(self_x,self_y,1)));
+        float up_val   = (self_y <= 0) ? noop_val : substrate.getValue((Node(self_x,self_y-1,1)));
+        float down_val = (self_y >= substrate_height-1) ? noop_val : substrate.getValue((Node(self_x,self_y+1,1)));
+        float left_val = (self_x <= 0) ? noop_val : substrate.getValue((Node(self_x-1,self_y,1)));
+        float right_val= (self_x >= substrate_width-1) ? noop_val : substrate.getValue((Node(self_x+1,self_y,1)));
 
-          ActionVect *allowed_actions = game_settings->pv_possible_actions;
-          Action actionIds[] = {PLAYER_A_NOOP,PLAYER_A_UP,PLAYER_A_DOWN,PLAYER_A_LEFT,PLAYER_A_RIGHT};
-          float action_vals[] = {noop_val,up_val,down_val,left_val,right_val};
+        ActionVect *allowed_actions = game_settings->pv_possible_actions;
+        Action actionIds[] = {PLAYER_A_NOOP,PLAYER_A_UP,PLAYER_A_DOWN,PLAYER_A_LEFT,PLAYER_A_RIGHT};
+        float action_vals[] = {noop_val,up_val,down_val,left_val,right_val};
           
-          int max_id = 0; // all games should have noop
-          float max_val = action_vals[0];
-          int size = sizeof(actionIds) / sizeof(Action);
-          for (int i=1; i < size; i++) {
+        int max_id = 0; // all games should have noop
+        float max_val = action_vals[0];
+        int size = sizeof(actionIds) / sizeof(Action);
+        for (int i=1; i < size; i++) {
             if (action_vals[i] > max_val && 
                 std::find(allowed_actions->begin(), allowed_actions->end(), actionIds[i]) != allowed_actions->end()) {
-              max_val = action_vals[i];
-              max_id = i;
+                max_val = action_vals[i];
+                max_id = i;
             }
-          }
-
-          action = actionIds[max_id];
         }
+
+        action = actionIds[max_id];
 
         // Display the screen
         if (display_active)
