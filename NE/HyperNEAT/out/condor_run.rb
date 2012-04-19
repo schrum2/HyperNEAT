@@ -47,7 +47,7 @@ else
   exit(1)
 end
 
-config_parameters = ["$run_path", "$sleepTime", "$maxWaitTime", "$minJobs", "$minCondorJobs", "$localCount",
+config_parameters = ["$run_path", "$rom_path", "$sleepTime", "$maxWaitTime", "$minJobs", "$minCondorJobs", "$localCount",
   "$logEnabled", "$path_to_generator", "$evaluateFinalPolicy"]
 
 config_parameters.each do |var|
@@ -127,7 +127,7 @@ END_OF_CONDORFILE
       "Output = /dev/null\n" + 
       "Log = /dev/null\n"
     end
-    condorContents = condorContents + "arguments = -I #{dataFile} -P #{populationFile} -N #{individualId} -F #{fitnessFile} -G #{rom_path}\n" + 
+    condorContents = condorContents + "arguments = -I #{dataFile} -P #{populationFile} -N #{individualId} -F #{fitnessFile} -G #{$rom_path}\n" + 
       "Queue 1"
   end
 
