@@ -1,0 +1,22 @@
+#!/bin/bash
+date
+
+if [ -a .svn ]
+then
+    echo "SVN Revision:" `svnversion .`
+fi
+if [ -a .git ]
+then
+    echo "Git Revision:" `git rev-parse HEAD`
+fi 
+
+echo "Starting Experimental Run..."
+
+# Experiments Here
+for i in {1..1}
+do
+	./condor_run.rb /u/mhauskn/projects/HyperNEAT/NE/HyperNEAT/out/ 250 100
+done
+
+echo "Experiments Finished!"
+date
