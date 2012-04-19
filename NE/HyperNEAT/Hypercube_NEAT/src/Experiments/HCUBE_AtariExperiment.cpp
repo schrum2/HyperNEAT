@@ -202,7 +202,7 @@ namespace HCUBE
           self_x = self_centroid.x * substrate_width / pixel_screen_width;
           self_y = self_centroid.y * substrate_height / pixel_screen_height;
           substrate.setValue(Node(self_x,self_y,0),1.0);
-        }
+        } 
 
         // for (int y=0; y<substrate_height; ++y) {
         //     for (int x=0; x<substrate_width; ++x) {
@@ -216,29 +216,36 @@ namespace HCUBE
 
         substrate.getNetwork()->update();
 
-        // Choose which action to take
-        float noop_val = substrate.getValue((Node(self_x,self_y,1)));
-        float up_val   = (self_y <= 0) ? noop_val : substrate.getValue((Node(self_x,self_y-1,1)));
-        float down_val = (self_y >= substrate_height-1) ? noop_val : substrate.getValue((Node(self_x,self_y+1,1)));
-        float left_val = (self_x <= 0) ? noop_val : substrate.getValue((Node(self_x-1,self_y,1)));
-        float right_val= (self_x >= substrate_width-1) ? noop_val : substrate.getValue((Node(self_x+1,self_y,1)));
-
+        // Get possible actions
         ActionVect *allowed_actions = game_settings->pv_possible_actions;
         Action actionIds[] = {PLAYER_A_NOOP,PLAYER_A_UP,PLAYER_A_DOWN,PLAYER_A_LEFT,PLAYER_A_RIGHT};
-        float action_vals[] = {noop_val,up_val,down_val,left_val,right_val};
-          
-        int max_id = 0; // all games should have noop
-        float max_val = action_vals[0];
-        int size = sizeof(actionIds) / sizeof(Action);
-        for (int i=1; i < size; i++) {
-            if (action_vals[i] > max_val && 
-                std::find(allowed_actions->begin(), allowed_actions->end(), actionIds[i]) != allowed_actions->end()) {
-                max_val = action_vals[i];
-                max_id = i;
-            }
-        }
 
-        action = actionIds[max_id];
+        // If no self detected, take a random action.
+        if (self_x < 0 || self_y < 0) {
+            printf("Unable to detect the self. Taking random action.\n");
+            action = (*allowed_actions)[rand() % allowed_actions->size()];
+        } else {
+            // Choose which action to take
+            float noop_val = -1e37;//substrate.getValue((Node(self_x,self_y,1)));
+            float up_val   = (self_y <= 0) ? noop_val : substrate.getValue((Node(self_x,self_y-1,1)));
+            float down_val = (self_y >= substrate_height-1) ? noop_val : substrate.getValue((Node(self_x,self_y+1,1)));
+            float left_val = (self_x <= 0) ? noop_val : substrate.getValue((Node(self_x-1,self_y,1)));
+            float right_val= (self_x >= substrate_width-1) ? noop_val : substrate.getValue((Node(self_x+1,self_y,1)));
+
+            float action_vals[] = {noop_val,up_val,down_val,left_val,right_val};
+          
+            int max_id = 0; // all games should have noop
+            float max_val = action_vals[0];
+            int size = sizeof(actionIds) / sizeof(Action);
+            for (int i=1; i < size; i++) {
+                if (action_vals[i] > max_val && 
+                    std::find(allowed_actions->begin(), allowed_actions->end(), actionIds[i]) != allowed_actions->end()) {
+                    max_val = action_vals[i];
+                    max_id = i;
+                }
+            }
+            action = actionIds[max_id];
+        }
 
         // Display the screen
         if (display_active)
