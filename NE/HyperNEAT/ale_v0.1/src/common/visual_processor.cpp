@@ -98,11 +98,17 @@ float Blob::get_centroid_dist(const Blob& other) {
 
 float Blob::get_aggregate_blob_match(const Blob& other) {
     int color_diff  = color == other.color;
-    float dist_diff = get_centroid_dist(other);
-    float size_diff = other.size / size;
+    //float dist_diff = get_centroid_dist(other);
+    float size_ratio = min(size, other.size) / max(size, other.size);
 
-    float normalized_dist_diff = dist_diff > 8 ? 0 : 1 - (dist_diff / 9.0); // Slope adjusted from 8 to 9
-    float normalized_size_diff = max(0.0f, 1.0f - abs(1.0f - size_diff));
+    // Compute dist from predicted blob position to current positions
+    float y_diff = (y_max + y_min) / 2.0 - ((other.y_max + other.y_min) / 2.0 + other.y_velocity);
+    float x_diff = (x_max + x_min) / 2.0 - ((other.x_max + other.x_min) / 2.0 + other.x_velocity);
+    float euclid_dist = pow(y_diff*y_diff + x_diff*x_diff,.5);
+
+
+    float normalized_dist_diff = max(0.0f,1.0f - euclid_dist / 5.0f);//dist_diff > 8 ? 0 : 1 - (dist_diff / 9.0); // Slope adjusted from 8 to 9
+    float normalized_size_diff = size_ratio;
     float match = (color_diff + normalized_size_diff + normalized_dist_diff) / 3.0f;
     return match;
 };
@@ -121,7 +127,7 @@ long Blob::find_matching_blob(map<long,Blob>& blobs, set<long>& excluded) {
             best_match_score = match;
         }
     }
-    if (best_match_score < .5) {
+    if (best_match_score < .667) {
         return -1;
     }
 
@@ -297,7 +303,7 @@ bool CompositeObject::maskEquals(const CompositeObject& other) {
 };
 
 void CompositeObject::to_string() {
-    printf("Composite Object %ld: Size %d Velocity (%d,%d) FramesSinceLastMovement %d\n",id,size,x_velocity,y_velocity,frames_since_last_movement);
+    printf("Composite Object %ld: Size %d Velocity (%d,%d) FramesSinceLastMovement %d NumBlobs %d\n",id,size,x_velocity,y_velocity,frames_since_last_movement,(int)blob_ids.size());
 };
 
 VisualProcessor::VisualProcessor(OSystem* _osystem, GameSettings* _game_settings) : 
@@ -535,66 +541,72 @@ void VisualProcessor::find_blob_matches(map<long,Blob>& blobs) {
     for (map<long,Blob>::iterator it=blobs.begin(); it!=blobs.end(); ++it) {
         Blob& b = it->second;
         long blob_match_id = b.find_matching_blob(old_blobs,excluded);
-        if (blob_match_id >= 0) { // Ad-hoc code to decide which match has priority
-            assert(old_blobs.find(blob_match_id) != old_blobs.end());
-            Blob& match = old_blobs[blob_match_id];
+        
+        if (blob_match_id < 0) 
+            continue;
+        
+        assert(old_blobs.find(blob_match_id) != old_blobs.end());
+        Blob& match = old_blobs[blob_match_id];
+        // b.compute_velocity(match);
+        // b.parent_id = match.id;
+        // match.child_id = b.id;
 
-            if (match.child_id < 0) { // Easy Case
+        // Ad-hoc code to decide which match has priority
+        if (match.child_id < 0) { // Easy Case
+            b.compute_velocity(match);
+            b.parent_id = match.id;
+            match.child_id = b.id;
+        } else { // Hard case
+            long conflicting_blob_id = match.child_id;
+            Blob& conflicting_blob = blobs[conflicting_blob_id];
+            assert(conflicting_blob.parent_id == match.id);
+            excluded.clear();
+            excluded.insert(match.id);
+
+            // Compute primary and secondary blob match scores for b
+            float primary_score = b.get_aggregate_blob_match(match);
+            long  second_choice_id = b.find_matching_blob(blob_hist.back(),excluded);
+            float secondary_score = 0;
+            if (second_choice_id >= 0) {
+                assert(blob_hist.back().find(second_choice_id) != blob_hist.back().end());
+                Blob& second_choice = blob_hist.back()[second_choice_id];
+                secondary_score = b.get_aggregate_blob_match(second_choice);
+            } 
+
+            // Compute primary and secondary blob match scores for conflicting blob
+            float primary_score2 = conflicting_blob.get_aggregate_blob_match(match);
+            long  second_choice2_id = conflicting_blob.find_matching_blob(blob_hist.back(), excluded);
+            float secondary_score2 = 0;
+            if (second_choice2_id >= 0) {
+                assert(blob_hist.back().find(second_choice2_id) != blob_hist.back().end());
+                Blob& second_choice2 = blob_hist.back()[second_choice2_id];
+                secondary_score2 = conflicting_blob.get_aggregate_blob_match(second_choice2);
+            }
+
+            if (primary_score + secondary_score2 >= primary_score2 + secondary_score) {
+                // b takes the primary and conflicting takes the secondary
                 b.compute_velocity(match);
                 b.parent_id = match.id;
                 match.child_id = b.id;
-            } else { // Hard case
-                long conflicting_blob_id = match.child_id;
-                Blob& conflicting_blob = blobs[conflicting_blob_id];
-                assert(conflicting_blob.parent_id == match.id);
-                excluded.clear();
-                excluded.insert(match.id);
-
-                // Compute primary and secondary blob match scores for b
-                float primary_score = b.get_aggregate_blob_match(match);
-                long  second_choice_id = b.find_matching_blob(blob_hist.back(),excluded);
-                float secondary_score = 0;
-                if (second_choice_id >= 0) {
-                    assert(blob_hist.back().find(second_choice_id) != blob_hist.back().end());
-                    Blob& second_choice = blob_hist.back()[second_choice_id];
-                    secondary_score = b.get_aggregate_blob_match(second_choice);
-                } 
-
-                // Compute primary and secondary blob match scores for conflicting blob
-                float primary_score2 = conflicting_blob.get_aggregate_blob_match(match);
-                long  second_choice2_id = conflicting_blob.find_matching_blob(blob_hist.back(), excluded);
-                float secondary_score2 = 0;
                 if (second_choice2_id >= 0) {
-                    assert(blob_hist.back().find(second_choice2_id) != blob_hist.back().end());
                     Blob& second_choice2 = blob_hist.back()[second_choice2_id];
-                    secondary_score2 = conflicting_blob.get_aggregate_blob_match(second_choice2);
+                    conflicting_blob.compute_velocity(second_choice2);
+                    conflicting_blob.parent_id = second_choice2.id;
+                    second_choice2.child_id = conflicting_blob.id;
                 }
-
-                if (primary_score + secondary_score2 >= primary_score2 + secondary_score) {
-                    // b takes the primary and conflicting takes the secondary
-                    b.compute_velocity(match);
-                    b.parent_id = match.id;
-                    match.child_id = b.id;
-                    if (second_choice2_id >= 0) {
-                        Blob& second_choice2 = blob_hist.back()[second_choice2_id];
-                        conflicting_blob.compute_velocity(second_choice2);
-                        conflicting_blob.parent_id = second_choice2.id;
-                        second_choice2.child_id = conflicting_blob.id;
-                    }
-                } else {
-                    // b takes the secondary and conflicting takes the primary
-                    if (second_choice_id >= 0) {
-                        Blob& second_choice = blob_hist.back()[second_choice_id];
-                        b.compute_velocity(second_choice);
-                        b.parent_id = second_choice.id;
-                        second_choice.child_id = b.id;
-                    }
-                    conflicting_blob.compute_velocity(match);
-                    conflicting_blob.parent_id = match.id;
-                    match.child_id = conflicting_blob.id;
+            } else {
+                // b takes the secondary and conflicting takes the primary
+                if (second_choice_id >= 0) {
+                    Blob& second_choice = blob_hist.back()[second_choice_id];
+                    b.compute_velocity(second_choice);
+                    b.parent_id = second_choice.id;
+                    second_choice.child_id = b.id;
                 }
-            } 
-        }
+                conflicting_blob.compute_velocity(match);
+                conflicting_blob.parent_id = match.id;
+                match.child_id = conflicting_blob.id;
+            }
+        } 
     }
 };
 
@@ -639,6 +651,14 @@ void VisualProcessor::update_existing_objs() {
             // Velocity check
             if (b.x_velocity != first.x_velocity || b.y_velocity != first.y_velocity) {
                 velocity_consistent = false;
+                // point centroid = obj.get_centroid();
+                // printf("Found inconsistent velocitied object loc %d %d\n",centroid.x,centroid.y);
+                // printf("first blob velocity %d %d, curr blob velocity %d %d\n",first.x_velocity,first.y_velocity,b.x_velocity,b.y_velocity);
+                // focused_obj_id=obj.id;
+                // IntMatrix screen_cpy(screen_hist.back());
+                // display_screen(screen_cpy);
+                // p_osystem->p_display_screen->display_screen(screen_cpy, screen_cpy[0].size(), screen_cpy.size());
+                // cin.get();
                 break;
             } 
         }

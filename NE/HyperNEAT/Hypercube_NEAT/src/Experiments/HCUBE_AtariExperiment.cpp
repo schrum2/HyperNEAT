@@ -222,7 +222,7 @@ namespace HCUBE
 
         // If no self detected, take a random action.
         if (self_x < 0 || self_y < 0) {
-            printf("Unable to detect the self. Taking random action.\n");
+            //printf("Unable to detect the self. Taking random action.\n");
             action = (*allowed_actions)[rand() % allowed_actions->size()];
         } else {
             // Choose which action to take
