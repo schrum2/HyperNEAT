@@ -98,16 +98,16 @@ float Blob::get_centroid_dist(const Blob& other) {
 
 float Blob::get_aggregate_blob_match(const Blob& other) {
     int color_diff  = color == other.color;
-    //float dist_diff = get_centroid_dist(other);
+    float dist_diff = get_centroid_dist(other);
     float size_ratio = min(size, other.size) / max(size, other.size);
 
     // Compute dist from predicted blob position to current positions
-    float y_diff = (y_max + y_min) / 2.0 - ((other.y_max + other.y_min) / 2.0 + other.y_velocity);
-    float x_diff = (x_max + x_min) / 2.0 - ((other.x_max + other.x_min) / 2.0 + other.x_velocity);
-    float euclid_dist = pow(y_diff*y_diff + x_diff*x_diff,.5);
+    // float y_diff = (y_max + y_min) / 2.0 - ((other.y_max + other.y_min) / 2.0 + other.y_velocity);
+    // float x_diff = (x_max + x_min) / 2.0 - ((other.x_max + other.x_min) / 2.0 + other.x_velocity);
+    // float euclid_dist = pow(y_diff*y_diff + x_diff*x_diff,.5);
 
 
-    float normalized_dist_diff = max(0.0f,1.0f - euclid_dist / 5.0f);//dist_diff > 8 ? 0 : 1 - (dist_diff / 9.0); // Slope adjusted from 8 to 9
+    float normalized_dist_diff = dist_diff > 8 ? 0 : 1 - (dist_diff / 9.0); // Slope adjusted from 8 to 9
     float normalized_size_diff = size_ratio;
     float match = (color_diff + normalized_size_diff + normalized_dist_diff) / 3.0f;
     return match;
