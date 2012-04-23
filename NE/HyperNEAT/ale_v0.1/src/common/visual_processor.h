@@ -216,6 +216,7 @@ class VisualProcessor : public SDLEventHandler {
     void plot_prototypes(IntMatrix& screen_matrix); // Plots the prototypes on screen
     void plot_self(IntMatrix& screen_matrix);    // Plots the self blob
     void box_object(CompositeObject& obj, IntMatrix& screen_matrix, int color); // Draws a box around an object
+    void box_blob(Blob& b, IntMatrix& screen_matrix, int color); // Draws a box around a blob  
 
     void find_connected_components(const IntMatrix& screen_matrix, map<long,Blob>& blobs);
 

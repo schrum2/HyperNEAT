@@ -99,15 +99,9 @@ float Blob::get_centroid_dist(const Blob& other) {
 float Blob::get_aggregate_blob_match(const Blob& other) {
     int color_diff  = color == other.color;
     float dist_diff = get_centroid_dist(other);
-    float size_ratio = min(size, other.size) / max(size, other.size);
+    float size_ratio = min(size, other.size) / (float) max(size, other.size);
 
-    // Compute dist from predicted blob position to current positions
-    // float y_diff = (y_max + y_min) / 2.0 - ((other.y_max + other.y_min) / 2.0 + other.y_velocity);
-    // float x_diff = (x_max + x_min) / 2.0 - ((other.x_max + other.x_min) / 2.0 + other.x_velocity);
-    // float euclid_dist = pow(y_diff*y_diff + x_diff*x_diff,.5);
-
-
-    float normalized_dist_diff = dist_diff > 8 ? 0 : 1 - (dist_diff / 9.0); // Slope adjusted from 8 to 9
+    float normalized_dist_diff = max(0.0f, 1 - (dist_diff / 25.0f));
     float normalized_size_diff = size_ratio;
     float match = (color_diff + normalized_size_diff + normalized_dist_diff) / 3.0f;
     return match;
@@ -118,6 +112,7 @@ long Blob::find_matching_blob(map<long,Blob>& blobs, set<long>& excluded) {
     float best_match_score = 0;
     for (map<long,Blob>::iterator it=blobs.begin(); it!=blobs.end(); ++it) {
         Blob& b = it->second;
+
         if (excluded.find(b.id) != excluded.end())
             continue;
       
@@ -148,7 +143,6 @@ void Blob::to_string() {
         }
     }
     printf("\n");
-    cin.get();
 };
 
 Prototype::Prototype (CompositeObject& obj, map<long,Blob>& blob_map) {
@@ -540,16 +534,15 @@ void VisualProcessor::find_blob_matches(map<long,Blob>& blobs) {
     set<long> excluded;
     for (map<long,Blob>::iterator it=blobs.begin(); it!=blobs.end(); ++it) {
         Blob& b = it->second;
+        excluded.clear();
         long blob_match_id = b.find_matching_blob(old_blobs,excluded);
         
-        if (blob_match_id < 0) 
+        if (blob_match_id < 0) {
             continue;
+        }
         
         assert(old_blobs.find(blob_match_id) != old_blobs.end());
         Blob& match = old_blobs[blob_match_id];
-        // b.compute_velocity(match);
-        // b.parent_id = match.id;
-        // match.child_id = b.id;
 
         // Ad-hoc code to decide which match has priority
         if (match.child_id < 0) { // Easy Case
@@ -608,6 +601,20 @@ void VisualProcessor::find_blob_matches(map<long,Blob>& blobs) {
             }
         } 
     }
+
+    // Debug blob matching
+    // for (map<long,Blob>::iterator it=old_blobs.begin(); it!=old_blobs.end(); it++) {
+    //     Blob& old_blob = it->second;
+    //     if (old_blob.child_id < 0) {
+    //         printf("Blob match not found\n");
+    //         old_blob.to_string();
+    //         IntMatrix screen_cpy(screen_hist.back());
+    //         display_screen(screen_cpy);
+    //         box_blob(old_blob,screen_cpy,256);
+    //         p_osystem->p_display_screen->display_screen(screen_cpy, screen_cpy[0].size(), screen_cpy.size());
+    //         cin.get();
+    //     }
+    // }
 };
 
 // Update the current blobs that we already have
@@ -637,6 +644,14 @@ void VisualProcessor::update_existing_objs() {
         // If no new blobs were found for this object, remove it
         if (new_blob_ids.empty()) {
             to_remove.push_back(obj.id);
+            // if (obj.id == self_id) {
+            //     printf("Removing self object due to no new blobs.\n");
+            //     focused_obj_id=obj.id;
+            //     IntMatrix screen_cpy(screen_hist.back());
+            //     display_screen(screen_cpy);
+            //     p_osystem->p_display_screen->display_screen(screen_cpy, screen_cpy[0].size(), screen_cpy.size());
+            //     cin.get();
+            // }
             continue;
         }
 
@@ -682,6 +697,14 @@ void VisualProcessor::update_existing_objs() {
         } else {
             // This object is no longer legitimate. Decide what to do with it.
             to_remove.push_back(obj.id);
+            // if (obj.id == self_id) {
+            //     printf("Removing self object due to velocity inconcistencies.\n");
+            //     focused_obj_id=obj.id;
+            //     IntMatrix screen_cpy(screen_hist.back());
+            //     display_screen(screen_cpy);
+            //     p_osystem->p_display_screen->display_screen(screen_cpy, screen_cpy[0].size(), screen_cpy.size());
+            //     cin.get();
+            // }
             continue;
         }
     }
@@ -1269,6 +1292,18 @@ void VisualProcessor::box_object(CompositeObject& obj, IntMatrix& screen_matrix,
     for (int y=obj.y_min; y<=obj.y_max; ++y) {
         screen_matrix[y][obj.x_min-1] = color;
         screen_matrix[y][obj.x_max+1] = color;
+    }
+};
+
+// Draws a box around a blob
+void VisualProcessor::box_blob(Blob& b, IntMatrix& screen_matrix, int color) {
+    for (int x=b.x_min; x<=b.x_max; ++x) {
+        if (b.y_min > 0) screen_matrix[b.y_min-1][x] = color;
+        if (b.y_max < screen_height-1) screen_matrix[b.y_max+1][x] = color;
+    }
+    for (int y=b.y_min; y<=b.y_max; ++y) {
+        if (b.x_min > 0) screen_matrix[y][b.x_min-1] = color;
+        if (b.x_max < screen_width-1) screen_matrix[y][b.x_max+1] = color;
     }
 };
 
