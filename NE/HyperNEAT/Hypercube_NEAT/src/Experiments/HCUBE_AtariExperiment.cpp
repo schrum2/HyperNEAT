@@ -204,15 +204,15 @@ namespace HCUBE
           substrate.setValue(Node(self_x,self_y,0),1.0);
         } 
 
-        // for (int y=0; y<substrate_height; ++y) {
-        //     for (int x=0; x<substrate_width; ++x) {
-        //         float val = substrate.getValue(Node(x,y,0));
-        //         printf("%1.0f ",val);
-        //     }
-        //     printf("\n");
-        // }
-        // printf("\n");
-        // cin.get();
+        for (int y=0; y<substrate_height; ++y) {
+            for (int x=0; x<substrate_width; ++x) {
+                float val = substrate.getValue(Node(x,y,0));
+                printf("%1.0f ",val);
+            }
+            printf("\n");
+        }
+        printf("\n");
+        cin.get();
 
         substrate.getNetwork()->update();
 

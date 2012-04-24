@@ -149,6 +149,8 @@ Prototype::Prototype (CompositeObject& obj, map<long,Blob>& blob_map) {
     width = obj.x_max - obj.x_min + 1;
     height = obj.y_max - obj.y_min + 1;
     size = 0;
+    self_likelihood = 0.0f;
+    alpha = .2f;
   
     obj_ids.insert(obj.id);
 
@@ -350,18 +352,33 @@ void VisualProcessor::process_image(const IntMatrix* screen_matrix, Action actio
         merge_objects(.96);
 
         // Identify which object we are
-        //identify_self();
+        identify_self();
 
-        // Identify the self based on the list of self objects
-        for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); it++) {
-            CompositeObject& obj = it->second;
-            for (int i=0; i<self_objects.size(); ++i) {
-                if (self_objects[i].maskEquals(obj)) {
-                    self_id = obj.id;
-                    break;
-                }
+        float maxval = -1;
+        Prototype* best = NULL;
+        for (int i=0; i<obj_classes.size(); i++) {
+            Prototype& p = obj_classes[i];
+            if (p.self_likelihood > maxval) {
+                maxval = p.self_likelihood;
+                best = &p;
             }
         }
+
+        if (best != NULL && best->obj_ids.size() > 0) {
+            set<long>::iterator it = best->obj_ids.begin();
+            self_id = *it;
+        }
+
+        // Identify the self based on the list of self objects
+        // for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); it++) {
+        //     CompositeObject& obj = it->second;
+        //     for (int i=0; i<self_objects.size(); ++i) {
+        //         if (self_objects[i].maskEquals(obj)) {
+        //             self_id = obj.id;
+        //             break;
+        //         }
+        //     }
+        // }
     }
 
     // Save State and action history
@@ -778,107 +795,111 @@ void VisualProcessor::sanitize_objects() {
     }
 }
 
-// void VisualProcessor::identify_self() {
-//   float max_info_gain = -1;
-//   long best_obj_id = -1;
-//   int oldest = 0;
-//   for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); ++it) {
-//     long obj_id = it->first;
-//     CompositeObject& obj = it->second;
-//     //cout <<"Obj: " << obj_id << " age " << obj.age<< endl;
-//     for (set<long>::iterator bit=obj.blob_ids.begin(); bit!=obj.blob_ids.end(); ++bit) {
-//       long b_id = *bit;
-//       assert(curr_blobs.find(b_id) != curr_blobs.end());
-//       int hist_len = 0;
-//       Blob* b = &curr_blobs[b_id];
-//       //cout << "\tBlob " << b_id << " (" << b->x_velocity << "," << b->y_velocity << ") ";
-//       while (b->parent_id >= 0 && hist_len < max_history_len) {
-//         hist_len++;
-//         map<long,Blob>& old_blobs = blob_hist[blob_hist.size() - hist_len];
-//         long parent_id = b->parent_id;
-//         assert(old_blobs.find(parent_id) != old_blobs.end());
-//         b = &old_blobs[parent_id];
-//         //cout << " (" << b->x_velocity << "," << b->y_velocity << ") ";
-//       }
-//       //cout << endl;
-//       //cout << "\tHistoryLen: " << hist_len << endl;
-//     }
-//   }
-//   //cin.get();
-// };
-
+// Identify self based on prototypes who have only one instance
 void VisualProcessor::identify_self() {
-    float max_info_gain = -1;
-    long best_blob_id = -1;
-    for (map<long,Blob>::iterator it=curr_blobs.begin(); it!=curr_blobs.end(); ++it) {
-        long b_id = it->first;
+    vector<Prototype*> singles;
+    float decay = .999;
 
-        int blob_history_len = 0;
-        vector<pair<int,int> > velocity_hist;
-        map<pair<int,int>,int> velocity_counts;
+    for (int i=0; i<obj_classes.size(); i++) {
+        Prototype& p = obj_classes[i];
 
-        assert(curr_blobs.find(b_id) != curr_blobs.end());
-        Blob* b = &curr_blobs[b_id];
+        if (p.obj_ids.size() == 0)
+            continue;
 
-        // Get the velocity history of this blob
-        while (b->parent_id >= 0 && blob_history_len < max_history_len) {
-            // Push back the velocity
-            pair<int,int> vel(b->x_velocity, b->y_velocity);
-            velocity_hist.push_back(vel);
-            velocity_counts[vel] = GetWithDef(velocity_counts,vel,0) + 1;
-
-            blob_history_len++;
-
-            // Get the parent
-            map<long,Blob>& old_blobs = blob_hist[blob_hist.size() - blob_history_len];
-            long parent_id = b->parent_id;
-            assert(old_blobs.find(parent_id) != old_blobs.end());
-            b = &old_blobs[parent_id];
-        }
-
-        // How many times was each action performed?
-        map<Action,int> action_counts;
-        vector<Action> act_vec;
-        for (int i=0; i<blob_history_len; ++i) {
-            Action a = action_hist[action_hist.size()-i-1];
-            act_vec.push_back(a);
-            action_counts[a] = GetWithDef(action_counts,a,0) + 1;
-        }
-
-        assert(act_vec.size() == velocity_hist.size());
-
-        // Calculate H(velocities)
-        float velocity_entropy = compute_entropy(velocity_counts,blob_history_len);
-
-        // Calculate H(velocity|a)
-        float action_entropy = 0;
-        for (map<Action,int>::iterator it2=action_counts.begin(); it2!=action_counts.end(); ++it2) {
-            Action a = it2->first;
-            int count = it2->second;
-            float p_a = count / (float) blob_history_len;
-            map<pair<int,int>,int> selective_counts;
-            int selective_total = 0;
-            for (int i=0; i<blob_history_len; ++i) {
-                if (act_vec[i] == a) {
-                    pair<int,int> vel = velocity_hist[i];
-                    selective_counts[vel] = GetWithDef(selective_counts,vel,0) + 1;
-                    selective_total++;
-                }
-            }
-            float selective_entropy = compute_entropy(selective_counts,selective_total);
-            action_entropy += p_a * selective_entropy;
-        }
-
-        float info_gain = velocity_entropy - action_entropy;
-        if (info_gain > max_info_gain) {
-            max_info_gain = info_gain;
-            best_blob_id = b_id;
+        if (p.obj_ids.size() == 1) {
+            singles.push_back(&p);
+        } else if (p.obj_ids.size() > 1) { // Update to target of zero
+            p.self_likelihood -= p.alpha * p.self_likelihood;
+            p.alpha *= decay;
         }
     }
-    //printf("Max info gain: %f\n",max_info_gain);
-    //best_blob->to_string();
-    self_id = best_blob_id;
+
+    // Ideal case -- increase self likelihood
+    if (singles.size() == 1) {
+        Prototype* p = singles[0];
+        p->self_likelihood += p->alpha * (1.0f - p->self_likelihood);
+        p->alpha *= decay;
+    } else { // Multiple singles... Decrease self likelihood of each
+        for (int i=0; i<singles.size(); i++) {
+            Prototype* p = singles[i];
+            p->self_likelihood -= p->alpha * p->self_likelihood;
+            p->alpha *= decay;
+        }
+    }
 };
+
+// void VisualProcessor::identify_self() {
+//     float max_info_gain = -1;
+//     long best_blob_id = -1;
+//     for (map<long,Blob>::iterator it=curr_blobs.begin(); it!=curr_blobs.end(); ++it) {
+//         long b_id = it->first;
+
+//         int blob_history_len = 0;
+//         vector<pair<int,int> > velocity_hist;
+//         map<pair<int,int>,int> velocity_counts;
+
+//         assert(curr_blobs.find(b_id) != curr_blobs.end());
+//         Blob* b = &curr_blobs[b_id];
+
+//         // Get the velocity history of this blob
+//         while (b->parent_id >= 0 && blob_history_len < max_history_len) {
+//             // Push back the velocity
+//             pair<int,int> vel(b->x_velocity, b->y_velocity);
+//             velocity_hist.push_back(vel);
+//             velocity_counts[vel] = GetWithDef(velocity_counts,vel,0) + 1;
+
+//             blob_history_len++;
+
+//             // Get the parent
+//             map<long,Blob>& old_blobs = blob_hist[blob_hist.size() - blob_history_len];
+//             long parent_id = b->parent_id;
+//             assert(old_blobs.find(parent_id) != old_blobs.end());
+//             b = &old_blobs[parent_id];
+//         }
+
+//         // How many times was each action performed?
+//         map<Action,int> action_counts;
+//         vector<Action> act_vec;
+//         for (int i=0; i<blob_history_len; ++i) {
+//             Action a = action_hist[action_hist.size()-i-1];
+//             act_vec.push_back(a);
+//             action_counts[a] = GetWithDef(action_counts,a,0) + 1;
+//         }
+
+//         assert(act_vec.size() == velocity_hist.size());
+
+//         // Calculate H(velocities)
+//         float velocity_entropy = compute_entropy(velocity_counts,blob_history_len);
+
+//         // Calculate H(velocity|a)
+//         float action_entropy = 0;
+//         for (map<Action,int>::iterator it2=action_counts.begin(); it2!=action_counts.end(); ++it2) {
+//             Action a = it2->first;
+//             int count = it2->second;
+//             float p_a = count / (float) blob_history_len;
+//             map<pair<int,int>,int> selective_counts;
+//             int selective_total = 0;
+//             for (int i=0; i<blob_history_len; ++i) {
+//                 if (act_vec[i] == a) {
+//                     pair<int,int> vel = velocity_hist[i];
+//                     selective_counts[vel] = GetWithDef(selective_counts,vel,0) + 1;
+//                     selective_total++;
+//                 }
+//             }
+//             float selective_entropy = compute_entropy(selective_counts,selective_total);
+//             action_entropy += p_a * selective_entropy;
+//         }
+
+//         float info_gain = velocity_entropy - action_entropy;
+//         if (info_gain > max_info_gain) {
+//             max_info_gain = info_gain;
+//             best_blob_id = b_id;
+//         }
+//     }
+//     //printf("Max info gain: %f\n",max_info_gain);
+//     //best_blob->to_string();
+//     self_id = best_blob_id;
+// };
 
 point VisualProcessor::get_self_centroid() {
     if (composite_objs.find(self_id) == composite_objs.end()) {
@@ -945,7 +966,6 @@ void VisualProcessor::merge_objects(float similarity_threshold) {
             Prototype p(obj,curr_blobs);
             p.seen_count = p.frames_since_last_seen = p.times_seen_this_frame = 0; //(piyushk)
             p.is_valid = false;
-            p.value = 0.0;
             // if (free_colors.size() != 0) {
             //   p.color = *(free_colors.begin()); //(piyushk)
             //   free_colors.erase(p.color); //(piyushk)
@@ -969,7 +989,6 @@ void VisualProcessor::merge_objects(float similarity_threshold) {
             prototypes_to_erase.push_back(i);
         } else if (p.seen_count >= 25 && !p.is_valid) {
             p.is_valid = true;
-            p.value = prototype_value;
             prototype_value += 1.0;
         }
         p.seen_count += p.times_seen_this_frame;

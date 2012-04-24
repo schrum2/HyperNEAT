@@ -17,7 +17,9 @@
 #include <set>
 #include "visual_processor.h"
 
-
+/** The self detection agent is tasked with selecting actions to make clear
+    which object on screen is the entity being controlled.
+**/
 class SelfDetectionAgent : public PlayerAgent { 
  public:
   SelfDetectionAgent(GameSettings* _game_settings, OSystem* _osystem);

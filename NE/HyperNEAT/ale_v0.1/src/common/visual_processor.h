@@ -192,7 +192,7 @@ struct Prototype {
     int frames_since_last_seen;
     int times_seen_this_frame;
     bool is_valid;
-    float value;
+    float self_likelihood, alpha; // How likely is the prototype to be part of the "self"?
   
     Prototype(CompositeObject& obj, map<long,Blob>& blob_map);
 
