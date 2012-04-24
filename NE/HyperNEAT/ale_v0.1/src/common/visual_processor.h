@@ -137,7 +137,7 @@ struct Blob {
     // any of the blobs in the excluded set.
     long find_matching_blob(map<long,Blob>& blobs, set<long>& excluded);
 
-    void to_string();
+    void to_string(bool verbose=false);
 
     bool operator< (const Blob& other) const {
         return id < other.id;
@@ -177,7 +177,7 @@ struct CompositeObject {
     // Compares to see if this object and another objects masks are the same
     bool maskEquals(const CompositeObject& other);
     
-    void to_string();
+    void to_string(bool verbose=false);
 };
 
 /* A prototype represents a class of objects. */
@@ -198,6 +198,8 @@ struct Prototype {
 
     // How closely does an object resemble this prototype?
     float get_pixel_match(CompositeObject& obj);
+
+    void to_string(bool verbose=false);
 };
 
 
@@ -273,7 +275,9 @@ class VisualProcessor : public SDLEventHandler {
     // Self objects which are manually identified. These are loaded up from saved files of the game
     vector<CompositeObject> self_objects; 
 
-    long focused_obj_id; // The focused object is selected by a click
+    /** Graphical display stuff **/
+    long focused_entity_id; // The focused object is selected by a click
+    int focus_level;     // Are we focusing on a blob/object/prototype?
     int display_mode;    // Which graphical representation should we display?
     bool display_self;   // Should the results of self detection be displayed?
 

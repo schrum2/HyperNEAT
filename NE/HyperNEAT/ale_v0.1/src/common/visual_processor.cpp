@@ -129,20 +129,23 @@ long Blob::find_matching_blob(map<long,Blob>& blobs, set<long>& excluded) {
     return best_match_id;
 };
 
-void Blob::to_string() {
+void Blob::to_string(bool verbose) {
     printf("Blob: %p BB: (%d,%d)->(%d,%d) Size: %d Col: %d\n",this,x_min,y_min,x_max,y_max,size,color);
 
-    int width = x_max - x_min + 1;
-    for (int y=0; y<height; ++y) {
-        printf("\n");
-        for (int x=0; x<width; ++x) {
-            if (get_pixel(width, height, x, y, mask))
-                printf("1");
-            else
-                printf("0");
+    if (verbose) {
+        printf("Pixel mask:");
+        int width = x_max - x_min + 1;
+        for (int y=0; y<height; ++y) {
+            printf("\n");
+            for (int x=0; x<width; ++x) {
+                if (get_pixel(width, height, x, y, mask))
+                    printf("1");
+                else
+                    printf("0");
+            }
         }
+        printf("\n");
     }
-    printf("\n");
 };
 
 Prototype::Prototype (CompositeObject& obj, map<long,Blob>& blob_map) {
@@ -178,8 +181,13 @@ float Prototype::get_pixel_match(CompositeObject& obj) {
     for (int i=0; i<min(mask.size(),obj.mask.size()); ++i) {
         overlap += count_ones(mask[i] & obj.mask[i]);
     }
-    return overlap / (float) size;
+    return overlap / (float) max(size,obj.size);
 };
+
+void Prototype::to_string(bool verbose) {
+    printf("Prototype %d: size %d num_obj_instances %d self_likelihood %f\n",
+           id,size,(int)obj_ids.size(),self_likelihood);
+}
 
 CompositeObject::CompositeObject() {
     id = -1;
@@ -298,7 +306,7 @@ bool CompositeObject::maskEquals(const CompositeObject& other) {
     return true;
 };
 
-void CompositeObject::to_string() {
+void CompositeObject::to_string(bool verbose) {
     printf("Composite Object %ld: Size %d Velocity (%d,%d) FramesSinceLastMovement %d NumBlobs %d\n",id,size,x_velocity,y_velocity,frames_since_last_movement,(int)blob_ids.size());
 };
 
@@ -307,7 +315,7 @@ VisualProcessor::VisualProcessor(OSystem* _osystem, GameSettings* _game_settings
     game_settings(_game_settings),
     max_history_len(50), //numeric_limits<int>::max()),
     blob_ids(0), obj_ids(0), self_id(-1),
-    focused_obj_id(-1), display_mode(0), display_self(false),
+    focused_entity_id(-1), focus_level(-1), display_mode(0), display_self(false),
     prototype_ids(0),//(piyushk)
     prototype_value(1.0) //(piyushk)
 {
@@ -358,7 +366,7 @@ void VisualProcessor::process_image(const IntMatrix* screen_matrix, Action actio
         Prototype* best = NULL;
         for (int i=0; i<obj_classes.size(); i++) {
             Prototype& p = obj_classes[i];
-            if (p.self_likelihood > maxval) {
+            if (p.obj_ids.size() >= 1 && p.self_likelihood > maxval) {
                 maxval = p.self_likelihood;
                 best = &p;
             }
@@ -367,6 +375,7 @@ void VisualProcessor::process_image(const IntMatrix* screen_matrix, Action actio
         if (best != NULL && best->obj_ids.size() > 0) {
             set<long>::iterator it = best->obj_ids.begin();
             self_id = *it;
+            printf("Proto %d Likelihood %f alpha %f\n",best->id,best->self_likelihood,best->alpha);
         }
 
         // Identify the self based on the list of self objects
@@ -798,7 +807,7 @@ void VisualProcessor::sanitize_objects() {
 // Identify self based on prototypes who have only one instance
 void VisualProcessor::identify_self() {
     vector<Prototype*> singles;
-    float decay = .999;
+    float decay = .995;
 
     for (int i=0; i<obj_classes.size(); i++) {
         Prototype& p = obj_classes[i];
@@ -811,6 +820,19 @@ void VisualProcessor::identify_self() {
         } else if (p.obj_ids.size() > 1) { // Update to target of zero
             p.self_likelihood -= p.alpha * p.self_likelihood;
             p.alpha *= decay;
+
+            // if (p.id == 6) {
+            //     printf("Decreasing likelihood of prototype %d to %f\n",p.id,p.self_likelihood);
+            //     IntMatrix screen_cpy(screen_hist.back());
+            //     display_screen(screen_cpy);
+            //     for (set<long>::iterator it=p.obj_ids.begin(); it!=p.obj_ids.end(); it++) {
+            //         long obj_id = *it;
+            //         assert(composite_objs.find(obj_id) != composite_objs.end());
+            //         box_object(composite_objs[obj_id],screen_cpy,258);
+            //     }
+            //     p_osystem->p_display_screen->display_screen(screen_cpy, screen_cpy[0].size(), screen_cpy.size());
+            //     cin.get();
+            // }
         }
     }
 
@@ -819,12 +841,26 @@ void VisualProcessor::identify_self() {
         Prototype* p = singles[0];
         p->self_likelihood += p->alpha * (1.0f - p->self_likelihood);
         p->alpha *= decay;
-    } else { // Multiple singles... Decrease self likelihood of each
-        for (int i=0; i<singles.size(); i++) {
-            Prototype* p = singles[i];
-            p->self_likelihood -= p->alpha * p->self_likelihood;
-            p->alpha *= decay;
-        }
+
+        // printf("Increasing likelihood of prototype %d to %f\n",p->id,p->self_likelihood);
+        // IntMatrix screen_cpy(screen_hist.back());
+        // display_screen(screen_cpy);
+        // box_object(composite_objs[*(p->obj_ids.begin())],screen_cpy,256);
+        // p_osystem->p_display_screen->display_screen(screen_cpy, screen_cpy[0].size(), screen_cpy.size());
+        // cin.get();
+    } else if (singles.size() > 1) { // Multiple singles... Decrease self likelihood of each
+        // printf("Multiple prototypes ");
+        // IntMatrix screen_cpy(screen_hist.back());
+        // display_screen(screen_cpy);
+
+        // for (int i=0; i<singles.size(); i++) {
+        //     Prototype* p = singles[i];
+        //     printf("%d likelihood %f, ",p->id, p->self_likelihood);
+        //     box_object(composite_objs[*(p->obj_ids.begin())],screen_cpy,260);
+        // }
+        // printf("\n");
+        // p_osystem->p_display_screen->display_screen(screen_cpy, screen_cpy[0].size(), screen_cpy.size());
+        // cin.get();
     }
 };
 
@@ -1094,10 +1130,10 @@ void VisualProcessor::importMask(int& width, int& height, vector<char>& mask, co
 };
 
 void VisualProcessor::tagSelfObject() {
-    if (composite_objs.find(focused_obj_id) == composite_objs.end()) {
-        printf("No object focused. Please click an object and try again.\n");
+    if (focus_level != 1 || composite_objs.find(focused_entity_id) == composite_objs.end()) {
+        printf("No object focused. Please press W and click an object and try again.\n");
     } else {
-        CompositeObject& obj = composite_objs[focused_obj_id];
+        CompositeObject& obj = composite_objs[focused_entity_id];
         obj.computeMask(curr_blobs); // Recompute the object's mask just to be sure
 
         // Check to make sure we don't alreayd have a self object load which is identical to this object
@@ -1173,17 +1209,54 @@ void VisualProcessor::handleSDLEvent(const SDL_Event& event) {
             int sdl_screen_height = p_osystem->p_display_screen->screen->h;
             int approx_x = (screen_width * event.button.x) / sdl_screen_width;
             int approx_y = (screen_height * event.button.y) / sdl_screen_height;
-            // Which object contains this point?
-            focused_obj_id = -1;
-            for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); ++it) {
-                CompositeObject& obj = it->second;
-                if (approx_x >= obj.x_min && approx_x <= obj.x_max &&
-                    approx_y >= obj.y_min && approx_y <= obj.y_max) {
-                    focused_obj_id = obj.id;
-                    obj.to_string();
-                    printVelHistory(obj);
+
+            focused_entity_id = -1;
+            // Look for an object that falls under these coordinates
+            if (focus_level < 0)
+                break;
+            else if (focus_level == 0) {
+                // Find a blob that is under the click
+                for (map<long,Blob>::iterator it=curr_blobs.begin(); it != curr_blobs.end(); it++) {
+                    Blob& b = it->second;
+                    if (approx_x >= b.x_min && approx_x <= b.x_max &&
+                        approx_y >= b.y_min && approx_y <= b.y_max) {
+                        // Check to see if the blob contains the actual pixel
+                        bool has_pixel = get_pixel(b.width, b.height, approx_x - b.x_min,
+                                                   approx_y - b.y_min, b.mask);
+                        if (has_pixel) {
+                            focused_entity_id = b.id;
+                            b.to_string();
+                            break;
+                        }
+                    }
                 }
-            }
+            } else if (focus_level == 1 || focus_level == 2) {
+                // Find an object that is under the click
+                for (map<long,CompositeObject>::iterator it=composite_objs.begin();
+                     it!=composite_objs.end(); ++it) {
+                    CompositeObject& obj = it->second;
+                    if (approx_x >= obj.x_min && approx_x <= obj.x_max &&
+                        approx_y >= obj.y_min && approx_y <= obj.y_max) {
+                        focused_entity_id = obj.id;
+                        if (focus_level == 1) obj.to_string();
+                        break;
+                    }
+                }
+                if (focus_level == 2 && focused_entity_id > 0) { // To which prototype does this obj belong?
+                    long obj_id = focused_entity_id;
+                    focused_entity_id = -1;
+                    for (int i=0; i<obj_classes.size(); i++) {
+                        Prototype& p = obj_classes[i];
+                        if (p.obj_ids.find(obj_id) != p.obj_ids.end()) {
+                            focused_entity_id = p.id;
+                            p.to_string();
+                            break;
+                        }
+                    }
+                }
+            } else
+                printf("Unexpected focus level: %d. Not sure what type of object to display.\n", focus_level);
+
             // Update the screen
             if (screen_hist.size() >= 1) {
                 IntMatrix screen_cpy(screen_hist.back());
@@ -1212,6 +1285,46 @@ void VisualProcessor::handleSDLEvent(const SDL_Event& event) {
             break;
         case SDLK_s:
             tagSelfObject();
+            break;
+        case SDLK_q:
+            if (focus_level == 0) {
+                focus_level = -1;
+            } else {
+                focus_level = 0;
+                printf("Focusing on Blobs.\n");
+            }
+            break;
+        case SDLK_w:
+            if (focus_level == 1) {
+                focus_level = -1;
+            } else {
+                focus_level = 1;
+                printf("Focusing on Objects.\n");
+            }
+            break;
+        case SDLK_e:
+            if (focus_level == 2) {
+                focus_level = -1;
+            } else {
+                focus_level = 2;
+                printf("Focusing on Prototypes.\n");
+            }
+            break;
+        case SDLK_i:
+            if (focus_level < 0 || focused_entity_id < 0)
+                break;
+            if (focus_level == 0) {
+                if (curr_blobs.find(focused_entity_id) != curr_blobs.end())
+                    curr_blobs[focused_entity_id].to_string(true);
+            } else if (focus_level == 1) {
+                if (composite_objs.find(focused_entity_id) != composite_objs.end())
+                    composite_objs[focused_entity_id].to_string(true);
+            } else if (focus_level == 2) {
+                for (int i=0; i<obj_classes.size(); i++) {
+                    if (obj_classes[i].id == focused_entity_id)
+                        obj_classes[i].to_string(true);
+                }
+            }
             break;
         default:
             break;
@@ -1259,11 +1372,28 @@ void VisualProcessor::display_screen(IntMatrix& screen_cpy) {
     if (display_self)
         plot_self(screen_cpy);
   
-    // Display focused object
-    if (composite_objs.find(focused_obj_id) != composite_objs.end()) {
-        CompositeObject& obj = composite_objs[focused_obj_id];
-        int box_color = 256;
-        box_object(obj,screen_cpy,box_color);
+    // Display focused entity
+    if (focus_level >= 0 && focused_entity_id >= 0) {
+        if (focus_level == 0 && curr_blobs.find(focused_entity_id) != curr_blobs.end()) {
+            Blob& b = curr_blobs[focused_entity_id];
+            box_blob(b,screen_cpy,258);
+        } else if (focus_level == 1 && composite_objs.find(focused_entity_id) != composite_objs.end()) {
+            CompositeObject& obj = composite_objs[focused_entity_id];
+            box_object(obj,screen_cpy,256);
+        } else if (focus_level == 2) {
+            for (int i=0; i<obj_classes.size(); i++) {
+                Prototype& p = obj_classes[i];
+                if (p.id == focused_entity_id) {
+                    for (set<long>::iterator it=p.obj_ids.begin(); it!=p.obj_ids.end(); it++) {
+                        long obj_id = *it;
+                        assert(composite_objs.find(obj_id) != composite_objs.end());
+                        CompositeObject& obj = composite_objs[obj_id];
+                        box_object(obj,screen_cpy,260);
+                    }
+                    break;
+                }
+            }
+        }
     }
 };
 
