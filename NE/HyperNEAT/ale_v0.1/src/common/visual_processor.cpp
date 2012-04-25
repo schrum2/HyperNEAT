@@ -129,7 +129,7 @@ long Blob::find_matching_blob(map<long,Blob>& blobs, set<long>& excluded) {
     return best_match_id;
 };
 
-void Blob::to_string(bool verbose) {
+void Blob::to_string(bool verbose, deque<map<long,Blob> >* blob_hist) {
     printf("Blob: %p BB: (%d,%d)->(%d,%d) Size: %d Col: %d\n",this,x_min,y_min,x_max,y_max,size,color);
 
     if (verbose) {
@@ -145,6 +145,25 @@ void Blob::to_string(bool verbose) {
             }
         }
         printf("\n");
+
+        if (blob_hist != NULL) {
+            printf("Velocity History: \n");
+            Blob* b = this;
+            // Get the velocity history of this blob
+            int blob_history_len = 1;
+            while (b->parent_id >= 0 && blob_history_len < blob_hist->size()) {
+                // Push back the velocity
+                pair<int,int> vel(b->x_velocity, b->y_velocity);
+                printf("Age %d Blob %ld Vel (%d,%d)\n", blob_history_len-1, b->id, b->x_velocity, b->y_velocity);
+                blob_history_len++;
+
+                // Get the parent
+                map<long,Blob>& old_blobs = (*blob_hist)[blob_hist->size() - blob_history_len];
+                long parent_id = b->parent_id;
+                assert(old_blobs.find(parent_id) != old_blobs.end());
+                b = &old_blobs[parent_id];
+            }
+        }
     }
 };
 
@@ -362,32 +381,32 @@ void VisualProcessor::process_image(const IntMatrix* screen_matrix, Action actio
         // Identify which object we are
         identify_self();
 
-        float maxval = -1;
-        Prototype* best = NULL;
-        for (int i=0; i<obj_classes.size(); i++) {
-            Prototype& p = obj_classes[i];
-            if (p.obj_ids.size() >= 1 && p.self_likelihood > maxval) {
-                maxval = p.self_likelihood;
-                best = &p;
-            }
-        }
-
-        if (best != NULL && best->obj_ids.size() > 0) {
-            set<long>::iterator it = best->obj_ids.begin();
-            self_id = *it;
-            printf("Proto %d Likelihood %f alpha %f\n",best->id,best->self_likelihood,best->alpha);
-        }
-
-        // Identify the self based on the list of self objects
-        // for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); it++) {
-        //     CompositeObject& obj = it->second;
-        //     for (int i=0; i<self_objects.size(); ++i) {
-        //         if (self_objects[i].maskEquals(obj)) {
-        //             self_id = obj.id;
-        //             break;
-        //         }
+        // float maxval = -1;
+        // Prototype* best = NULL;
+        // for (int i=0; i<obj_classes.size(); i++) {
+        //     Prototype& p = obj_classes[i];
+        //     if (p.obj_ids.size() >= 1 && p.self_likelihood > maxval) {
+        //         maxval = p.self_likelihood;
+        //         best = &p;
         //     }
         // }
+
+        // if (best != NULL && best->obj_ids.size() > 0) {
+        //     set<long>::iterator it = best->obj_ids.begin();
+        //     self_id = *it;
+        //     printf("Proto %d Likelihood %f alpha %f\n",best->id,best->self_likelihood,best->alpha);
+        // }
+
+        // Identify the self based on the list of self objects
+        for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); it++) {
+            CompositeObject& obj = it->second;
+            for (int i=0; i<self_objects.size(); ++i) {
+                if (self_objects[i].maskEquals(obj)) {
+                    self_id = obj.id;
+                    break;
+                }
+            }
+        }
     }
 
     // Save State and action history
@@ -1315,7 +1334,7 @@ void VisualProcessor::handleSDLEvent(const SDL_Event& event) {
                 break;
             if (focus_level == 0) {
                 if (curr_blobs.find(focused_entity_id) != curr_blobs.end())
-                    curr_blobs[focused_entity_id].to_string(true);
+                    curr_blobs[focused_entity_id].to_string(true,&blob_hist);
             } else if (focus_level == 1) {
                 if (composite_objs.find(focused_entity_id) != composite_objs.end())
                     composite_objs[focused_entity_id].to_string(true);

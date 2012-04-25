@@ -137,7 +137,7 @@ struct Blob {
     // any of the blobs in the excluded set.
     long find_matching_blob(map<long,Blob>& blobs, set<long>& excluded);
 
-    void to_string(bool verbose=false);
+    void to_string(bool verbose=false, deque<map<long,Blob> >* blob_hist=NULL);
 
     bool operator< (const Blob& other) const {
         return id < other.id;
