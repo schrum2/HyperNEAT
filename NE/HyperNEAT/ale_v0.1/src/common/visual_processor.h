@@ -135,7 +135,7 @@ struct Blob {
 
     // Find the blob that most closely resembles this blob. Do not consider
     // any of the blobs in the excluded set.
-    long find_matching_blob(map<long,Blob>& blobs, set<long>& excluded);
+    long find_matching_blob(map<long,Blob>& blobs);
 
     void to_string(bool verbose=false, deque<map<long,Blob> >* blob_hist=NULL);
 

@@ -15,7 +15,10 @@
 #include <omp.h>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
-#include "munkres.h" // Implementation of the Kuhn-Munkres algorithm
+
+#ifdef MUNKRES
+    #include "munkres.h" // Implementation of the Kuhn-Munkres algorithm
+#endif
 
 #define IMAGE_FILENAME "images"
 #define SELF_IMAGE_PREFIX "selfimage-"
@@ -102,7 +105,7 @@ float Blob::get_aggregate_blob_match(const Blob& other) {
     float dist_diff = get_centroid_dist(other);
     float size_ratio = min(size, other.size) / (float) max(size, other.size);
 
-    float normalized_dist_diff = max(0.0f, 1 - (dist_diff / 25.0f));
+    float normalized_dist_diff = max(0.0f, 1 - (dist_diff * dist_diff / 625.0f));
     float normalized_size_diff = size_ratio;
     float match = (color_diff + normalized_size_diff + normalized_dist_diff) / 3.0f;
     return match;
@@ -571,37 +574,67 @@ void VisualProcessor::find_connected_components(const IntMatrix& screen_matrix, 
 };
 
 
+// Try to match all of the current blobs with the equivalent blobs from the last timestep
 void VisualProcessor::find_blob_matches(map<long,Blob>& blobs) {
-    // Try to match all of the current blobs with the equivalent blobs from the last timestep
+#ifdef MUNKRES
+    // Solve blob matching via Hungarian algorithm. Better matches but more time.
     map<long,Blob>& old_blobs = blob_hist.back();
-    set<long> excluded;
+    int width = max(old_blobs.size(), blobs.size());
+    Matrix<double> matrix(width, width);
+    int old_blob_cnt = 0;
+    for (map<long,Blob>::iterator it=old_blobs.begin(); it!=old_blobs.end(); ++it) {
+        Blob& old_blob = it->second;
+        int new_blob_cnt = 0;
+        for(map<long,Blob>::iterator it2=blobs.begin(); it2!=blobs.end(); it2++) {
+            Blob& new_blob = it2->second;
+            float match = new_blob.get_aggregate_blob_match(old_blob);
+            matrix(old_blob_cnt,new_blob_cnt) = (double) (1.0 - match);
+            new_blob_cnt++;
+        }
+        while (new_blob_cnt < width) {
+            matrix(old_blob_cnt,new_blob_cnt) = (double) 1.0;
+            new_blob_cnt++;
+        }
+        old_blob_cnt++;
+    }
+    while (old_blob_cnt < width) {
+        for (int i=0; i<width; ++i)
+            matrix(old_blob_cnt,i) = (double) 1.0;
+        old_blob_cnt++;
+    }
+
+    Munkres m;
+    m.solve(matrix);
+
+    old_blob_cnt = 0;
+    for (map<long,Blob>::iterator it=old_blobs.begin(); it!=old_blobs.end(); ++it) {
+        Blob& old_blob = it->second;
+        int new_blob_cnt = 0;
+        for(map<long,Blob>::iterator it2=blobs.begin(); it2!=blobs.end(); it2++) {
+            Blob& new_blob = it2->second;
+            if (matrix(old_blob_cnt,new_blob_cnt) == 0) {
+                new_blob.compute_velocity(old_blob);
+                new_blob.parent_id = old_blob.id;
+                old_blob.child_id = new_blob.id;
+            }
+            new_blob_cnt++;
+        }
+        old_blob_cnt++;
+    }
+#else
+    // Do greedy (fast) blob matching
+    map<long,Blob>& old_blobs = blob_hist.back();
     for (map<long,Blob>::iterator it=blobs.begin(); it!=blobs.end(); ++it) {
         Blob& b = it->second;
-        excluded.clear();
-        long blob_match_id = b.find_matching_blob(old_blobs,excluded);
-        
-        if (blob_match_id < 0) {
-            continue;
-        }
-        
+        long blob_match_id = b.find_matching_blob(old_blobs);
+        if (blob_match_id < 0) continue;
         assert(old_blobs.find(blob_match_id) != old_blobs.end());
         Blob& match = old_blobs[blob_match_id];
         b.compute_velocity(match);
         b.parent_id = match.id;
         match.child_id = b.id;
-        excluded.insert(blob_match_id);
     }
-
-    // Matrix<double> matrix(3, 3);
-    // // Initialize matrix with random values.
-    // for ( int row = 0 ; row < 3 ; row++ ) {
-    //     for ( int col = 0 ; col < 3 ; col++ ) {
-    //         matrix(row,col) = (double)random();
-    //     }
-    // }
-    // Munkres m;
-    // m.solve(matrix);
-
+#endif
 };
 
 // Update the current blobs that we already have
@@ -1335,6 +1368,7 @@ void VisualProcessor::display_screen(IntMatrix& screen_cpy) {
   
     // Display focused entity
     if (focus_level >= 0 && focused_entity_id >= 0) {
+        // TODO: make the blob tracking continue through frames via the child blobs
         if (focus_level == 0 && curr_blobs.find(focused_entity_id) != curr_blobs.end()) {
             Blob& b = curr_blobs[focused_entity_id];
             box_blob(b,screen_cpy,258);
