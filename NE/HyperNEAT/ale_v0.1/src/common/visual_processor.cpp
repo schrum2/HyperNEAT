@@ -15,6 +15,7 @@
 #include <omp.h>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
+#include "munkres.h" // Implementation of the Kuhn-Munkres algorithm
 
 #define IMAGE_FILENAME "images"
 #define SELF_IMAGE_PREFIX "selfimage-"
@@ -107,15 +108,12 @@ float Blob::get_aggregate_blob_match(const Blob& other) {
     return match;
 };
 
-long Blob::find_matching_blob(map<long,Blob>& blobs, set<long>& excluded) {
+long Blob::find_matching_blob(map<long,Blob>& blobs) {
     long best_match_id = -1;
     float best_match_score = 0;
     for (map<long,Blob>::iterator it=blobs.begin(); it!=blobs.end(); ++it) {
         Blob& b = it->second;
 
-        if (excluded.find(b.id) != excluded.end())
-            continue;
-      
         float match = get_aggregate_blob_match(b);
         if (match > best_match_score || best_match_id < 0) {
             best_match_id = b.id;
@@ -592,80 +590,18 @@ void VisualProcessor::find_blob_matches(map<long,Blob>& blobs) {
         b.parent_id = match.id;
         match.child_id = b.id;
         excluded.insert(blob_match_id);
-
-        // This problem is an example of Minimum/maximum weight perfect matching. This is solvable in O(V^3) time.
-
-        // Ad-hoc code to decide which match has priority
-    //     if (match.child_id < 0) { // Easy Case
-    //         b.compute_velocity(match);
-    //         b.parent_id = match.id;
-    //         match.child_id = b.id;
-    //     } else { // Hard case
-    //         long conflicting_blob_id = match.child_id;
-    //         Blob& conflicting_blob = blobs[conflicting_blob_id];
-    //         assert(conflicting_blob.parent_id == match.id);
-    //         excluded.clear();
-    //         excluded.insert(match.id);
-
-    //         // Compute primary and secondary blob match scores for b
-    //         float primary_score = b.get_aggregate_blob_match(match);
-    //         long  second_choice_id = b.find_matching_blob(blob_hist.back(),excluded);
-    //         float secondary_score = 0;
-    //         if (second_choice_id >= 0) {
-    //             assert(blob_hist.back().find(second_choice_id) != blob_hist.back().end());
-    //             Blob& second_choice = blob_hist.back()[second_choice_id];
-    //             secondary_score = b.get_aggregate_blob_match(second_choice);
-    //         }
-
-    //         // Compute primary and secondary blob match scores for conflicting blob
-    //         float primary_score2 = conflicting_blob.get_aggregate_blob_match(match);
-    //         long  second_choice2_id = conflicting_blob.find_matching_blob(blob_hist.back(), excluded);
-    //         float secondary_score2 = 0;
-    //         if (second_choice2_id >= 0) {
-    //             assert(blob_hist.back().find(second_choice2_id) != blob_hist.back().end());
-    //             Blob& second_choice2 = blob_hist.back()[second_choice2_id];
-    //             secondary_score2 = conflicting_blob.get_aggregate_blob_match(second_choice2);
-    //         }
-
-    //         if (primary_score + secondary_score2 >= primary_score2 + secondary_score) {
-    //             // b takes the primary and conflicting takes the secondary
-    //             b.compute_velocity(match);
-    //             b.parent_id = match.id;
-    //             match.child_id = b.id;
-    //             if (second_choice2_id >= 0) {
-    //                 Blob& second_choice2 = blob_hist.back()[second_choice2_id];
-    //                 conflicting_blob.compute_velocity(second_choice2);
-    //                 conflicting_blob.parent_id = second_choice2.id;
-    //                 second_choice2.child_id = conflicting_blob.id;
-    //             }
-    //         } else {
-    //             // b takes the secondary and conflicting takes the primary
-    //             if (second_choice_id >= 0) {
-    //                 Blob& second_choice = blob_hist.back()[second_choice_id];
-    //                 b.compute_velocity(second_choice);
-    //                 b.parent_id = second_choice.id;
-    //                 second_choice.child_id = b.id;
-    //             }
-    //             conflicting_blob.compute_velocity(match);
-    //             conflicting_blob.parent_id = match.id;
-    //             match.child_id = conflicting_blob.id;
-    //         }
-    //     } 
     }
 
-    // Debug blob matching
-    // for (map<long,Blob>::iterator it=old_blobs.begin(); it!=old_blobs.end(); it++) {
-    //     Blob& old_blob = it->second;
-    //     if (old_blob.child_id < 0) {
-    //         printf("Blob match not found\n");
-    //         old_blob.to_string();
-    //         IntMatrix screen_cpy(screen_hist.back());
-    //         display_screen(screen_cpy);
-    //         box_blob(old_blob,screen_cpy,256);
-    //         p_osystem->p_display_screen->display_screen(screen_cpy, screen_cpy[0].size(), screen_cpy.size());
-    //         cin.get();
+    // Matrix<double> matrix(3, 3);
+    // // Initialize matrix with random values.
+    // for ( int row = 0 ; row < 3 ; row++ ) {
+    //     for ( int col = 0 ; col < 3 ; col++ ) {
+    //         matrix(row,col) = (double)random();
     //     }
     // }
+    // Munkres m;
+    // m.solve(matrix);
+
 };
 
 // Update the current blobs that we already have

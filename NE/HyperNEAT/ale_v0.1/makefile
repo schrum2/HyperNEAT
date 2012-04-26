@@ -47,10 +47,10 @@ PROFILE :=
 HAVE_GCC3 = 1
 HAVE_NASM = 1
 
-INCLUDES += -Isrc/emucore -Isrc/emucore/m6502/src -Isrc/emucore/m6502/src/bspf/src -Isrc/common -Isrc/control -Isrc/player_agents -I/usr/include/ -I/usr/include/c++/4.4 -I/usr/include/c++/4.4/i486-linux-gnu/ -I/usr/include/c++/4.4/backward -I/usr/include
+INCLUDES += -Isrc/emucore -Isrc/emucore/m6502/src -Isrc/emucore/m6502/src/bspf/src -Isrc/common -Isrc/control -Isrc/player_agents -I/usr/include/ -I/usr/include/c++/4.4 -I/usr/include/c++/4.4/i486-linux-gnu/ -I/usr/include/c++/4.4/backward -I/usr/include -I/usr/include/munkres
 OBJS +=  
 DEFINES +=  -DUNIX -DHAS_ALTIVEC -DUSE_NASM -DBSPF_UNIX -DHAVE_INTTYPES -DWINDOWED_SUPPORT  -DHAVE_GETTIMEOFDAY -DSNAPSHOT_SUPPORT 
-LDFLAGS += -L/u/mhauskn/local/lib -lSDL -lSDL_gfx -lSDL_image -lboost_thread-mt -lboost_serialization -lboost_filesystem -lncurses -fopenmp
+LDFLAGS += -L/u/mhauskn/local/lib -lSDL -lSDL_gfx -lSDL_image -lboost_thread-mt -lboost_serialization -lboost_filesystem -lncurses -fopenmp -lmunkres
 
 
 # Uncomment this for stricter compile time code verification
