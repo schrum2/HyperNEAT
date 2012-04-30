@@ -23,6 +23,7 @@
 #include "single_action_agent.h"
 #include "actions_summary_agent.h"
 #include "self_detection_agent.h"
+#include "qlearning_agent.h"
 #include "freeway_agent.h"
 #include "export_tools.h"
 #include "game_controller.h"
@@ -442,6 +443,9 @@ PlayerAgent* PlayerAgent::generate_agent_instance(
   } else if (player_agent == "self_detection_agent") {
     cout << "Game will be controlled by Self detection agent" << endl;
     new_agent = new SelfDetectionAgent(_game_settings, _osystem);
+  } else if (player_agent == "qlearning_agent") {
+    cout << "Game will be controlled by qlearning agent" << endl;
+    new_agent = new QLearningAgent(_game_settings, _osystem);
   } else {
     cerr << "PlayerAgent::generate_agent_instance: I don't know" <<
       " what PlayerAgent to use for player_agent value:" << 
