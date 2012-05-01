@@ -4,9 +4,9 @@
 
 srcdir      ?= .
 DEFINES     := -DRLGENV_NOMAINLOOP
-LDFLAGS     :=  
+LDFLAGS     := -L/u/mhauskn/local/lib 
 INCLUDES    := -Isrc/control -Isrc/os_dependent -I/usr/include 
-LIBS	    := 
+LIBS	    := -lSDL -lSDL_gfx -lSDL_image -lboost_thread-mt -lboost_serialization -lboost_system -lboost_filesystem -lncurses
 OBJS	    :=
 PROF        :=
 MODULES     :=
@@ -21,7 +21,6 @@ HUNGARIAN   := 0
 CXX := g++
 CXXFLAGS := -O3 -Wall -Wno-sign-compare -Wno-multichar -Wunused 
 LD := g++
-LIBS += -lz
 RANLIB := ranlib
 INSTALL := install
 AR := ar cru
@@ -50,7 +49,6 @@ HAVE_NASM = 1
 INCLUDES += -Isrc/emucore -Isrc/emucore/m6502/src -Isrc/emucore/m6502/src/bspf/src -Isrc/common -Isrc/control -Isrc/player_agents -I/usr/include/ -I/usr/include/c++/4.4 -I/usr/include/c++/4.4/i486-linux-gnu/ -I/usr/include/c++/4.4/backward -I/usr/include 
 OBJS +=  
 DEFINES += -DUNIX -DHAS_ALTIVEC -DUSE_NASM -DBSPF_UNIX -DHAVE_INTTYPES -DWINDOWED_SUPPORT -DHAVE_GETTIMEOFDAY -DSNAPSHOT_SUPPORT
-LDFLAGS += -L/u/mhauskn/local/lib -lSDL -lSDL_gfx -lSDL_image -lboost_thread-mt -lboost_serialization -lboost_filesystem -lncurses -fopenmp
 
 ifeq ("$(DEBUG)", "1")
   CXXFLAGS += -g
@@ -60,7 +58,7 @@ endif
 ifeq ("$(HUNGARIAN)", "1")
   DEFINES += -DMUNKRES
   INCLUDES += -I/usr/include/munkres
-  LDFLAGS += -lmunkres
+  LIBS += -lmunkres
 endif
 
 ifdef PROFILE
