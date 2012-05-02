@@ -168,7 +168,7 @@ void GetTiles(
         /* add additional indices for tiling and hashing_set so they hash differently */
         coordinates[i] = j;
 
-        tiles[j] = hash(coordinates, num_coordinates,ctable);
+        tiles[j] = do_hash(coordinates, num_coordinates,ctable);
     }
     return;
 }
@@ -219,12 +219,12 @@ int hash_UNH(int *ints, int num_ints, long m, int increment)
 }
 
 
-int hash(int *ints, int num_ints, collision_table *ct);
+//int hash(int *ints, int num_ints, collision_table *ct);
 
 /* hash
    Takes an array of integers and returns the corresponding tile after hashing 
 */
-int hash(int *ints, int num_ints, collision_table *ct)
+int do_hash(int *ints, int num_ints, collision_table *ct)
 {
     int j;
     long ccheck;
@@ -627,7 +627,7 @@ void GetTilesWrap(
         /* add additional indices for tiling and hashing_set so they hash differently */
         coordinates[i] = j;
 
-        tiles[j] = hash(coordinates, num_coordinates,ctable);
+        tiles[j] = do_hash(coordinates, num_coordinates,ctable);
     }
     return;
 }

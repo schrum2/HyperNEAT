@@ -4,6 +4,8 @@
 #include "Deserializer.hxx"
 #include "System.hxx"
 #include <sstream>
+#include <boost/functional/hash.hpp> // Used to define a hash function
+
 
 QLearningAgent::QLearningAgent(GameSettings* _game_settings, OSystem* _osystem) : 
     PlayerAgent(_game_settings, _osystem), initial_val(1.0), alpha(1.0), gamma(.95), epsilon(0) {
@@ -18,7 +20,6 @@ float QLearningAgent::getQVal(const IntMatrix& screen, Action action) {
         return qValues[sa];
 }
 
-
 Action QLearningAgent::agent_step(const IntMatrix* screen_matrix, 
                                   const IntVect* console_ram, 
                                   int frame_number) {
@@ -27,7 +28,7 @@ Action QLearningAgent::agent_step(const IntMatrix* screen_matrix,
     if (special_action != UNDEFINED)
         return special_action;  // We are resetting or in a delay
 
-    Action action = choice <Action> (p_game_settings->pv_possible_actions);
+    Action action;// = choice <Action> (p_game_settings->pv_possible_actions);
 
     // Action selection
     if (rand()/(float)RAND_MAX < epsilon) {
