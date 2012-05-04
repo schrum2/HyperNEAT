@@ -548,6 +548,7 @@ ADD_EXECUTABLE(
   ../ale_v0.1/src/player_agents/actions_summary_agent.o
   ../ale_v0.1/src/player_agents/bass_agent.o
   ../ale_v0.1/src/player_agents/self_detection_agent.o
+  ../ale_v0.1/src/player_agents/qlearning_agent.o
   ../ale_v0.1/src/player_agents/models/model.o
   ../ale_v0.1/src/player_agents/models/baseline_model.o
   ../ale_v0.1/src/player_agents/models/block_grid.o
@@ -650,8 +651,9 @@ ADD_EXECUTABLE(
   ../ale_v0.1/src/player_agents/uct_search_tree.o
   ../ale_v0.1/src/player_agents/actions_summary_agent.o
   ../ale_v0.1/src/player_agents/bass_agent.o
-  ../ale_v0.1/src/player_agents/self_detection_agent.o
   ../ale_v0.1/src/player_agents/models/model.o
+  ../ale_v0.1/src/player_agents/self_detection_agent.o
+  ../ale_v0.1/src/player_agents/qlearning_agent.o
   ../ale_v0.1/src/player_agents/models/baseline_model.o
   ../ale_v0.1/src/player_agents/models/block_grid.o
   ../ale_v0.1/src/player_agents/models/freeway_model.o
@@ -754,8 +756,9 @@ ADD_EXECUTABLE(
   ../ale_v0.1/src/player_agents/uct_search_tree.o
   ../ale_v0.1/src/player_agents/actions_summary_agent.o
   ../ale_v0.1/src/player_agents/bass_agent.o
-  ../ale_v0.1/src/player_agents/self_detection_agent.o
   ../ale_v0.1/src/player_agents/models/model.o
+  ../ale_v0.1/src/player_agents/self_detection_agent.o
+  ../ale_v0.1/src/player_agents/qlearning_agent.o
   ../ale_v0.1/src/player_agents/models/baseline_model.o
   ../ale_v0.1/src/player_agents/models/block_grid.o
   ../ale_v0.1/src/player_agents/models/freeway_model.o

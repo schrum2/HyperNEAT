@@ -118,8 +118,6 @@ namespace HCUBE
         int skip_frames_num = game_settings->i_skip_frames_num;
         int frame_skip_ctr = 0;
 
-        cin.get();
-
         // Reset the game mutliple times
         for (int i=0; i<5; i++)
             theOSystem->applyAction(RESET); 
