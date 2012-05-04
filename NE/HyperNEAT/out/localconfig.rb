@@ -2,7 +2,7 @@
 $run_path = "/u/mhauskn/projects/HyperNEAT/NE/HyperNEAT/out/atari_evaluate"
 
 # path to the active rom file
-$rom_path = "/u/mhauskn/projects/HyperNEAT/NE/HyperNEAT/ale_v0.1/roms/asterix.bin"
+$rom_path = "/u/mhauskn/projects/HyperNEAT/NE/HyperNEAT/ale_v0.1/roms/freeway.bin"
 
 # time to sleep between condor checks
 $sleepTime = 5
