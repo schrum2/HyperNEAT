@@ -16,6 +16,10 @@
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 
+#ifdef MUNKRES
+    #include "munkres.h" // Implementation of the Kuhn-Munkres algorithm
+#endif
+
 #define IMAGE_FILENAME "images"
 #define SELF_IMAGE_PREFIX "selfimage-"
 #define SELF_IMAGE_SUFFIX ".bin"
@@ -101,21 +105,18 @@ float Blob::get_aggregate_blob_match(const Blob& other) {
     float dist_diff = get_centroid_dist(other);
     float size_ratio = min(size, other.size) / (float) max(size, other.size);
 
-    float normalized_dist_diff = max(0.0f, 1 - (dist_diff / 25.0f));
+    float normalized_dist_diff = max(0.0f, 1 - (dist_diff * dist_diff / 625.0f));
     float normalized_size_diff = size_ratio;
     float match = (color_diff + normalized_size_diff + normalized_dist_diff) / 3.0f;
     return match;
 };
 
-long Blob::find_matching_blob(map<long,Blob>& blobs, set<long>& excluded) {
+long Blob::find_matching_blob(map<long,Blob>& blobs) {
     long best_match_id = -1;
     float best_match_score = 0;
     for (map<long,Blob>::iterator it=blobs.begin(); it!=blobs.end(); ++it) {
         Blob& b = it->second;
 
-        if (excluded.find(b.id) != excluded.end())
-            continue;
-      
         float match = get_aggregate_blob_match(b);
         if (match > best_match_score || best_match_id < 0) {
             best_match_id = b.id;
@@ -129,26 +130,50 @@ long Blob::find_matching_blob(map<long,Blob>& blobs, set<long>& excluded) {
     return best_match_id;
 };
 
-void Blob::to_string() {
+void Blob::to_string(bool verbose, deque<map<long,Blob> >* blob_hist) {
     printf("Blob: %p BB: (%d,%d)->(%d,%d) Size: %d Col: %d\n",this,x_min,y_min,x_max,y_max,size,color);
 
-    int width = x_max - x_min + 1;
-    for (int y=0; y<height; ++y) {
+    if (verbose) {
+        printf("Pixel mask:");
+        int width = x_max - x_min + 1;
+        for (int y=0; y<height; ++y) {
+            printf("\n");
+            for (int x=0; x<width; ++x) {
+                if (get_pixel(width, height, x, y, mask))
+                    printf("1");
+                else
+                    printf("0");
+            }
+        }
         printf("\n");
-        for (int x=0; x<width; ++x) {
-            if (get_pixel(width, height, x, y, mask))
-                printf("1");
-            else
-                printf("0");
+
+        if (blob_hist != NULL) {
+            printf("Velocity History: \n");
+            Blob* b = this;
+            // Get the velocity history of this blob
+            int blob_history_len = 1;
+            while (b->parent_id >= 0 && blob_history_len < blob_hist->size()) {
+                // Push back the velocity
+                pair<int,int> vel(b->x_velocity, b->y_velocity);
+                printf("Age %d Blob %ld Vel (%d,%d)\n", blob_history_len-1, b->id, b->x_velocity, b->y_velocity);
+                blob_history_len++;
+
+                // Get the parent
+                map<long,Blob>& old_blobs = (*blob_hist)[blob_hist->size() - blob_history_len];
+                long parent_id = b->parent_id;
+                assert(old_blobs.find(parent_id) != old_blobs.end());
+                b = &old_blobs[parent_id];
+            }
         }
     }
-    printf("\n");
 };
 
 Prototype::Prototype (CompositeObject& obj, map<long,Blob>& blob_map) {
     width = obj.x_max - obj.x_min + 1;
     height = obj.y_max - obj.y_min + 1;
     size = 0;
+    self_likelihood = 0.0f;
+    alpha = .2f;
   
     obj_ids.insert(obj.id);
 
@@ -176,8 +201,13 @@ float Prototype::get_pixel_match(CompositeObject& obj) {
     for (int i=0; i<min(mask.size(),obj.mask.size()); ++i) {
         overlap += count_ones(mask[i] & obj.mask[i]);
     }
-    return overlap / (float) size;
+    return overlap / (float) max(size,obj.size);
 };
+
+void Prototype::to_string(bool verbose) {
+    printf("Prototype %d: size %d num_obj_instances %d self_likelihood %f\n",
+           id,size,(int)obj_ids.size(),self_likelihood);
+}
 
 CompositeObject::CompositeObject() {
     id = -1;
@@ -296,7 +326,7 @@ bool CompositeObject::maskEquals(const CompositeObject& other) {
     return true;
 };
 
-void CompositeObject::to_string() {
+void CompositeObject::to_string(bool verbose) {
     printf("Composite Object %ld: Size %d Velocity (%d,%d) FramesSinceLastMovement %d NumBlobs %d\n",id,size,x_velocity,y_velocity,frames_since_last_movement,(int)blob_ids.size());
 };
 
@@ -305,7 +335,7 @@ VisualProcessor::VisualProcessor(OSystem* _osystem, GameSettings* _game_settings
     game_settings(_game_settings),
     max_history_len(50), //numeric_limits<int>::max()),
     blob_ids(0), obj_ids(0), self_id(-1),
-    focused_obj_id(-1), display_mode(0), display_self(false),
+    focused_entity_id(-1), focus_level(-1), display_mode(0), display_self(false),
     prototype_ids(0),//(piyushk)
     prototype_value(1.0) //(piyushk)
 {
@@ -350,7 +380,23 @@ void VisualProcessor::process_image(const IntMatrix* screen_matrix, Action actio
         merge_objects(.96);
 
         // Identify which object we are
-        //identify_self();
+        identify_self();
+
+        // float maxval = -1;
+        // Prototype* best = NULL;
+        // for (int i=0; i<obj_classes.size(); i++) {
+        //     Prototype& p = obj_classes[i];
+        //     if (p.obj_ids.size() >= 1 && p.self_likelihood > maxval) {
+        //         maxval = p.self_likelihood;
+        //         best = &p;
+        //     }
+        // }
+
+        // if (best != NULL && best->obj_ids.size() > 0) {
+        //     set<long>::iterator it = best->obj_ids.begin();
+        //     self_id = *it;
+        //     printf("Proto %d Likelihood %f alpha %f\n",best->id,best->self_likelihood,best->alpha);
+        // }
 
         // Identify the self based on the list of self objects
         for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); it++) {
@@ -528,93 +574,67 @@ void VisualProcessor::find_connected_components(const IntMatrix& screen_matrix, 
 };
 
 
+// Try to match all of the current blobs with the equivalent blobs from the last timestep
 void VisualProcessor::find_blob_matches(map<long,Blob>& blobs) {
-    // Try to match all of the current blobs with the equivalent blobs from the last timestep
+#ifdef MUNKRES
+    // Solve blob matching via Hungarian algorithm. Better matches but more time.
     map<long,Blob>& old_blobs = blob_hist.back();
-    set<long> excluded;
-    for (map<long,Blob>::iterator it=blobs.begin(); it!=blobs.end(); ++it) {
-        Blob& b = it->second;
-        excluded.clear();
-        long blob_match_id = b.find_matching_blob(old_blobs,excluded);
-        
-        if (blob_match_id < 0) {
-            continue;
+    int width = max(old_blobs.size(), blobs.size());
+    Matrix<double> matrix(width, width);
+    int old_blob_cnt = 0;
+    for (map<long,Blob>::iterator it=old_blobs.begin(); it!=old_blobs.end(); ++it) {
+        Blob& old_blob = it->second;
+        int new_blob_cnt = 0;
+        for(map<long,Blob>::iterator it2=blobs.begin(); it2!=blobs.end(); it2++) {
+            Blob& new_blob = it2->second;
+            float match = new_blob.get_aggregate_blob_match(old_blob);
+            matrix(old_blob_cnt,new_blob_cnt) = (double) (1.0 - match);
+            new_blob_cnt++;
         }
-        
-        assert(old_blobs.find(blob_match_id) != old_blobs.end());
-        Blob& match = old_blobs[blob_match_id];
-
-        // Ad-hoc code to decide which match has priority
-        if (match.child_id < 0) { // Easy Case
-            b.compute_velocity(match);
-            b.parent_id = match.id;
-            match.child_id = b.id;
-        } else { // Hard case
-            long conflicting_blob_id = match.child_id;
-            Blob& conflicting_blob = blobs[conflicting_blob_id];
-            assert(conflicting_blob.parent_id == match.id);
-            excluded.clear();
-            excluded.insert(match.id);
-
-            // Compute primary and secondary blob match scores for b
-            float primary_score = b.get_aggregate_blob_match(match);
-            long  second_choice_id = b.find_matching_blob(blob_hist.back(),excluded);
-            float secondary_score = 0;
-            if (second_choice_id >= 0) {
-                assert(blob_hist.back().find(second_choice_id) != blob_hist.back().end());
-                Blob& second_choice = blob_hist.back()[second_choice_id];
-                secondary_score = b.get_aggregate_blob_match(second_choice);
-            } 
-
-            // Compute primary and secondary blob match scores for conflicting blob
-            float primary_score2 = conflicting_blob.get_aggregate_blob_match(match);
-            long  second_choice2_id = conflicting_blob.find_matching_blob(blob_hist.back(), excluded);
-            float secondary_score2 = 0;
-            if (second_choice2_id >= 0) {
-                assert(blob_hist.back().find(second_choice2_id) != blob_hist.back().end());
-                Blob& second_choice2 = blob_hist.back()[second_choice2_id];
-                secondary_score2 = conflicting_blob.get_aggregate_blob_match(second_choice2);
-            }
-
-            if (primary_score + secondary_score2 >= primary_score2 + secondary_score) {
-                // b takes the primary and conflicting takes the secondary
-                b.compute_velocity(match);
-                b.parent_id = match.id;
-                match.child_id = b.id;
-                if (second_choice2_id >= 0) {
-                    Blob& second_choice2 = blob_hist.back()[second_choice2_id];
-                    conflicting_blob.compute_velocity(second_choice2);
-                    conflicting_blob.parent_id = second_choice2.id;
-                    second_choice2.child_id = conflicting_blob.id;
-                }
-            } else {
-                // b takes the secondary and conflicting takes the primary
-                if (second_choice_id >= 0) {
-                    Blob& second_choice = blob_hist.back()[second_choice_id];
-                    b.compute_velocity(second_choice);
-                    b.parent_id = second_choice.id;
-                    second_choice.child_id = b.id;
-                }
-                conflicting_blob.compute_velocity(match);
-                conflicting_blob.parent_id = match.id;
-                match.child_id = conflicting_blob.id;
-            }
-        } 
+        while (new_blob_cnt < width) {
+            matrix(old_blob_cnt,new_blob_cnt) = (double) 1.0;
+            new_blob_cnt++;
+        }
+        old_blob_cnt++;
+    }
+    while (old_blob_cnt < width) {
+        for (int i=0; i<width; ++i)
+            matrix(old_blob_cnt,i) = (double) 1.0;
+        old_blob_cnt++;
     }
 
-    // Debug blob matching
-    // for (map<long,Blob>::iterator it=old_blobs.begin(); it!=old_blobs.end(); it++) {
-    //     Blob& old_blob = it->second;
-    //     if (old_blob.child_id < 0) {
-    //         printf("Blob match not found\n");
-    //         old_blob.to_string();
-    //         IntMatrix screen_cpy(screen_hist.back());
-    //         display_screen(screen_cpy);
-    //         box_blob(old_blob,screen_cpy,256);
-    //         p_osystem->p_display_screen->display_screen(screen_cpy, screen_cpy[0].size(), screen_cpy.size());
-    //         cin.get();
-    //     }
-    // }
+    Munkres m;
+    m.solve(matrix);
+
+    old_blob_cnt = 0;
+    for (map<long,Blob>::iterator it=old_blobs.begin(); it!=old_blobs.end(); ++it) {
+        Blob& old_blob = it->second;
+        int new_blob_cnt = 0;
+        for(map<long,Blob>::iterator it2=blobs.begin(); it2!=blobs.end(); it2++) {
+            Blob& new_blob = it2->second;
+            if (matrix(old_blob_cnt,new_blob_cnt) == 0) {
+                new_blob.compute_velocity(old_blob);
+                new_blob.parent_id = old_blob.id;
+                old_blob.child_id = new_blob.id;
+            }
+            new_blob_cnt++;
+        }
+        old_blob_cnt++;
+    }
+#else
+    // Do greedy (fast) blob matching
+    map<long,Blob>& old_blobs = blob_hist.back();
+    for (map<long,Blob>::iterator it=blobs.begin(); it!=blobs.end(); ++it) {
+        Blob& b = it->second;
+        long blob_match_id = b.find_matching_blob(old_blobs);
+        if (blob_match_id < 0) continue;
+        assert(old_blobs.find(blob_match_id) != old_blobs.end());
+        Blob& match = old_blobs[blob_match_id];
+        b.compute_velocity(match);
+        b.parent_id = match.id;
+        match.child_id = b.id;
+    }
+#endif
 };
 
 // Update the current blobs that we already have
@@ -778,107 +798,138 @@ void VisualProcessor::sanitize_objects() {
     }
 }
 
-// void VisualProcessor::identify_self() {
-//   float max_info_gain = -1;
-//   long best_obj_id = -1;
-//   int oldest = 0;
-//   for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); ++it) {
-//     long obj_id = it->first;
-//     CompositeObject& obj = it->second;
-//     //cout <<"Obj: " << obj_id << " age " << obj.age<< endl;
-//     for (set<long>::iterator bit=obj.blob_ids.begin(); bit!=obj.blob_ids.end(); ++bit) {
-//       long b_id = *bit;
-//       assert(curr_blobs.find(b_id) != curr_blobs.end());
-//       int hist_len = 0;
-//       Blob* b = &curr_blobs[b_id];
-//       //cout << "\tBlob " << b_id << " (" << b->x_velocity << "," << b->y_velocity << ") ";
-//       while (b->parent_id >= 0 && hist_len < max_history_len) {
-//         hist_len++;
-//         map<long,Blob>& old_blobs = blob_hist[blob_hist.size() - hist_len];
-//         long parent_id = b->parent_id;
-//         assert(old_blobs.find(parent_id) != old_blobs.end());
-//         b = &old_blobs[parent_id];
-//         //cout << " (" << b->x_velocity << "," << b->y_velocity << ") ";
-//       }
-//       //cout << endl;
-//       //cout << "\tHistoryLen: " << hist_len << endl;
-//     }
-//   }
-//   //cin.get();
-// };
-
+// Identify self based on prototypes who have only one instance
 void VisualProcessor::identify_self() {
-    float max_info_gain = -1;
-    long best_blob_id = -1;
-    for (map<long,Blob>::iterator it=curr_blobs.begin(); it!=curr_blobs.end(); ++it) {
-        long b_id = it->first;
+    vector<Prototype*> singles;
+    float decay = .995;
 
-        int blob_history_len = 0;
-        vector<pair<int,int> > velocity_hist;
-        map<pair<int,int>,int> velocity_counts;
+    for (int i=0; i<obj_classes.size(); i++) {
+        Prototype& p = obj_classes[i];
 
-        assert(curr_blobs.find(b_id) != curr_blobs.end());
-        Blob* b = &curr_blobs[b_id];
+        if (p.obj_ids.size() == 0)
+            continue;
 
-        // Get the velocity history of this blob
-        while (b->parent_id >= 0 && blob_history_len < max_history_len) {
-            // Push back the velocity
-            pair<int,int> vel(b->x_velocity, b->y_velocity);
-            velocity_hist.push_back(vel);
-            velocity_counts[vel] = GetWithDef(velocity_counts,vel,0) + 1;
+        if (p.obj_ids.size() == 1) {
+            singles.push_back(&p);
+        } else if (p.obj_ids.size() > 1) { // Update to target of zero
+            p.self_likelihood -= p.alpha * p.self_likelihood;
+            p.alpha *= decay;
 
-            blob_history_len++;
-
-            // Get the parent
-            map<long,Blob>& old_blobs = blob_hist[blob_hist.size() - blob_history_len];
-            long parent_id = b->parent_id;
-            assert(old_blobs.find(parent_id) != old_blobs.end());
-            b = &old_blobs[parent_id];
-        }
-
-        // How many times was each action performed?
-        map<Action,int> action_counts;
-        vector<Action> act_vec;
-        for (int i=0; i<blob_history_len; ++i) {
-            Action a = action_hist[action_hist.size()-i-1];
-            act_vec.push_back(a);
-            action_counts[a] = GetWithDef(action_counts,a,0) + 1;
-        }
-
-        assert(act_vec.size() == velocity_hist.size());
-
-        // Calculate H(velocities)
-        float velocity_entropy = compute_entropy(velocity_counts,blob_history_len);
-
-        // Calculate H(velocity|a)
-        float action_entropy = 0;
-        for (map<Action,int>::iterator it2=action_counts.begin(); it2!=action_counts.end(); ++it2) {
-            Action a = it2->first;
-            int count = it2->second;
-            float p_a = count / (float) blob_history_len;
-            map<pair<int,int>,int> selective_counts;
-            int selective_total = 0;
-            for (int i=0; i<blob_history_len; ++i) {
-                if (act_vec[i] == a) {
-                    pair<int,int> vel = velocity_hist[i];
-                    selective_counts[vel] = GetWithDef(selective_counts,vel,0) + 1;
-                    selective_total++;
-                }
-            }
-            float selective_entropy = compute_entropy(selective_counts,selective_total);
-            action_entropy += p_a * selective_entropy;
-        }
-
-        float info_gain = velocity_entropy - action_entropy;
-        if (info_gain > max_info_gain) {
-            max_info_gain = info_gain;
-            best_blob_id = b_id;
+            // if (p.id == 6) {
+            //     printf("Decreasing likelihood of prototype %d to %f\n",p.id,p.self_likelihood);
+            //     IntMatrix screen_cpy(screen_hist.back());
+            //     display_screen(screen_cpy);
+            //     for (set<long>::iterator it=p.obj_ids.begin(); it!=p.obj_ids.end(); it++) {
+            //         long obj_id = *it;
+            //         assert(composite_objs.find(obj_id) != composite_objs.end());
+            //         box_object(composite_objs[obj_id],screen_cpy,258);
+            //     }
+            //     p_osystem->p_display_screen->display_screen(screen_cpy, screen_cpy[0].size(), screen_cpy.size());
+            //     cin.get();
+            // }
         }
     }
-    //printf("Max info gain: %f\n",max_info_gain);
-    //best_blob->to_string();
-    self_id = best_blob_id;
+
+    // Ideal case -- increase self likelihood
+    if (singles.size() == 1) {
+        Prototype* p = singles[0];
+        p->self_likelihood += p->alpha * (1.0f - p->self_likelihood);
+        p->alpha *= decay;
+
+        // printf("Increasing likelihood of prototype %d to %f\n",p->id,p->self_likelihood);
+        // IntMatrix screen_cpy(screen_hist.back());
+        // display_screen(screen_cpy);
+        // box_object(composite_objs[*(p->obj_ids.begin())],screen_cpy,256);
+        // p_osystem->p_display_screen->display_screen(screen_cpy, screen_cpy[0].size(), screen_cpy.size());
+        // cin.get();
+    } else if (singles.size() > 1) { // Multiple singles... Decrease self likelihood of each
+        // printf("Multiple prototypes ");
+        // IntMatrix screen_cpy(screen_hist.back());
+        // display_screen(screen_cpy);
+
+        // for (int i=0; i<singles.size(); i++) {
+        //     Prototype* p = singles[i];
+        //     printf("%d likelihood %f, ",p->id, p->self_likelihood);
+        //     box_object(composite_objs[*(p->obj_ids.begin())],screen_cpy,260);
+        // }
+        // printf("\n");
+        // p_osystem->p_display_screen->display_screen(screen_cpy, screen_cpy[0].size(), screen_cpy.size());
+        // cin.get();
+    }
 };
+
+// void VisualProcessor::identify_self() {
+//     float max_info_gain = -1;
+//     long best_blob_id = -1;
+//     for (map<long,Blob>::iterator it=curr_blobs.begin(); it!=curr_blobs.end(); ++it) {
+//         long b_id = it->first;
+
+//         int blob_history_len = 0;
+//         vector<pair<int,int> > velocity_hist;
+//         map<pair<int,int>,int> velocity_counts;
+
+//         assert(curr_blobs.find(b_id) != curr_blobs.end());
+//         Blob* b = &curr_blobs[b_id];
+
+//         // Get the velocity history of this blob
+//         while (b->parent_id >= 0 && blob_history_len < max_history_len) {
+//             // Push back the velocity
+//             pair<int,int> vel(b->x_velocity, b->y_velocity);
+//             velocity_hist.push_back(vel);
+//             velocity_counts[vel] = GetWithDef(velocity_counts,vel,0) + 1;
+
+//             blob_history_len++;
+
+//             // Get the parent
+//             map<long,Blob>& old_blobs = blob_hist[blob_hist.size() - blob_history_len];
+//             long parent_id = b->parent_id;
+//             assert(old_blobs.find(parent_id) != old_blobs.end());
+//             b = &old_blobs[parent_id];
+//         }
+
+//         // How many times was each action performed?
+//         map<Action,int> action_counts;
+//         vector<Action> act_vec;
+//         for (int i=0; i<blob_history_len; ++i) {
+//             Action a = action_hist[action_hist.size()-i-1];
+//             act_vec.push_back(a);
+//             action_counts[a] = GetWithDef(action_counts,a,0) + 1;
+//         }
+
+//         assert(act_vec.size() == velocity_hist.size());
+
+//         // Calculate H(velocities)
+//         float velocity_entropy = compute_entropy(velocity_counts,blob_history_len);
+
+//         // Calculate H(velocity|a)
+//         float action_entropy = 0;
+//         for (map<Action,int>::iterator it2=action_counts.begin(); it2!=action_counts.end(); ++it2) {
+//             Action a = it2->first;
+//             int count = it2->second;
+//             float p_a = count / (float) blob_history_len;
+//             map<pair<int,int>,int> selective_counts;
+//             int selective_total = 0;
+//             for (int i=0; i<blob_history_len; ++i) {
+//                 if (act_vec[i] == a) {
+//                     pair<int,int> vel = velocity_hist[i];
+//                     selective_counts[vel] = GetWithDef(selective_counts,vel,0) + 1;
+//                     selective_total++;
+//                 }
+//             }
+//             float selective_entropy = compute_entropy(selective_counts,selective_total);
+//             action_entropy += p_a * selective_entropy;
+//         }
+
+//         float info_gain = velocity_entropy - action_entropy;
+//         if (info_gain > max_info_gain) {
+//             max_info_gain = info_gain;
+//             best_blob_id = b_id;
+//         }
+//     }
+//     //printf("Max info gain: %f\n",max_info_gain);
+//     //best_blob->to_string();
+//     self_id = best_blob_id;
+// };
 
 point VisualProcessor::get_self_centroid() {
     if (composite_objs.find(self_id) == composite_objs.end()) {
@@ -945,7 +996,6 @@ void VisualProcessor::merge_objects(float similarity_threshold) {
             Prototype p(obj,curr_blobs);
             p.seen_count = p.frames_since_last_seen = p.times_seen_this_frame = 0; //(piyushk)
             p.is_valid = false;
-            p.value = 0.0;
             // if (free_colors.size() != 0) {
             //   p.color = *(free_colors.begin()); //(piyushk)
             //   free_colors.erase(p.color); //(piyushk)
@@ -969,7 +1019,6 @@ void VisualProcessor::merge_objects(float similarity_threshold) {
             prototypes_to_erase.push_back(i);
         } else if (p.seen_count >= 25 && !p.is_valid) {
             p.is_valid = true;
-            p.value = prototype_value;
             prototype_value += 1.0;
         }
         p.seen_count += p.times_seen_this_frame;
@@ -1075,10 +1124,10 @@ void VisualProcessor::importMask(int& width, int& height, vector<char>& mask, co
 };
 
 void VisualProcessor::tagSelfObject() {
-    if (composite_objs.find(focused_obj_id) == composite_objs.end()) {
-        printf("No object focused. Please click an object and try again.\n");
+    if (focus_level != 1 || composite_objs.find(focused_entity_id) == composite_objs.end()) {
+        printf("No object focused. Please press W and click an object and try again.\n");
     } else {
-        CompositeObject& obj = composite_objs[focused_obj_id];
+        CompositeObject& obj = composite_objs[focused_entity_id];
         obj.computeMask(curr_blobs); // Recompute the object's mask just to be sure
 
         // Check to make sure we don't alreayd have a self object load which is identical to this object
@@ -1154,17 +1203,54 @@ void VisualProcessor::handleSDLEvent(const SDL_Event& event) {
             int sdl_screen_height = p_osystem->p_display_screen->screen->h;
             int approx_x = (screen_width * event.button.x) / sdl_screen_width;
             int approx_y = (screen_height * event.button.y) / sdl_screen_height;
-            // Which object contains this point?
-            focused_obj_id = -1;
-            for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); ++it) {
-                CompositeObject& obj = it->second;
-                if (approx_x >= obj.x_min && approx_x <= obj.x_max &&
-                    approx_y >= obj.y_min && approx_y <= obj.y_max) {
-                    focused_obj_id = obj.id;
-                    obj.to_string();
-                    printVelHistory(obj);
+
+            focused_entity_id = -1;
+            // Look for an object that falls under these coordinates
+            if (focus_level < 0)
+                break;
+            else if (focus_level == 0) {
+                // Find a blob that is under the click
+                for (map<long,Blob>::iterator it=curr_blobs.begin(); it != curr_blobs.end(); it++) {
+                    Blob& b = it->second;
+                    if (approx_x >= b.x_min && approx_x <= b.x_max &&
+                        approx_y >= b.y_min && approx_y <= b.y_max) {
+                        // Check to see if the blob contains the actual pixel
+                        bool has_pixel = get_pixel(b.width, b.height, approx_x - b.x_min,
+                                                   approx_y - b.y_min, b.mask);
+                        if (has_pixel) {
+                            focused_entity_id = b.id;
+                            b.to_string();
+                            break;
+                        }
+                    }
                 }
-            }
+            } else if (focus_level == 1 || focus_level == 2) {
+                // Find an object that is under the click
+                for (map<long,CompositeObject>::iterator it=composite_objs.begin();
+                     it!=composite_objs.end(); ++it) {
+                    CompositeObject& obj = it->second;
+                    if (approx_x >= obj.x_min && approx_x <= obj.x_max &&
+                        approx_y >= obj.y_min && approx_y <= obj.y_max) {
+                        focused_entity_id = obj.id;
+                        if (focus_level == 1) obj.to_string();
+                        break;
+                    }
+                }
+                if (focus_level == 2 && focused_entity_id > 0) { // To which prototype does this obj belong?
+                    long obj_id = focused_entity_id;
+                    focused_entity_id = -1;
+                    for (int i=0; i<obj_classes.size(); i++) {
+                        Prototype& p = obj_classes[i];
+                        if (p.obj_ids.find(obj_id) != p.obj_ids.end()) {
+                            focused_entity_id = p.id;
+                            p.to_string();
+                            break;
+                        }
+                    }
+                }
+            } else
+                printf("Unexpected focus level: %d. Not sure what type of object to display.\n", focus_level);
+
             // Update the screen
             if (screen_hist.size() >= 1) {
                 IntMatrix screen_cpy(screen_hist.back());
@@ -1193,6 +1279,46 @@ void VisualProcessor::handleSDLEvent(const SDL_Event& event) {
             break;
         case SDLK_s:
             tagSelfObject();
+            break;
+        case SDLK_q:
+            if (focus_level == 0) {
+                focus_level = -1;
+            } else {
+                focus_level = 0;
+                printf("Focusing on Blobs.\n");
+            }
+            break;
+        case SDLK_w:
+            if (focus_level == 1) {
+                focus_level = -1;
+            } else {
+                focus_level = 1;
+                printf("Focusing on Objects.\n");
+            }
+            break;
+        case SDLK_e:
+            if (focus_level == 2) {
+                focus_level = -1;
+            } else {
+                focus_level = 2;
+                printf("Focusing on Prototypes.\n");
+            }
+            break;
+        case SDLK_i:
+            if (focus_level < 0 || focused_entity_id < 0)
+                break;
+            if (focus_level == 0) {
+                if (curr_blobs.find(focused_entity_id) != curr_blobs.end())
+                    curr_blobs[focused_entity_id].to_string(true,&blob_hist);
+            } else if (focus_level == 1) {
+                if (composite_objs.find(focused_entity_id) != composite_objs.end())
+                    composite_objs[focused_entity_id].to_string(true);
+            } else if (focus_level == 2) {
+                for (int i=0; i<obj_classes.size(); i++) {
+                    if (obj_classes[i].id == focused_entity_id)
+                        obj_classes[i].to_string(true);
+                }
+            }
             break;
         default:
             break;
@@ -1240,11 +1366,29 @@ void VisualProcessor::display_screen(IntMatrix& screen_cpy) {
     if (display_self)
         plot_self(screen_cpy);
   
-    // Display focused object
-    if (composite_objs.find(focused_obj_id) != composite_objs.end()) {
-        CompositeObject& obj = composite_objs[focused_obj_id];
-        int box_color = 256;
-        box_object(obj,screen_cpy,box_color);
+    // Display focused entity
+    if (focus_level >= 0 && focused_entity_id >= 0) {
+        // TODO: make the blob tracking continue through frames via the child blobs
+        if (focus_level == 0 && curr_blobs.find(focused_entity_id) != curr_blobs.end()) {
+            Blob& b = curr_blobs[focused_entity_id];
+            box_blob(b,screen_cpy,258);
+        } else if (focus_level == 1 && composite_objs.find(focused_entity_id) != composite_objs.end()) {
+            CompositeObject& obj = composite_objs[focused_entity_id];
+            box_object(obj,screen_cpy,256);
+        } else if (focus_level == 2) {
+            for (int i=0; i<obj_classes.size(); i++) {
+                Prototype& p = obj_classes[i];
+                if (p.id == focused_entity_id) {
+                    for (set<long>::iterator it=p.obj_ids.begin(); it!=p.obj_ids.end(); it++) {
+                        long obj_id = *it;
+                        assert(composite_objs.find(obj_id) != composite_objs.end());
+                        CompositeObject& obj = composite_objs[obj_id];
+                        box_object(obj,screen_cpy,260);
+                    }
+                    break;
+                }
+            }
+        }
     }
 };
 

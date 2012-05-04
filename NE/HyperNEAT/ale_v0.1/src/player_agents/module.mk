@@ -27,7 +27,8 @@ MODULE_OBJS := \
 	src/player_agents/uct_search_tree.o \
 	src/player_agents/actions_summary_agent.o \
 	src/player_agents/bass_agent.o \
-	src/player_agents/self_detection_agent.o 
+	src/player_agents/self_detection_agent.o \
+	src/player_agents/qlearning_agent.o
 #	src/player_agents/model_agent.o \
 
 

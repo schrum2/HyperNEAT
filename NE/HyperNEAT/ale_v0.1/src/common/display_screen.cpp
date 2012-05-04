@@ -38,7 +38,7 @@ void DisplayScreen::display_png(const string& filename) {
   } 
 
   // Draws the image on the screen:
-  SDL_Rect rcDest = { 0, 0, 2*image->w, 2*image->h };
+  SDL_Rect rcDest = { 0,0, (Uint16)(2*image->w), (Uint16)(2*image->h) };
   SDL_Surface *image2 = zoomSurface(image, 2.0, 2.0, 0);
   SDL_BlitSurface ( image2, NULL, screen, &rcDest );
   // something like SDL_UpdateRect(surface, x_pos, y_pos, image->w, image->h); is missing here
@@ -94,8 +94,8 @@ void DisplayScreen::display_bass_png(const string& filename) {
 
   // Draws the image on the screen:
   int scale = 3;
-  int x = (screen_width - scale*image->w)/2;
-  SDL_Rect rcDest = { x, 420, scale*image->w, scale*image->h };
+  Uint16 x = (screen_width - scale*image->w)/2;
+  SDL_Rect rcDest = { x, 420, (Uint16) (scale*image->w), (Uint16) (scale*image->h) };
   SDL_Surface *image2 = zoomSurface(image, scale, scale, 0);
   SDL_BlitSurface ( image2, NULL, screen, &rcDest );
   // something like SDL_UpdateRect(surface, x_pos, y_pos, image->w, image->h); is missing here

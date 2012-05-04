@@ -1,3 +1,3 @@
 #!/bin/bash
-./ale -random_seed time -game_controller internal -player_agent self_detection_agent -num_block_per_row 16 -num_block_per_col 21 -display_screen true -end_training_time 5000 -eval_frames 1000 ./roms/asterix.bin
+./ale -random_seed time -game_controller internal -player_agent qlearning_agent -num_block_per_row 16 -num_block_per_col 21 -display_screen false ./roms/asterix.bin
 
