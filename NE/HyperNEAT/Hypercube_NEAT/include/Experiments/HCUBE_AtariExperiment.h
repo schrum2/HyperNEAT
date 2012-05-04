@@ -30,6 +30,8 @@ namespace HCUBE
     virtual NEAT::GeneticPopulation* createInitialPopulation(int populationSize);
     virtual void processGroup(shared_ptr<NEAT::GeneticGeneration> generation);
     void runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual);
+    double gauss2D(double x, double y, double A, double mu_x, double mu_y, double sigma_x,
+                   double sigma_y);
     void populateSubstrate(shared_ptr<NEAT::GeneticIndividual> individual);
     virtual void processIndividualPostHoc(shared_ptr<NEAT::GeneticIndividual> individual);
     void preprocessIndividual(shared_ptr<NEAT::GeneticGeneration> generation,

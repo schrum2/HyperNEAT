@@ -8,308 +8,345 @@ using namespace NEAT;
 
 namespace HCUBE
 {
-  AtariExperiment::AtariExperiment(string _experimentName,int _threadID):
-    Experiment(_experimentName,_threadID), rom_file(""),
-    display_active(false)
-  {
-    substrate_width = 16;
-    substrate_height = 21;
+    AtariExperiment::AtariExperiment(string _experimentName,int _threadID):
+        Experiment(_experimentName,_threadID), rom_file(""),
+        display_active(false)
+    {
+        substrate_width = 16;
+        substrate_height = 21;
 
-    layerInfo = NEAT::LayeredSubstrateInfo();
-    layerInfo.layerSizes.push_back(Vector2<int>(substrate_width,substrate_height));
-    layerInfo.layerIsInput.push_back(true);
-    layerInfo.layerLocations.push_back(Vector3<float>(0,0,0));
-    layerInfo.layerNames.push_back("Input");
+        layerInfo = NEAT::LayeredSubstrateInfo();
+        layerInfo.layerSizes.push_back(Vector2<int>(substrate_width,substrate_height));
+        layerInfo.layerIsInput.push_back(true);
+        layerInfo.layerLocations.push_back(Vector3<float>(0,0,0));
+        layerInfo.layerNames.push_back("Input");
 
-    layerInfo.layerSizes.push_back(Vector2<int>(substrate_width,substrate_height));
-    layerInfo.layerIsInput.push_back(false);
-    layerInfo.layerLocations.push_back(Vector3<float>(0,4,0));
-    layerInfo.layerNames.push_back("Output");
+        layerInfo.layerSizes.push_back(Vector2<int>(substrate_width,substrate_height));
+        layerInfo.layerIsInput.push_back(false);
+        layerInfo.layerLocations.push_back(Vector3<float>(0,4,0));
+        layerInfo.layerNames.push_back("Output");
 
-    layerInfo.layerAdjacencyList.push_back(std::pair<string,string>("Input","Output"));
+        layerInfo.layerAdjacencyList.push_back(std::pair<string,string>("Input","Output"));
 
-    layerInfo.normalize = true;
-    layerInfo.useOldOutputNames = false;
-    layerInfo.layerValidSizes = layerInfo.layerSizes;
+        layerInfo.normalize = true;
+        layerInfo.useOldOutputNames = false;
+        layerInfo.layerValidSizes = layerInfo.layerSizes;
 
-    substrate = NEAT::LayeredSubstrate<float>();
-    substrate.setLayerInfo(layerInfo);
+        substrate = NEAT::LayeredSubstrate<float>();
+        substrate.setLayerInfo(layerInfo);
 
-  }
-
-  NEAT::GeneticPopulation* AtariExperiment::createInitialPopulation(int populationSize) {
-    GeneticPopulation *population = new GeneticPopulation();
-    vector<GeneticNodeGene> genes;
-
-    genes.push_back(GeneticNodeGene("Bias","NetworkSensor",0,false));
-    genes.push_back(GeneticNodeGene("X1","NetworkSensor",0,false));
-    genes.push_back(GeneticNodeGene("X2","NetworkSensor",0,false));
-    genes.push_back(GeneticNodeGene("Y1","NetworkSensor",0,false));
-    genes.push_back(GeneticNodeGene("Y2","NetworkSensor",0,false));
-    genes.push_back(GeneticNodeGene("Output_Input_Output","NetworkOutputNode",1,false,ACTIVATION_FUNCTION_SIGMOID));
-
-    for (int a=0;a<populationSize;a++) {
-      shared_ptr<GeneticIndividual> individual(new GeneticIndividual(genes,true,1.0));
-      for (int b=0;b<10;b++) {
-        individual->testMutate();
-      }
-      population->addIndividual(individual);
     }
 
-    cout << "Finished creating population\n";
-    return population;
-  }
+    NEAT::GeneticPopulation* AtariExperiment::createInitialPopulation(int populationSize) {
+        GeneticPopulation *population = new GeneticPopulation();
+        vector<GeneticNodeGene> genes;
 
-  void AtariExperiment::populateSubstrate(shared_ptr<NEAT::GeneticIndividual> individual) {
-    if (currentSubstrateIndividual == individual)
-      return;
+        genes.push_back(GeneticNodeGene("Bias","NetworkSensor",0,false));
+        genes.push_back(GeneticNodeGene("X1","NetworkSensor",0,false));
+        genes.push_back(GeneticNodeGene("X2","NetworkSensor",0,false));
+        genes.push_back(GeneticNodeGene("Y1","NetworkSensor",0,false));
+        genes.push_back(GeneticNodeGene("Y2","NetworkSensor",0,false));
+        genes.push_back(GeneticNodeGene("Output_Input_Output","NetworkOutputNode",1,false,ACTIVATION_FUNCTION_SIGMOID));
 
-    currentSubstrateIndividual = individual;
-    substrate.populateSubstrate(individual);
-  }
-
-  void AtariExperiment::processGroup(shared_ptr<NEAT::GeneticGeneration> generation)
-  {
-    static int i=0;
-    
-    shared_ptr<NEAT::GeneticIndividual> individual = group.front();
-    individual->setFitness(10);
-
-    // Print the individual
-    //individual->print();
-
-    populateSubstrate(individual);
-
-    //individual->reward(100);
-    runAtariEpisode(individual);
-  }
-
-  void AtariExperiment::runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual) {
-    // Check that rom exists and is readable
-    ifstream file(rom_file.c_str());
-    if (!file.good()) {
-      cerr << "Unable to find or open rom file: \"" << rom_file << "\"" << endl;
-      exit(-1);
-    }
-
-    // Initialize Atari Stuff 
-    initializeEmulator(rom_file.c_str(),display_active);
-    MediaSource &mediasrc = theOSystem->console().mediaSource();
-    int pixel_screen_width = mediasrc.width();
-    int pixel_screen_height = mediasrc.height();
-    for (int i=0; i<pixel_screen_height; ++i) { // Initialize our screen matrix
-      IntVect row;
-      for (int j=0; j<pixel_screen_width; ++j)
-        row.push_back(-1);
-      screen_matrix.push_back(row);
-    }
-    // Intialize our ram array
-    for (int i=0; i<RAM_LENGTH; i++)
-      ram_content.push_back(0);
-
-    System* emulator_system = &theOSystem->console().system();
-    controller = (InternalController*) theOSystem->getGameController();
-    self_detection_agent = (SelfDetectionAgent*) controller->getPlayerAgentLeft();
-    visProc = &(self_detection_agent->visProc);
-    game_settings = controller->getGameSettings();
-    // Initialize Atari Stuff - fin
-
-    // Main Loop
-    int skip_frames_num = game_settings->i_skip_frames_num;
-    int frame_skip_ctr = 0;
-
-    // Reset the game mutliple times
-    for (int i=0; i<5; i++)
-      theOSystem->applyAction(RESET); 
-    int delay_after_restart = game_settings->i_delay_after_restart;
-    Action action = game_settings->e_first_action;
-    if (action == UNDEFINED) action = PLAYER_A_NOOP;
-    for (int i=0; i<delay_after_restart; i++)
-      theOSystem->applyAction(action);
-    time_start = time(NULL);
-    bool game_ended = false;
-    int frame = 0;
-    float episode_reward = 0;
-    while (!game_ended) {
-      frame++;
-
-      // Should we take an action this turn?
-      bool take_action = frame_skip_ctr++ >= skip_frames_num;
-      if (take_action) {
-        frame_skip_ctr = 0;
-        
-        // Get the latest screen
-        int ind_i, ind_j;
-        uInt8* pi_curr_frame_buffer = mediasrc.currentFrameBuffer();
-        for (int i = 0; i < pixel_screen_width * pixel_screen_height; i++) {
-          uInt8 v = pi_curr_frame_buffer[i];
-          ind_i = i / pixel_screen_width;
-          ind_j = i - (ind_i * pixel_screen_width);
-          screen_matrix[ind_i][ind_j] = v;
-        }
-
-        // Get the latest ram content
-        for(int i = 0; i<RAM_LENGTH; i++) {
-          int offset = i;
-          offset &= 0x7f; // there are only 128 bytes
-          ram_content[i] = emulator_system->peek(offset + 0x80);
-        }
-
-        float reward = game_settings->get_reward(&screen_matrix,&ram_content);
-        episode_reward += reward;
-
-        // Check if game has ended
-        game_ended = game_settings->is_end_of_game(&screen_matrix,&ram_content,frame);
-
-        // Get the object representation
-        visProc->process_image(&screen_matrix, action);
-
-        substrate.getNetwork()->reinitialize(); // Set value of all nodes to zero
-        substrate.getNetwork()->dummyActivation();
-
-        // Set substrate value for all objects (of a certain size)
-        for (int i=0; i<visProc->obj_classes.size(); i++) {
-          Prototype& proto = visProc->obj_classes[i];
-
-          if (!proto.is_valid) // not a strong enough prototype yet
-            continue;
-          if (proto.obj_ids.size() == 0) // no obhects on screen
-            continue;
-
-          // Map object classes to values
-          //float assigned_value = proto.value;
-          float assigned_value = 0;
-          if (proto.size == 41) // HACK: Hardcoded mapping from object classes to values
-              assigned_value = 2;
-          else if (proto.size == 42)
-              assigned_value = -1;
-
-          // Assign values to each of the objects
-          for (set<long>::iterator it=proto.obj_ids.begin(); it!=proto.obj_ids.end(); it++) {
-            long obj_id = *it;
-            assert(visProc->composite_objs.find(obj_id) != visProc->composite_objs.end());
-            point obj_centroid = visProc->composite_objs[obj_id].get_centroid();
-            int adj_x = obj_centroid.x * substrate_width / pixel_screen_width;
-            int adj_y = obj_centroid.y * substrate_height / pixel_screen_height;
-            substrate.setValue((Node(adj_x,adj_y,0)),assigned_value);
-          }
-        }
-
-        // Set substrate value for self
-        point self_centroid = visProc->get_self_centroid();
-        int self_x = -1, self_y = -1;
-        if (self_centroid.x >= 0 && self_centroid.y >= 0) {
-          self_x = self_centroid.x * substrate_width / pixel_screen_width;
-          self_y = self_centroid.y * substrate_height / pixel_screen_height;
-          substrate.setValue(Node(self_x,self_y,0),1.0);
-        } 
-
-        // for (int y=0; y<substrate_height; ++y) {
-        //     for (int x=0; x<substrate_width; ++x) {
-        //         float val = substrate.getValue(Node(x,y,0));
-        //         printf("%1.0f ",val);
-        //     }
-        //     printf("\n");
-        // }
-        // printf("\n");
-        // cin.get();
-
-        substrate.getNetwork()->update();
-
-        // Get possible actions
-        ActionVect *allowed_actions = game_settings->pv_possible_actions;
-        Action actionIds[] = {PLAYER_A_NOOP,PLAYER_A_UP,PLAYER_A_DOWN,PLAYER_A_LEFT,PLAYER_A_RIGHT};
-
-        // If no self detected, take a random action.
-        if (self_x < 0 || self_y < 0) {
-            //printf("Unable to detect the self. Taking random action.\n");
-            action = (*allowed_actions)[rand() % allowed_actions->size()];
-        } else {
-            // Choose which action to take
-            float noop_val = -1e37;//substrate.getValue((Node(self_x,self_y,1)));
-            float up_val   = (self_y <= 0) ? noop_val : substrate.getValue((Node(self_x,self_y-1,1)));
-            float down_val = (self_y >= substrate_height-1) ? noop_val : substrate.getValue((Node(self_x,self_y+1,1)));
-            float left_val = (self_x <= 0) ? noop_val : substrate.getValue((Node(self_x-1,self_y,1)));
-            float right_val= (self_x >= substrate_width-1) ? noop_val : substrate.getValue((Node(self_x+1,self_y,1)));
-
-            float action_vals[] = {noop_val,up_val,down_val,left_val,right_val};
-          
-            int max_id = 0; // all games should have noop
-            float max_val = action_vals[0];
-            int size = sizeof(actionIds) / sizeof(Action);
-            for (int i=1; i < size; i++) {
-                if (action_vals[i] > max_val && 
-                    std::find(allowed_actions->begin(), allowed_actions->end(), actionIds[i]) != allowed_actions->end()) {
-                    max_val = action_vals[i];
-                    max_id = i;
-                }
+        for (int a=0;a<populationSize;a++) {
+            shared_ptr<GeneticIndividual> individual(new GeneticIndividual(genes,true,1.0));
+            for (int b=0;b<10;b++) {
+                individual->testMutate();
             }
-            action = actionIds[max_id];
+            population->addIndividual(individual);
         }
 
-        // Display the screen
-        if (display_active)
-          display_screen(screen_matrix);
-      }
+        cout << "Finished creating population\n";
+        return population;
+    }
 
-      // Apply action to simulator and update the simulator
-      theOSystem->applyAction(action);
+    void AtariExperiment::populateSubstrate(shared_ptr<NEAT::GeneticIndividual> individual) {
+        if (currentSubstrateIndividual == individual)
+            return;
+
+        currentSubstrateIndividual = individual;
+        substrate.populateSubstrate(individual);
+    }
+
+    void AtariExperiment::processGroup(shared_ptr<NEAT::GeneticGeneration> generation)
+    {
+        static int i=0;
+    
+        shared_ptr<NEAT::GeneticIndividual> individual = group.front();
+        individual->setFitness(10);
+
+        // Print the individual
+        //individual->print();
+
+        populateSubstrate(individual);
+
+        //individual->reward(100);
+        runAtariEpisode(individual);
+    }
+
+    void AtariExperiment::runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual) {
+        // Check that rom exists and is readable
+        ifstream file(rom_file.c_str());
+        if (!file.good()) {
+            cerr << "Unable to find or open rom file: \"" << rom_file << "\"" << endl;
+            exit(-1);
+        }
+
+        // Initialize Atari Stuff 
+        initializeEmulator(rom_file.c_str(),display_active);
+        MediaSource &mediasrc = theOSystem->console().mediaSource();
+        int pixel_screen_width = mediasrc.width();
+        int pixel_screen_height = mediasrc.height();
+        for (int i=0; i<pixel_screen_height; ++i) { // Initialize our screen matrix
+            IntVect row;
+            for (int j=0; j<pixel_screen_width; ++j)
+                row.push_back(-1);
+            screen_matrix.push_back(row);
+        }
+        // Intialize our ram array
+        for (int i=0; i<RAM_LENGTH; i++)
+            ram_content.push_back(0);
+
+        System* emulator_system = &theOSystem->console().system();
+        controller = (InternalController*) theOSystem->getGameController();
+        self_detection_agent = (SelfDetectionAgent*) controller->getPlayerAgentLeft();
+        visProc = &(self_detection_agent->visProc);
+        game_settings = controller->getGameSettings();
+        // Initialize Atari Stuff - fin
+
+        // Main Loop
+        int skip_frames_num = game_settings->i_skip_frames_num;
+        int frame_skip_ctr = 0;
+
+        cin.get();
+
+        // Reset the game mutliple times
+        for (int i=0; i<5; i++)
+            theOSystem->applyAction(RESET); 
+        int delay_after_restart = game_settings->i_delay_after_restart;
+        Action action = game_settings->e_first_action;
+        if (action == UNDEFINED) action = PLAYER_A_NOOP;
+        for (int i=0; i<delay_after_restart; i++)
+            theOSystem->applyAction(action);
+        time_start = time(NULL);
+        bool game_ended = false;
+        int frame = 0;
+        float episode_reward = 0;
+        while (!game_ended) {
+            frame++;
+
+            // Should we take an action this turn?
+            bool take_action = frame_skip_ctr++ >= skip_frames_num;
+            if (take_action) {
+                frame_skip_ctr = 0;
+        
+                // Get the latest screen
+                int ind_i, ind_j;
+                uInt8* pi_curr_frame_buffer = mediasrc.currentFrameBuffer();
+                for (int i = 0; i < pixel_screen_width * pixel_screen_height; i++) {
+                    uInt8 v = pi_curr_frame_buffer[i];
+                    ind_i = i / pixel_screen_width;
+                    ind_j = i - (ind_i * pixel_screen_width);
+                    screen_matrix[ind_i][ind_j] = v;
+                }
+
+                // Get the latest ram content
+                for(int i = 0; i<RAM_LENGTH; i++) {
+                    int offset = i;
+                    offset &= 0x7f; // there are only 128 bytes
+                    ram_content[i] = emulator_system->peek(offset + 0x80);
+                }
+
+                float reward = game_settings->get_reward(&screen_matrix,&ram_content);
+                episode_reward += reward;
+
+                // Check if game has ended
+                game_ended = game_settings->is_end_of_game(&screen_matrix,&ram_content,frame);
+
+                // Get the object representation
+                visProc->process_image(&screen_matrix, action);
+
+                substrate.getNetwork()->reinitialize(); // Set value of all nodes to zero
+                substrate.getNetwork()->dummyActivation();
+
+                // Create a generalized Attractor in the center of the field
+                // for (int y=0; y<substrate_height; ++y) {
+                //     for (int x=0; x<substrate_width; ++x) {
+                //         double val = gauss2D((double)x,(double)y, .1,
+                //                              substrate_width/2.0,substrate_height/2.0,.5,.5);
+                //         substrate.setValue(Node(x,y,0),substrate.getValue(Node(x,y,0))+val);
+                //     }
+                // }
+
+                // Set substrate value for all objects (of a certain size)
+                for (int i=0; i<visProc->obj_classes.size(); i++) {
+                    Prototype& proto = visProc->obj_classes[i];
+
+                    if (!proto.is_valid) // not a strong enough prototype yet
+                        continue;
+                    if (proto.obj_ids.size() == 0) // no obhects on screen
+                        continue;
+
+                    // Map object classes to values
+                    float assigned_value = 0;
+                    if (proto.size == 41) // HACK: Hardcoded mapping from object classes to values
+                        assigned_value = 1;
+                    else if (proto.size == 42)
+                        assigned_value = -1;
+
+                    // Assign values to each of the objects
+                    for (set<long>::iterator it=proto.obj_ids.begin(); it!=proto.obj_ids.end(); it++) {
+                        long obj_id = *it;
+                        assert(visProc->composite_objs.find(obj_id) != visProc->composite_objs.end());
+                        point obj_centroid = visProc->composite_objs[obj_id].get_centroid();
+                        int adj_x = obj_centroid.x * substrate_width / pixel_screen_width;
+                        int adj_y = obj_centroid.y * substrate_height / pixel_screen_height;
+                        for (int y=0; y<substrate_height; ++y) {
+                            for (int x=0; x<substrate_width; ++x) {
+                                double val = gauss2D((double)x,(double)y, assigned_value,
+                                                     (double)adj_x,(double)adj_y,1.0,1.0);
+                                substrate.setValue(Node(x,y,0),substrate.getValue(Node(x,y,0))+val);
+                            }
+                        }
+                        //substrate.setValue((Node(adj_x,adj_y,0)),assigned_value);
+                    }
+                }
+
+                // Set substrate value for self
+                point self_centroid = visProc->get_self_centroid();
+                int self_x = -1, self_y = -1;
+                if (self_centroid.x >= 0 && self_centroid.y >= 0) {
+                    self_x = self_centroid.x * substrate_width / pixel_screen_width;
+                    self_y = self_centroid.y * substrate_height / pixel_screen_height;
+                    
+                    // for (int y=0; y<substrate_height; ++y) {
+                    //     for (int x=0; x<substrate_width; ++x) {
+                    //         double val = gauss2D((double)x,(double)y,1.0,(double)self_x,(double)self_y,.5,.5);
+                    //         substrate.setValue(Node(x,y,0),substrate.getValue(Node(x,y,0))+val);
+                    //     }
+                    // }
+                    //substrate.setValue(Node(self_x,self_y,0),1.0);
+                }
+
+
+                // for (int y=0; y<substrate_height; ++y) {
+                //     for (int x=0; x<substrate_width; ++x) {
+                //         float val = substrate.getValue(Node(x,y,0));
+                //         printf("%1.1f ",val);
+                //         // if (val == 0)
+                //         //     printf(". ");
+                //         // else if (val > 0)
+                //         //     printf("%1.0f ",val);
+                //         // else
+                //         //     printf("X ");
+                //     }
+                //     printf("\n");
+                // }
+                // printf("\n");
+                // cin.get();
+
+                substrate.getNetwork()->update();
+
+                // Get possible actions
+                ActionVect *allowed_actions = game_settings->pv_possible_actions;
+                Action actionIds[] = {PLAYER_A_NOOP,PLAYER_A_UP,PLAYER_A_DOWN,PLAYER_A_LEFT,PLAYER_A_RIGHT};
+
+                // If no self detected, take a random action.
+                if (self_x < 0 || self_y < 0) {
+                    //printf("Unable to detect the self. Taking random action.\n");
+                    action = (*allowed_actions)[rand() % allowed_actions->size()];
+                } else {
+                    // Choose which action to take
+                    float noop_val = substrate.getValue((Node(self_x,self_y,1)));
+                    float up_val   = (self_y <= 0) ? noop_val : substrate.getValue((Node(self_x,self_y-1,1)));
+                    float down_val = (self_y >= substrate_height-1) ? noop_val : substrate.getValue((Node(self_x,self_y+1,1)));
+                    float left_val = (self_x <= 0) ? noop_val : substrate.getValue((Node(self_x-1,self_y,1)));
+                    float right_val= (self_x >= substrate_width-1) ? noop_val : substrate.getValue((Node(self_x+1,self_y,1)));
+
+                    float action_vals[] = {noop_val,up_val,down_val,left_val,right_val};
+          
+                    int max_id = 0; // all games should have noop
+                    float max_val = action_vals[0];
+                    int size = sizeof(actionIds) / sizeof(Action);
+                    for (int i=1; i < size; i++) {
+                        if (action_vals[i] > max_val && 
+                            std::find(allowed_actions->begin(), allowed_actions->end(), actionIds[i]) != allowed_actions->end()) {
+                            max_val = action_vals[i];
+                            max_id = i;
+                        }
+                    }
+                    action = actionIds[max_id];
+                }
+
+                // Display the screen
+                if (display_active)
+                    display_screen(screen_matrix);
+            }
+
+            // Apply action to simulator and update the simulator
+            theOSystem->applyAction(action);
        
-      if (frame % 1000 == 0) {
-        time_end = time(NULL);
-        double avg = ((double)frame)/(time_end - time_start);
-        cerr << "Average main loop iterations per sec = " << avg << endl;
-      }
+            if (frame % 1000 == 0) {
+                time_end = time(NULL);
+                double avg = ((double)frame)/(time_end - time_start);
+                cerr << "Average main loop iterations per sec = " << avg << endl;
+            }
+        }
+
+        // Give the reward to the agent
+        individual->reward(episode_reward);
     }
 
-    // Give the reward to the agent
-    individual->reward(episode_reward);
-  }
-
-  void AtariExperiment::preprocessIndividual(shared_ptr<NEAT::GeneticGeneration> generation,
-                                             shared_ptr<NEAT::GeneticIndividual> individual) {
-    if (individual->getNode("X1") == NULL) {
-      printf("Got blank individual\n");
+    double AtariExperiment::gauss2D(double x, double y, double A, double mu_x, double mu_y,
+                                    double sigma_x, double sigma_y)
+    {
+        return A * exp(-1.0 * ((x-mu_x) * (x-mu_x) / 2.0 * sigma_x * sigma_x + (y-mu_y) * (y-mu_y) / 2.0 * sigma_y * sigma_y));
     }
-  }
 
-  void AtariExperiment::processIndividualPostHoc(shared_ptr<NEAT::GeneticIndividual> individual)
-  {
-    // NEAT::FastNetwork<float> network = individual->spawnFastPhenotypeStack<float>();
+    void AtariExperiment::preprocessIndividual(shared_ptr<NEAT::GeneticGeneration> generation,
+                                               shared_ptr<NEAT::GeneticIndividual> individual) {
+        if (individual->getNode("X1") == NULL) {
+            printf("Got blank individual\n");
+        }
+    }
 
-    // //TODO Put in userdata
+    void AtariExperiment::processIndividualPostHoc(shared_ptr<NEAT::GeneticIndividual> individual)
+    {
+        // NEAT::FastNetwork<float> network = individual->spawnFastPhenotypeStack<float>();
 
-    // double fitness = 10.0;
-    // double maxFitness = 10.0;
+        // //TODO Put in userdata
 
-    // for (int x1=0;x1<2;x1++)
-    //   {
-    //     for (int x2=0;x2<2;x2++)
-    //       {
-    //         network.reinitialize();
+        // double fitness = 10.0;
+        // double maxFitness = 10.0;
 
-    //         network.setValue("X1",x1);
-    //         network.setValue("X2",x2);
-    //         network.setValue("Bias",0.3f);
+        // for (int x1=0;x1<2;x1++)
+        //   {
+        //     for (int x2=0;x2<2;x2++)
+        //       {
+        //         network.reinitialize();
 
-    //         network.update();
+        //         network.setValue("X1",x1);
+        //         network.setValue("X2",x2);
+        //         network.setValue("Bias",0.3f);
 
-    //         double value = network.getValue("Output");
+        //         network.update();
 
-    //         double expectedValue = (double)(x1 ^ x2);
+        //         double value = network.getValue("Output");
 
-    //         fitness += (5000*(2-fabs(value-expectedValue)));
-    //         maxFitness += 5000*2;
-    //       }
-    //   }
+        //         double expectedValue = (double)(x1 ^ x2);
 
-    // cout << "POST HOC ANALYSIS: " << fitness << "/" << maxFitness << endl;
-  }
+        //         fitness += (5000*(2-fabs(value-expectedValue)));
+        //         maxFitness += 5000*2;
+        //       }
+        //   }
 
-  Experiment* AtariExperiment::clone()
-  {
-    AtariExperiment* experiment = new AtariExperiment(*this);
+        // cout << "POST HOC ANALYSIS: " << fitness << "/" << maxFitness << endl;
+    }
 
-    return experiment;
-  }
+    Experiment* AtariExperiment::clone()
+    {
+        AtariExperiment* experiment = new AtariExperiment(*this);
+
+        return experiment;
+    }
 }
