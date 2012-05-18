@@ -13,6 +13,10 @@ colors = ['r', 'b']
 styles = ['-','--']
 linewidth = 2
 
+plt.rcParams['ps.useafm'] = True
+plt.rcParams['pdf.use14corefonts'] = True
+plt.rcParams['text.usetex'] = True
+
 plt.figure()
 for file_number in range(len(filenames)):
 
