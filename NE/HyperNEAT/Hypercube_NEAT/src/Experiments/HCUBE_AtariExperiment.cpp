@@ -187,9 +187,7 @@ namespace HCUBE
 
                     // Map object classes to values
                     float assigned_value = 0;
-                    if (proto.size == 41) // HACK: Hardcoded mapping from object classes to values
-                        assigned_value = 1;
-                    else if (proto.size == 42)
+                    if (proto.size == 66 || proto.size == 70) // HACK: Hardcoded mapping from object classes to values
                         assigned_value = -1;
 
                     // Assign values to each of the objects
@@ -258,8 +256,8 @@ namespace HCUBE
                     float noop_val = substrate.getValue((Node(self_x,self_y,1)));
                     float up_val   = (self_y <= 0) ? noop_val : substrate.getValue((Node(self_x,self_y-1,1)));
                     float down_val = (self_y >= substrate_height-1) ? noop_val : substrate.getValue((Node(self_x,self_y+1,1)));
-                    float left_val = (self_x <= 0) ? noop_val : substrate.getValue((Node(self_x-1,self_y,1)));
-                    float right_val= (self_x >= substrate_width-1) ? noop_val : substrate.getValue((Node(self_x+1,self_y,1)));
+                    float left_val = -1e37;//(self_x <= 0) ? noop_val : substrate.getValue((Node(self_x-1,self_y,1)));
+                    float right_val= -1e37;//(self_x >= substrate_width-1) ? noop_val : substrate.getValue((Node(self_x+1,self_y,1)));
 
                     float action_vals[] = {noop_val,up_val,down_val,left_val,right_val};
           
