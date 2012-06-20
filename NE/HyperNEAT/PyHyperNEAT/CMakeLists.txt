@@ -207,11 +207,11 @@ Hypercube_NEAT_Base
 	optimized
 	board
 
-	debug
-	FuegoLib_d
+	# debug
+	# FuegoLib_d
 	
-	optimized
-	FuegoLib
+	# optimized
+	# FuegoLib
 
 	debug
 	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_DEBUG}

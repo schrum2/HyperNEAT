@@ -37,7 +37,7 @@
 #include "Experiments/HCUBE_ImageCompressionExperiment.h"
 #include "Experiments/HCUBE_BinaryCompressionExperiment.h"
 #include "Experiments/HCUBE_FindClusterBPExperiment.h"
-#include "Experiments/HCUBE_GoExperiment.h"
+//#include "Experiments/HCUBE_GoExperiment.h"
 #endif
 #include "Experiments/HCUBE_CheckersExperimentSubstrateGeom.h"
 
@@ -182,9 +182,9 @@ namespace HCUBE
           case EXPERIMENT_FIND_CLUSTER_BP:
             experiments.push_back(shared_ptr<Experiment>(new FindClusterBPExperiment("",a)));
             break;
-          case EXPERIMENT_GO:
-            experiments.push_back(shared_ptr<Experiment>(new GoExperiment("",a)));
-            break;
+          // case EXPERIMENT_GO:
+          //   experiments.push_back(shared_ptr<Experiment>(new GoExperiment("",a)));
+          //   break;
 #endif
           case EXPERIMENT_CHECKERS_SUBSTRATE_GEOM:
             experiments.push_back(shared_ptr<Experiment>(new CheckersExperimentSubstrateGeom("",a)));

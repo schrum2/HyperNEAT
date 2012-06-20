@@ -62,7 +62,7 @@ ENDIF(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 
 SET(
 	USE_GUI 
-	ON 
+	OFF 
 	CACHE 
 	BOOL
 	"Should we add support for WxWidgets?"
@@ -70,7 +70,7 @@ SET(
 
 SET(
 	BUILD_PYTHON
-	ON 
+	OFF 
 	CACHE 
 	BOOL
 	"Build the python extension?"
@@ -78,7 +78,7 @@ SET(
 
 SET(
 	BUILD_MPI
-	ON 
+	OFF 
 	CACHE 
 	BOOL
 	"Build the MPI extension?"

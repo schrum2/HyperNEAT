@@ -45,7 +45,7 @@ PATH
 
 SET(
 	BOARD_INCLUDE
-	"../../../../Libraries/Board/include/"
+	"../../../Board/include/"
 	CACHE
 	PATH 
 	"libboard include directory"
@@ -99,7 +99,7 @@ PATH
 
 SET(
 	BOARD_LIB
-	"${CMAKE_CURRENT_SOURCE_DIR}/../../../../Libraries/Board/out/"
+	"${CMAKE_CURRENT_SOURCE_DIR}/../../../Board/out/"
 	CACHE
 	PATH 
 	"libboard library directory"

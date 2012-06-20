@@ -62,7 +62,7 @@ ENDIF(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 
 SET(
 	USE_GUI 
-	ON 
+	OFF 
 	CACHE 
 	BOOL
 	"Should we add support for WxWidgets?"
@@ -353,7 +353,7 @@ ADD_LIBRARY(
 	src/Experiments/HCUBE_XorExperiment.cpp
 	src/Experiments/HCUBE_XorCoExperiment.cpp
 	src/Experiments/HCUBE_CheckersCommon.cpp
-	src/Experiments/HCUBE_GoExperiment.cpp
+	#src/Experiments/HCUBE_GoExperiment.cpp
 	src/Experiments/HCUBE_CheckersExperiment.cpp
 	src/Experiments/HCUBE_CheckersExperimentPruning.cpp
 	src/Experiments/HCUBE_CheckersExperimentFogel.cpp
@@ -407,7 +407,7 @@ ADD_LIBRARY(
 	include/Experiments/HCUBE_OthelloExperiment.h
 	include/Experiments/HCUBE_OthelloCoExperiment.h
 	include/Experiments/HCUBE_OthelloCommon.h
-	include/Experiments/HCUBE_GoExperiment.h
+	#include/Experiments/HCUBE_GoExperiment.h
 	include/Experiments/HCUBE_CheckersExperiment.h
 	include/Experiments/HCUBE_CheckersExperimentPruning.h
 	include/Experiments/HCUBE_CheckersExperimentFogel.h
@@ -851,11 +851,11 @@ TARGET_LINK_LIBRARIES(
 	optimized
 	board
 
-	debug
-	FuegoLib_d
+	# debug
+	# FuegoLib_d
 	
-	optimized
-	FuegoLib
+	# optimized
+	# FuegoLib
 
 	debug
 	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_DEBUG}
@@ -921,11 +921,11 @@ TARGET_LINK_LIBRARIES(
 	optimized
 	board
 
-	debug
-	FuegoLib_d
+	# debug
+	# FuegoLib_d
 	
-	optimized
-	FuegoLib
+	# optimized
+	# FuegoLib
 
 	debug
 	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_DEBUG}
@@ -991,11 +991,11 @@ TARGET_LINK_LIBRARIES(
 	optimized
 	board
 
-	debug
-	FuegoLib_d
+	# debug
+	# FuegoLib_d
 	
-	optimized
-	FuegoLib
+	# optimized
+	# FuegoLib
 
 	debug
 	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_DEBUG}
