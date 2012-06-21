@@ -7,6 +7,20 @@ MODULE_OBJS := \
 	src/common/visual_processor.o \
 	src/common/vector_matrix_tools.o \
 
+MODULE_SOURCES := \
+	src/common/SoundNull.cxx \
+	src/common/export_screen.cpp \
+	src/common/display_screen.cpp \
+	src/common/visual_processor.cpp \
+	src/common/vector_matrix_tools.cpp \
+
+MODULE_HEADERS := \
+	src/common/SoundNull.hxx \
+	src/common/export_screen.h \
+	src/common/display_screen.h \
+	src/common/visual_processor.h \
+	src/common/vector_matrix_tools.h \
+
 MODULE_DIRS += \
 	src/common
 
