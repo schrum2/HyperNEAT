@@ -15,7 +15,7 @@
 
 #include "uct_search_tree.h"
 #include "search_agent.h"
-#include "random_tools.h"
+#include "../common/random_tools.h"
 
 /* *********************************************************************
 	Constructor

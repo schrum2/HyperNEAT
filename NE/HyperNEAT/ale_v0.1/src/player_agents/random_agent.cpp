@@ -14,10 +14,10 @@
  **************************************************************************** */
 
 #include "random_agent.h"
-#include "random_tools.h"
-#include "Serializer.hxx"
-#include "Deserializer.hxx"
-#include "System.hxx"
+#include "../common/random_tools.h"
+#include "../emucore/Serializer.hxx"
+#include "../emucore/Deserializer.hxx"
+#include "../emucore/m6502/src/System.hxx"
 #include <sstream>
 
 RandomAgent::RandomAgent(GameSettings* _game_settings, OSystem* _osystem) : 

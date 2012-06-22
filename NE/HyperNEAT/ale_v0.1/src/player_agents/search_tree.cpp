@@ -14,7 +14,7 @@
  **************************************************************************** */
 
 #include "search_tree.h"
-#include "random_tools.h"
+#include "../common/random_tools.h"
 #include "search_agent.h"
 
 

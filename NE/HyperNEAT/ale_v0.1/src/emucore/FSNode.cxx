@@ -20,7 +20,7 @@
 //============================================================================
 
 #include "FSNode.hxx"
-#include "bspf.hxx"
+#include "m6502/src/bspf/src/bspf.hxx"
 //ALE  #include "GuiUtils.hxx"
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

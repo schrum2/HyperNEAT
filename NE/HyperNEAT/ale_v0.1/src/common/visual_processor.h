@@ -16,8 +16,8 @@
 #include <set>
 #include <map>
 #include "display_screen.h"
-#include "game_settings.h"
-#include "OSystem.hxx"
+#include "../player_agents/game_settings.h"
+#include "../emucore/OSystem.hxx"
 
 // Operations for working on pixel masks
 static void add_pixel(int width, int height, int relx, int rely, vector<char>& mask) {

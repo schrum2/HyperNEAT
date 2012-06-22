@@ -14,11 +14,11 @@
  **************************************************************************** */
 
 
-#include "export_tools.h"
+#include "../common/export_tools.h"
 #include "blob_object.h"
-#include "vector_matrix_tools.h"
-#include "FSNode.hxx"
-#include "game_controller.h"
+#include "../common/vector_matrix_tools.h"
+#include "../emucore/FSNode.hxx"
+#include "../control/game_controller.h"
 #include "class_discovery.h"
 
 ClassDiscovery::ClassDiscovery(OSystem* _osystem) {

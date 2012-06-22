@@ -19,11 +19,11 @@
 #include <sstream>
 
 #include "OSystem.hxx"
-#include "GuiUtils.hxx"
+#include "../common/GuiUtils.hxx"
 #include "DefProps.hxx"
 #include "Props.hxx"
 #include "PropsSet.hxx"
-#include "bspf.hxx"
+#include "m6502/src/bspf/src/bspf.hxx"
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PropertiesSet::PropertiesSet(OSystem* osystem)

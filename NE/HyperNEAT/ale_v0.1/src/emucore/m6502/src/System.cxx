@@ -21,10 +21,10 @@
 
 #include "Device.hxx"
 #include "M6502.hxx"
-#include "TIA.hxx"
+#include "../../TIA.hxx"
 #include "System.hxx"
-#include "Serializer.hxx"
-#include "Deserializer.hxx"
+#include "../../Serializer.hxx"
+#include "../../Deserializer.hxx"
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 System::System(uInt16 n, uInt16 m)

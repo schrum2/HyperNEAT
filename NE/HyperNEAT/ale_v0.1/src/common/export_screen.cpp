@@ -10,7 +10,7 @@
 #include <fstream>
 #include <cstring>
 #include <sstream>
-#include "OSystem.hxx"
+#include "../emucore/OSystem.hxx"
 #include "export_screen.h"
 #include "random_tools.h"
 #include "vector_matrix_tools.h"

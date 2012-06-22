@@ -17,8 +17,8 @@
 #define UCT_H
 
 #include "../models/model.h"
-#include "../player_agents/common_constants.h"
-#include "Settings.hxx"
+#include "../common_constants.h"
+#include "../../emucore/Settings.hxx"
 #include "node.h"
 
 class UCT {

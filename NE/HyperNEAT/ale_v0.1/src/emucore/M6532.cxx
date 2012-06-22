@@ -21,7 +21,7 @@
 #include "M6532.hxx"
 #include "Random.hxx"
 #include "Switches.hxx"
-#include "System.hxx"
+#include "m6502/src/System.hxx"
 #include "Serializer.hxx"
 #include "Deserializer.hxx"
 #include <iostream>

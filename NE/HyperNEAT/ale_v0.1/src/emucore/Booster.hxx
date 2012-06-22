@@ -19,7 +19,7 @@
 #ifndef BOOSTERGRIP_HXX
 #define BOOSTERGRIP_HXX
 
-#include "bspf.hxx"
+#include "m6502/src/bspf/src/bspf.hxx"
 #include "Control.hxx"
 
 /**

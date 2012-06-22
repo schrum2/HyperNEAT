@@ -2,7 +2,7 @@
 #define BASELINE_MODEL_H
 
 #include "model.h"
-#include "common_constants.h"
+#include "../common_constants.h"
 
 /***************************************************************
  Baseline model is the simplest model possible.

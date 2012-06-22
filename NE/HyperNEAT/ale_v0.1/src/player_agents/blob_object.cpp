@@ -14,7 +14,7 @@
 
 #include <sstream>
 #include "blob_object.h"
-#include "vector_matrix_tools.h"
+#include "../common/vector_matrix_tools.h"
 #include "shape_tools.h"
 
 BlobObject::BlobObject( int _center_x, int _center_y, int _velocity_x, 

@@ -22,10 +22,10 @@
 #include <algorithm>
 
 #include "OSystem.hxx"
-#include "Version.hxx"
-#include "bspf.hxx"
+#include "../common/Version.hxx"
+#include "m6502/src/bspf/src/bspf.hxx"
 #include "Settings.hxx"
-#include "GuiUtils.hxx"  //ALE 
+#include "../common/GuiUtils.hxx"  //ALE 
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Settings::Settings(OSystem* osystem) : myOSystem(osystem) {

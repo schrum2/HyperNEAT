@@ -14,8 +14,8 @@
  **************************************************************************** */
 
 #include <sstream>
-#include "export_tools.h"
-#include "game_controller.h"
+#include "../common/export_tools.h"
+#include "../control/game_controller.h"
 #include "grid_screen_agent.h"
 
         

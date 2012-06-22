@@ -1,8 +1,8 @@
 #include "qlearning_agent.h"
-#include "random_tools.h"
-#include "Serializer.hxx"
-#include "Deserializer.hxx"
-#include "System.hxx"
+#include "../common/random_tools.h"
+#include "../emucore/Serializer.hxx"
+#include "../emucore/Deserializer.hxx"
+#include "../emucore/m6502/src/System.hxx"
 #include <sstream>
 #include <boost/functional/hash.hpp> // Used to define a hash function
 

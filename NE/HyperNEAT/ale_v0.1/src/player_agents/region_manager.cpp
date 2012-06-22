@@ -15,8 +15,8 @@
  **************************************************************************** */
 
 #include <sstream>
-#include "game_controller.h"
-#include "vector_matrix_tools.h"
+#include "../control/game_controller.h"
+#include "../common/vector_matrix_tools.h"
 #include "region_manager.h"
 
 

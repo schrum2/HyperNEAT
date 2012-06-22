@@ -18,7 +18,7 @@
 #define REGION_MANAGER_H
 
 #include "common_constants.h"
-#include "OSystem.hxx"
+#include "../emucore/OSystem.hxx"
 #include "blob_object.h"
 
 #define MAX_NUM_OBJECTS 1000

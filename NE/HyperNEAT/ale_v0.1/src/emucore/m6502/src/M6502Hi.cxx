@@ -17,8 +17,8 @@
 //============================================================================
 
 #include "M6502Hi.hxx"
-#include "Serializer.hxx"
-#include "Deserializer.hxx"
+#include "../../Serializer.hxx"
+#include "../../Deserializer.hxx"
 
 #ifdef DEBUGGER_SUPPORT
   #include "Debugger.hxx"

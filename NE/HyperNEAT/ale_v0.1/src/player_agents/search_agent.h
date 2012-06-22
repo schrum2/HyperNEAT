@@ -19,9 +19,9 @@
 
 #include "common_constants.h"
 #include "player_agent.h"
-#include "OSystem.hxx"
-#include "SettingsUNIX.hxx"
-#include "OSystemUNIX.hxx"
+#include "../emucore/OSystem.hxx"
+#include "../os_dependent/SettingsUNIX.hxx"
+#include "../os_dependent/OSystemUNIX.hxx"
 #include "search_tree.h"
 
 class SearchAgent : public PlayerAgent {

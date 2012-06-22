@@ -11,8 +11,8 @@
 #include <vector>
 #include <valarray>
 #include <cstdlib> 
-#include "bspf.hxx"
-#include "common_constants.h"
+#include "../emucore/m6502/src/bspf/src/bspf.hxx"
+#include "../player_agents/common_constants.h"
 
 
 /* *********************************************************************

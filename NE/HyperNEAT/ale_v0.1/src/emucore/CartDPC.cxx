@@ -19,7 +19,7 @@
 #include <assert.h>
 #include <iostream>
 #include "CartDPC.hxx"
-#include "System.hxx"
+#include "m6502/src/System.hxx"
 #include "Serializer.hxx"
 #include "Deserializer.hxx"
 

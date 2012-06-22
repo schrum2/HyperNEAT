@@ -17,8 +17,8 @@
 //============================================================================
 
 #include "NullDev.hxx"
-#include "Serializer.hxx"
-#include "Deserializer.hxx"
+#include "../../Serializer.hxx"
+#include "../../Deserializer.hxx"
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 NullDevice::NullDevice()

@@ -21,8 +21,8 @@
 
 class OSystem;
 
-#include "Array.hxx"
-#include "bspf.hxx"
+#include "../common/Array.hxx"
+#include "m6502/src/bspf/src/bspf.hxx"
 
 /**
   This class provides an interface for accessing frontend specific settings.

@@ -23,14 +23,14 @@
 
 #include "Console.hxx"
 #include "Control.hxx"
-#include "M6502.hxx"
-#include "System.hxx"
+#include "m6502/src/M6502.hxx"
+#include "m6502/src/System.hxx"
 #include "TIA.hxx"
 #include "Serializer.hxx"
 #include "Deserializer.hxx"
 #include "Settings.hxx"
 #include "Sound.hxx"
-#include "GuiUtils.hxx"
+#include "../common/GuiUtils.hxx"
 
 #define HBLANK 68
 

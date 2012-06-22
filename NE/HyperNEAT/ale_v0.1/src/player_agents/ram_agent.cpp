@@ -15,7 +15,7 @@
 
 #include <sstream>
 #include "ram_agent.h"
-#include "export_tools.h"  //TMP
+#include "../common/export_tools.h"  //TMP
 
 RAMAgent::RAMAgent(GameSettings* _game_settings, OSystem* _osystem) :
     PlayerAgent(_game_settings, _osystem) {

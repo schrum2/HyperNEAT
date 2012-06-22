@@ -6,7 +6,7 @@
 #ifndef MISC_TOOLS_H
 #define MISC_TOOLS_H
 
-#include "common_constants.h"
+#include "../player_agents/common_constants.h"
 
 /* *****************************************************************************
     Inline C++ integer exponentiation routines 

@@ -22,7 +22,7 @@
 #ifndef UTILITIES_HXX
 #define UTILITIES_HXX
 
-#include "bspf.hxx"
+#include "../emucore/m6502/src/bspf/src/bspf.hxx"
 
 /**
   A place to put GUI-related things that don't fit anywhere else.

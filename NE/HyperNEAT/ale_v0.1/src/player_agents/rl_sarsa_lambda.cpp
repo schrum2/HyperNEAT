@@ -18,11 +18,11 @@
 
 #include <sstream>
 // #include <math.h>
-#include "vector_matrix_tools.h"
+#include "../common/vector_matrix_tools.h"
 #include "rl_sarsa_lambda.h"
-#include "OSystem.hxx"
-#include "export_tools.h"
-#include "random_tools.h"
+#include "../emucore/OSystem.hxx"
+#include "../common/export_tools.h"
+#include "../common/random_tools.h"
 
 /* *********************************************************************
     Constructor

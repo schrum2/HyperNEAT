@@ -23,7 +23,7 @@ class System;
 class Serializer;
 class Deserializer;
 
-#include "bspf.hxx"
+#include "bspf/src/bspf.hxx"
 #include "Device.hxx"
 
 /**

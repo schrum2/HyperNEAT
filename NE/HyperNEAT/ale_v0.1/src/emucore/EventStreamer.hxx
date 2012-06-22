@@ -19,7 +19,7 @@
 #ifndef EVENTSTREAMER_HXX
 #define EVENTSTREAMER_HXX
 
-#include "Array.hxx"
+#include "../common/Array.hxx"
 #include "Deserializer.hxx"
 #include "Serializer.hxx"
 

@@ -9,7 +9,7 @@
 
 #include "visual_processor.h"
 #include "random_tools.h"
-#include "System.hxx"
+#include "../emucore/m6502/src/System.hxx"
 #include <limits>
 #include <sstream>
 #include <omp.h>

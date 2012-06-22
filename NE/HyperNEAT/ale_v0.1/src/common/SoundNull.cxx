@@ -16,13 +16,13 @@
 // $Id: SoundNull.cxx,v 1.6 2007/01/01 18:04:40 stephena Exp $
 //============================================================================
 
-#include "Serializer.hxx"
-#include "Deserializer.hxx"
+#include "../emucore/Serializer.hxx"
+#include "../emucore/Deserializer.hxx"
 
-#include "bspf.hxx"
+#include "../emucore/m6502/src/bspf/src/bspf.hxx"
 
-#include "OSystem.hxx"
-#include "Settings.hxx"
+#include "../emucore/OSystem.hxx"
+#include "../emucore/Settings.hxx"
 #include "SoundNull.hxx"
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

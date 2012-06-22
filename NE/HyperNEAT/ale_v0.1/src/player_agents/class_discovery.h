@@ -17,7 +17,7 @@
 #define CLASS_DISCOVERY_H
 
 #include "common_constants.h"
-#include "OSystem.hxx"
+#include "../emucore/OSystem.hxx"
 #include "region_manager.h"
 #include "blob_object.h"
 #include "blob_class.h"

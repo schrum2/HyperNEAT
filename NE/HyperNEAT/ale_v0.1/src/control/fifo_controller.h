@@ -19,7 +19,7 @@
 #define FIFO_CONTROLLER_H
 
 
-#include "common_constants.h"
+#include "../player_agents/common_constants.h"
 #include "game_controller.h"
 
 class FIFOController : public GameController {

@@ -19,7 +19,7 @@
 #ifndef RANDOM_HXX
 #define RANDOM_HXX
 
-#include "bspf.hxx"
+#include "m6502/src/bspf/src/bspf.hxx"
 
 /**
   This is a quick-and-dirty random number generator.  It is based on 

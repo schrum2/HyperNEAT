@@ -12,7 +12,7 @@
  *   A number of utility functions to work with 2D shapes
  **************************************************************************** */
 #include "shape_tools.h"
-#include "vector_matrix_tools.h"
+#include "../common/vector_matrix_tools.h"
 
 /* *****************************************************************************
 	Flips a 2D shape matrix horizentaly or vertically

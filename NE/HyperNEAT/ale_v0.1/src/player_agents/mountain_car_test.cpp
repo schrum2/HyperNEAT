@@ -13,10 +13,10 @@
 *  Sarsa Lambda implementation is correct *
 **************************************************************************** */
 #include <math.h>
-#include "OSystem.hxx"
+#include "../emucore/OSystem.hxx"
 #include "mountain_car_test.h"
 #include "tiles2.h"
-#include "export_tools.h"
+#include "../common/export_tools.h"
 
 /* *********************************************************************
     Constructor

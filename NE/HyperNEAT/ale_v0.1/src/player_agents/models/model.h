@@ -1,7 +1,7 @@
 #ifndef MODEL_H
 #define MODEL_H
 
-#include "common_constants.h"
+#include "../common_constants.h"
 
 /********************************************************************************
  Generic model class

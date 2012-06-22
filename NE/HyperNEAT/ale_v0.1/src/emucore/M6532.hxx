@@ -24,8 +24,8 @@ class System;
 class Serializer;
 class Deserializer;
 
-#include "bspf.hxx"
-#include "Device.hxx"
+#include "m6502/src/bspf/src/bspf.hxx"
+#include "m6502/src/Device.hxx"
 
 /**
   RIOT

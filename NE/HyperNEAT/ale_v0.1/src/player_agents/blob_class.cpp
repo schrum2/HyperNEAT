@@ -17,7 +17,7 @@
 #include <sstream>
 #include "blob_class.h"
 #include "shape_tools.h"
-#include "vector_matrix_tools.h"
+#include "../common/vector_matrix_tools.h"
 #include "common_constants.h"
 
 

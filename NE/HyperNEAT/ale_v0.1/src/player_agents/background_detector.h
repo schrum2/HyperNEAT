@@ -17,7 +17,7 @@
 #define BACKGROUND_DETECTOR_H
 
 #include "common_constants.h"
-#include "OSystem.hxx"
+#include "../emucore/OSystem.hxx"
 #include "game_settings.h"
 #define NUM_COLORS 256
 

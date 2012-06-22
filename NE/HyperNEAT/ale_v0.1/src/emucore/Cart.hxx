@@ -25,8 +25,8 @@ class Properties;
 class Settings;
 
 #include <fstream>
-#include "bspf.hxx"
-#include "Device.hxx"
+#include "m6502/src/bspf/src/bspf.hxx"
+#include "m6502/src/Device.hxx"
 
 /**
   A cartridge is a device which contains the machine code for a 

@@ -27,18 +27,18 @@ class Launcher;
 class Debugger;
 class CheatManager;
 class VideoDialog;
-#include "Array.hxx"
+#include "../common/Array.hxx"
 //ALE  #include "EventHandler.hxx"
 //ALE  #include "FrameBuffer.hxx"
 #include "Sound.hxx"
-#include "SoundNull.hxx"
+#include "../common/SoundNull.hxx"
 #include "Settings.hxx"
 #include "Console.hxx"
 #include "Event.hxx"  //ALE 
 //ALE  #include "Font.hxx"
-#include "bspf.hxx"
-#include "export_screen.h" //ALE 
-#include "display_screen.h" //mhauskn
+#include "m6502/src/bspf/src/bspf.hxx"
+#include "../common/export_screen.h" //ALE 
+#include "../common/display_screen.h" //mhauskn
 class EventStreamer; //ALE 
 
 struct Resolution {

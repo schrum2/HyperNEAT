@@ -21,7 +21,7 @@
 #include <cassert>
 #include <sstream>
 
-#include "bspf.hxx"
+#include "m6502/src/bspf/src/bspf.hxx"
 #include "Cart.hxx"
 #include "Cart0840.hxx"
 #include "Cart2K.hxx"

@@ -14,8 +14,8 @@
  **************************************************************************** */
 
 #include "background_detector.h"
-#include "game_controller.h"
-#include "export_tools.h"
+#include "../control/game_controller.h"
+#include "../common/export_tools.h"
 
 
 BackgroundDetector::BackgroundDetector(GameSettings* _game_settings, OSystem* _osystem) {

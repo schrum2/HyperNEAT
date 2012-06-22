@@ -6,7 +6,7 @@
 #ifndef VECTOR_MATRIX_TOOLS_H
 #define VECTOR_MATRIX_TOOLS_H
 
-#include "common_constants.h"
+#include "../player_agents/common_constants.h"
 
 /* *****************************************************************************
     Normalizes the values in a matrix to fit within [0, 1]

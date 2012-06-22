@@ -6,18 +6,18 @@
  **************************************************************************** */
 #include <cstdlib>
 #include <ctime> 
-#include "bspf.hxx"
-#include "Console.hxx"
-#include "Event.hxx"
-#include "PropsSet.hxx"
-#include "Settings.hxx"
-#include "FSNode.hxx"
-#include "OSystem.hxx"
-#include "SettingsUNIX.hxx"
-#include "OSystemUNIX.hxx"
-#include "fifo_controller.h"
-#include "internal_controller.h"
-#include "common_constants.h"
+#include "emucore/m6502/src/bspf/src/bspf.hxx"
+#include "emucore/Console.hxx"
+#include "emucore/Event.hxx"
+#include "emucore/PropsSet.hxx"
+#include "emucore/Settings.hxx"
+#include "emucore/FSNode.hxx"
+#include "emucore/OSystem.hxx"
+#include "os_dependent/SettingsUNIX.hxx"
+#include "os_dependent/OSystemUNIX.hxx"
+#include "control/fifo_controller.h"
+#include "control/internal_controller.h"
+#include "player_agents/common_constants.h"
 
 string str_ver = "0.1";
 string str_welcome = "A.L.E: Atari 2600 Learning Environment (version " + str_ver + ")\n"

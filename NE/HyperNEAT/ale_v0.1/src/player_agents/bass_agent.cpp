@@ -1,7 +1,7 @@
-#include "export_tools.h"
-#include "game_controller.h"
+#include "../common/export_tools.h"
+#include "../control/game_controller.h"
 #include "bass_agent.h"
-#include "random_tools.h"
+#include "../common/random_tools.h"
 #include <sstream>
 
 BassAgent::BassAgent(GameSettings* _game_settings, OSystem* _osystem):

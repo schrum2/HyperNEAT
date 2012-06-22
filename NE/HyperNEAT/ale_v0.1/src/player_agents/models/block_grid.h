@@ -1,7 +1,7 @@
 #ifndef BLOCK_GRID_H
 #define BLOCK_GRID_H
 
-#include "common_constants.h"
+#include "../common_constants.h"
 
 class BlockGrid {
  public:

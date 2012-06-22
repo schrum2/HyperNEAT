@@ -20,7 +20,7 @@
 
 #include "Event.hxx"
 #include "Driving.hxx"
-#include "System.hxx"
+#include "m6502/src/System.hxx"
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Driving::Driving(Jack jack, const Event& event)

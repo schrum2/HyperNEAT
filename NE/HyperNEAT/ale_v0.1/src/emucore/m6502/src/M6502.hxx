@@ -28,9 +28,9 @@ class CpuDebug;
 class Expression;
 class PackedBitArray;
 
-#include "bspf.hxx"
+#include "bspf/src/bspf.hxx"
 #include "System.hxx"
-#include "Array.hxx"
+#include "../../../common/Array.hxx"
 #ifdef DEBUGGER_SUPPORT
 #include "StringList.hxx"
 #endif

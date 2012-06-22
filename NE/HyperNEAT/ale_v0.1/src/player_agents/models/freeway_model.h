@@ -2,7 +2,7 @@
 #define FREEWAY_MODEL_H
 
 #include "model.h"
-#include "common_constants.h"
+#include "../common_constants.h"
 #include "block_grid.h"
 #include <deque>
 #include <map>

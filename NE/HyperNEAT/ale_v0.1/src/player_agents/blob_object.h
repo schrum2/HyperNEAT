@@ -16,7 +16,7 @@
 #define BLOB_OBJECT_H
 
 #include "common_constants.h"
-#include "export_screen.h"
+#include "../common/export_screen.h"
 
 class BlobObject {
   /* *************************************************************************

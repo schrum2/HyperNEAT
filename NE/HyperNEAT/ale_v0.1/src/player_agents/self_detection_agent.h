@@ -15,7 +15,7 @@
 #include <boost/unordered_set.hpp>
 #include "player_agent.h"
 #include <set>
-#include "visual_processor.h"
+#include "../common/visual_processor.h"
 
 /** The self detection agent is tasked with selecting actions to make clear
     which object on screen is the entity being controlled.

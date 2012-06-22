@@ -7,7 +7,7 @@
 #include "SDL/SDL_image.h"
 #include "SDL/SDL_rotozoom.h"
 #include "SDL/SDL_gfxPrimitives.h"
-#include "common_constants.h"
+#include "../player_agents/common_constants.h"
 #include "export_screen.h"
 
 class SDLEventHandler {

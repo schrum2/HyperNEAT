@@ -11,8 +11,8 @@
 #define EXPORT_SCREEN_H
 
 #include <vector>
-#include "Props.hxx"
-#include "common_constants.h"
+#include "../emucore/Props.hxx"
+#include "../player_agents/common_constants.h"
 
 class OSystem;
 

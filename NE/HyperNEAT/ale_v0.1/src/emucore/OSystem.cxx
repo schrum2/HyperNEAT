@@ -48,13 +48,13 @@
 //ALE   #include "StellaFont.hxx"
 //ALE   #include "ConsoleFont.hxx"
 #include "OSystem.hxx"
-#include "game_controller.h"
+#include "../control/game_controller.h"
 //ALE   #include "Widget.hxx"	
 #define MAX_ROM_SIZE  512 * 1024
 
 #include <time.h>
 #include <sys/time.h>
-#include "bspf.hxx"
+#include "m6502/src/bspf/src/bspf.hxx"
 static int ticks = 0; 
 static size_t time_start; 
 static size_t time_end; 

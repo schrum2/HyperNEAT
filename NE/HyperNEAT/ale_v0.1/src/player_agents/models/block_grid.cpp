@@ -1,5 +1,4 @@
 #include "block_grid.h"
-#include "common_constants.h"
 
 BlockGrid::BlockGrid(IntArr* pv_feature_vec, int width, int height, int numColors):grid(*pv_feature_vec) {
   this->width = width;

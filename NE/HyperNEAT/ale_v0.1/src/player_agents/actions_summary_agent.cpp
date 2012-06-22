@@ -14,9 +14,9 @@
  **************************************************************************** */
 
 #include "actions_summary_agent.h"
-#include "random_tools.h"
-#include "vector_matrix_tools.h"
-#include "export_tools.h"
+#include "../common/random_tools.h"
+#include "../common/vector_matrix_tools.h"
+#include "../common/export_tools.h"
 #include <fstream>
 
 ActionSummaryAgent::ActionSummaryAgent(	GameSettings* _game_settings, 

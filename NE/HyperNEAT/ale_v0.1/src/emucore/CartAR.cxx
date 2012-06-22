@@ -20,9 +20,9 @@
 
 #include <cassert>
 
-#include "M6502Hi.hxx"
+#include "m6502/src/M6502Hi.hxx"
 #include "Random.hxx"
-#include "System.hxx"
+#include "m6502/src/System.hxx"
 #include "Serializer.hxx"
 #include "Deserializer.hxx"
 #include "CartAR.hxx"

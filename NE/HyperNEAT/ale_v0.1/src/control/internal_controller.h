@@ -18,10 +18,10 @@
 #define INTERNAL_CONTROLLER_H
 
 
-#include "common_constants.h"
+#include "../player_agents/common_constants.h"
 #include "game_controller.h"
-#include "player_agent.h"
-#include "game_settings.h"
+#include "../player_agents/player_agent.h"
+#include "../player_agents/game_settings.h"
 
 
 class InternalController : public GameController {

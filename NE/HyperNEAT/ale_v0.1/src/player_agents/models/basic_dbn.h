@@ -3,7 +3,7 @@
 
 #include "model.h"
 #include "block_grid.h"
-#include "common_constants.h"
+#include "../common_constants.h"
 #include <map>
 
 struct floatArr {

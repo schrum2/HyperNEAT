@@ -16,7 +16,7 @@
 #define PLAYER_AGENT_H
 
 #include <stdio.h>
-#include "OSystem.hxx"
+#include "../emucore/OSystem.hxx"
 #include "common_constants.h"
 #include "game_settings.h"
 #include "background_detector.h"

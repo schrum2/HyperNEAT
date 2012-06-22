@@ -22,7 +22,7 @@
 class Driving;
 class System;
 
-#include "bspf.hxx"
+#include "m6502/src/bspf/src/bspf.hxx"
 #include "Control.hxx"
 
 /**

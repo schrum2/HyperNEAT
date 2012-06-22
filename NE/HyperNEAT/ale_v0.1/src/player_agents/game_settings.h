@@ -19,8 +19,8 @@
 
 
 #include "common_constants.h"
-#include "Serializer.hxx"
-#include "Deserializer.hxx"
+#include "../emucore/Serializer.hxx"
+#include "../emucore/Deserializer.hxx"
 #include <map>
 
 class GameSettings {

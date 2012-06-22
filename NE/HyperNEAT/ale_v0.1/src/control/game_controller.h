@@ -17,10 +17,10 @@
 #ifndef GAME_CONTROLLER_H
 #define GAME_CONTROLLER_H
 
-#include "OSystem.hxx"
-#include "System.hxx"
-#include "common_constants.h"
-#include "export_screen.h"
+#include "../emucore/OSystem.hxx"
+#include "../emucore/m6502/src/System.hxx"
+#include "../player_agents/common_constants.h"
+#include "../common/export_screen.h"
 
 #define PADDLE_DELTA 23000
 #define PADDLE_MIN 250000 

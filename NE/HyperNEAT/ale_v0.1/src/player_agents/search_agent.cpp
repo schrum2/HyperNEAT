@@ -14,12 +14,12 @@
  **************************************************************************** */
 
 #include "search_agent.h"
-#include "Serializer.hxx"
-#include "Deserializer.hxx"
-#include "System.hxx"
+#include "../emucore/Serializer.hxx"
+#include "../emucore/Deserializer.hxx"
+#include "../emucore/m6502/src/System.hxx"
 #include <sstream>
-#include "random_tools.h"
-#include "game_controller.h"
+#include "../common/random_tools.h"
+#include "../control/game_controller.h"
 #include "tree_node.h"
 #include "full_search_tree.h"
 #include "uct_search_tree.h"

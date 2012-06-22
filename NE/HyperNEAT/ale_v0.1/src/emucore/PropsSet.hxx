@@ -21,7 +21,7 @@
 
 #include <fstream>
 
-#include "bspf.hxx"
+#include "m6502/src/bspf/src/bspf.hxx"
 
 class OSystem;
 class Properties;

@@ -24,8 +24,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "bspf.hxx"
-#include "OSystem.hxx"
+#include "../emucore/m6502/src/bspf/src/bspf.hxx"
+#include "../emucore/OSystem.hxx"
 #include "OSystemUNIX.hxx"
 
 //ALE  #ifdef HAVE_GETTIMEOFDAY

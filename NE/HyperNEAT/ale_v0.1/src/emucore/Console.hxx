@@ -26,7 +26,7 @@ class MediaSource;
 class Switches;
 class System;
 
-#include "bspf.hxx"
+#include "m6502/src/bspf/src/bspf.hxx"
 #include "Control.hxx"
 #include "Props.hxx"
 #include "TIA.hxx"

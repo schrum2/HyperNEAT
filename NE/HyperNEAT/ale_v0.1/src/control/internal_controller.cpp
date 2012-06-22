@@ -17,10 +17,10 @@
 #include <sstream>
 #include "internal_controller.h"
 #include "game_controller.h"
-#include "game_settings.h"
-#include "player_agent.h"
-#include "random_tools.h"
-#include "Settings.hxx"
+#include "../player_agents/game_settings.h"
+#include "../player_agents/player_agent.h"
+#include "../common/random_tools.h"
+#include "../emucore/m6502/src/System.hxx"
 
 
 /* *********************************************************************

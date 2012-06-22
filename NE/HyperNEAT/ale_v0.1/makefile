@@ -54,8 +54,8 @@ endif
 ifdef PROFILE
   PROF:= -g -pg -fprofile-arcs -ftest-coverage
   CXXFLAGS+= $(PROF)
-else
-  CXXFLAGS+= -fomit-frame-pointer
+# else
+#   CXXFLAGS+= -fomit-frame-pointer
 endif
 
 # Even more warnings...
@@ -110,7 +110,7 @@ CPPFLAGS:= $(DEFINES) $(INCLUDES)
 -include $(addprefix $(srcdir)/, $(addsuffix /module.mk,$(MODULES)))
 
 # Depdir information
-DEPDIRS = $(addsuffix /$(DEPDIR),$(MODULE_DIRS))
+# DEPDIRS = $(addsuffix /$(DEPDIR),$(MODULE_DIRS))
 
 $(EXECUTABLE):  $(OBJS)
 	$(LD) $(LDFLAGS) $(PRE_OBJS_FLAGS) $+ $(POST_OBJS_FLAGS) $(LIBS) $(PROF) -o $@
@@ -130,23 +130,15 @@ clean:
 .SUFFIXES: .cxx .o .cpp
 
 .cxx.o: $(HEADERS)
-	$(MKDIR) $(*D)/$(DEPDIR)
-	$(CXX) -Wp,-MMD,"$(*D)/$(DEPDIR)/$(*F).d2" $(CXXFLAGS) $(CPPFLAGS) -c $(<) -o $*.o
-	$(ECHO) "$(*D)/" > $(*D)/$(DEPDIR)/$(*F).d
-	$(CAT) "$(*D)/$(DEPDIR)/$(*F).d2" >> "$(*D)/$(DEPDIR)/$(*F).d"
-	$(RM) "$(*D)/$(DEPDIR)/$(*F).d2"
+	$(CXX) $(CXXFLAGS) -c  -o $@ $<
 
 .cpp.o: $(HEADERS)
-	$(MKDIR) $(*D)/$(DEPDIR)
-	$(CXX) -Wp,-MMD,"$(*D)/$(DEPDIR)/$(*F).d2" $(CXXFLAGS) $(CPPFLAGS) -c $(<) -o $*.o
-	$(ECHO) "$(*D)/" > $(*D)/$(DEPDIR)/$(*F).d
-	$(CAT) "$(*D)/$(DEPDIR)/$(*F).d2" >> "$(*D)/$(DEPDIR)/$(*F).d"
-	$(RM) "$(*D)/$(DEPDIR)/$(*F).d2"
+	$(CXX) $(CXXFLAGS) -c  -o $@ $<
 
 
 # Include the dependency tracking files. We add /dev/null at the end
 # of the list to avoid a warning/error if no .d file exist
--include $(wildcard $(addsuffix /*.d,$(DEPDIRS))) /dev/null
+# -include $(wildcard $(addsuffix /*.d,$(DEPDIRS))) /dev/null
 
 install: all
 	$(MKDIR) $(INSTALLDIR)

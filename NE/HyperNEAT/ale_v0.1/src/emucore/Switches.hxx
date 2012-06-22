@@ -23,7 +23,7 @@ class Event;
 class Properties;
 class Switches;
 
-#include "bspf.hxx"
+#include "m6502/src/bspf/src/bspf.hxx"
 
 /**
   This class represents the console switches of the game console.

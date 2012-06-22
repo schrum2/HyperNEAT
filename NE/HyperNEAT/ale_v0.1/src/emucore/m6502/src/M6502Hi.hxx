@@ -23,7 +23,7 @@ class M6502High;
 class Serializer;
 class Deserializer;
 
-#include "bspf.hxx"
+#include "bspf/src/bspf.hxx"
 #include "M6502.hxx"
 
 /**

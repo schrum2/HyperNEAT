@@ -20,7 +20,7 @@
 #include <algorithm>
 #include <sstream>
 
-#include "GuiUtils.hxx"
+#include "../common/GuiUtils.hxx"
 #include "Props.hxx"
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -8,8 +8,8 @@
  **************************************************************************** */
 
 #include "self_detection_agent.h"
-#include "random_tools.h"
-#include "System.hxx"
+#include "../common/random_tools.h"
+#include "../emucore/m6502/src/System.hxx""
 #include <limits>
 #include <sstream>
 #include <omp.h>

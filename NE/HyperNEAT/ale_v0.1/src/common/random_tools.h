@@ -9,7 +9,7 @@
 
 #include <vector>
 #include <cstdlib> 
-#include "bspf.hxx"
+#include "../emucore/m6502/src/bspf/src/bspf.hxx"
 #include <fstream>
 #include <sstream>
 #include <iterator>

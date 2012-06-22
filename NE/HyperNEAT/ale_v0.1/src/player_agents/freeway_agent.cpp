@@ -16,11 +16,11 @@
 #include <sstream>
 #include "freeway_agent.h"
 #include "class_agent.h"
-#include "export_tools.h"
-#include "game_controller.h"
+#include "../common/export_tools.h"
+#include "../control/game_controller.h"
 #include "tiles2.h"
-#include "random_tools.h"
-#include "misc_tools.h"
+#include "../common/random_tools.h"
+#include "../common/misc_tools.h"
 
 FreewayAgent::FreewayAgent(GameSettings* _game_settings, OSystem* _osystem) :
 ClassAgent(_game_settings, _osystem) {

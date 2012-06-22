@@ -25,11 +25,11 @@
 #include "self_detection_agent.h"
 #include "qlearning_agent.h"
 #include "freeway_agent.h"
-#include "export_tools.h"
-#include "game_controller.h"
-#include "random_tools.h"
-#include "vector_matrix_tools.h"
-#include "FSNode.hxx"
+#include "../common/export_tools.h"
+#include "../control/game_controller.h"
+#include "../common/random_tools.h"
+#include "../common/vector_matrix_tools.h"
+#include "../emucore/FSNode.hxx"
 
 /* **********************************************************************
     Constructor

@@ -18,7 +18,7 @@
 
 #include <cassert>
 
-#include "System.hxx"
+#include "m6502/src/System.hxx"
 #include "Serializer.hxx"
 #include "Deserializer.hxx"
 #include "CartFE.hxx"
