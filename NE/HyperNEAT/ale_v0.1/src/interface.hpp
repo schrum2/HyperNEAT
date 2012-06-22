@@ -1,4 +1,23 @@
-#include "test.h"
+#ifndef ATARI_INTERFACE_H
+#define ATARI_INTERFACE_H
+
+#include <cstdlib>
+#include <ctime> 
+#include "bspf.hxx"
+#include "Console.hxx"
+#include "Event.hxx"
+#include "PropsSet.hxx"
+#include "Settings.hxx"
+#include "FSNode.hxx"
+#include "OSystem.hxx"
+#include "SettingsUNIX.hxx"
+#include "OSystemUNIX.hxx"
+#include "fifo_controller.h"
+#include "internal_controller.h"
+#include "common_constants.h"
+#include "game_settings.h"
+#include "player_agent.h"
+#include "self_detection_agent.h"
 
 string str_ver = "0.1";
 string str_welcome = "A.L.E: Atari 2600 Learning Environment (version " + str_ver + ")\n"
@@ -118,3 +137,4 @@ void display_screen(const IntMatrix& pm_screen_matrix) {
     p_game_controllr->getPlayerAgentLeft()->display_screen(pm_screen_matrix);
 };
 
+#endif
