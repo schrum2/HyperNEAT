@@ -374,17 +374,17 @@ void Console::togglePhosphor()
 {
   const string& phosphor = myProperties.get(Display_Phosphor);
 //ALE   int blend = atoi(myProperties.get(Display_PPBlend).c_str());
-  bool enable;
+  //bool enable;
   if(phosphor == "YES")
   {
     myProperties.set(Display_Phosphor, "No");
-    enable = false;
+    //enable = false;
     //ALE  myOSystem->frameBuffer().showMessage("Phosphor effect disabled");
   }
   else
   {
     myProperties.set(Display_Phosphor, "Yes");
-    enable = true;
+    //enable = true;
     //ALE  myOSystem->frameBuffer().showMessage("Phosphor effect enabled");
   }
 

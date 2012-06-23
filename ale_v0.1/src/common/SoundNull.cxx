@@ -46,13 +46,17 @@ bool SoundNull::load(Deserializer& in)
   if(in.getString() != soundDevice)
     return false;
 
-  uInt8 reg;
-  reg = (uInt8) in.getInt();
-  reg = (uInt8) in.getInt();
-  reg = (uInt8) in.getInt();
-  reg = (uInt8) in.getInt();
-  reg = (uInt8) in.getInt();
-  reg = (uInt8) in.getInt();
+  // Attempt to get rid of unused warning on reg
+  for (int i=0; i<6; ++i)
+      in.getInt();
+
+  // uInt8 reg;
+  // reg = (uInt8) in.getInt();
+  // reg = (uInt8) in.getInt();
+  // reg = (uInt8) in.getInt();
+  // reg = (uInt8) in.getInt();
+  // reg = (uInt8) in.getInt();
+  // reg = (uInt8) in.getInt();
 
   // myLastRegisterSetCycle
   in.getInt();

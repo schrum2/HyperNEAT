@@ -20,7 +20,7 @@ DEBUG       := 0
 HUNGARIAN   := 0 
 
 CXX := g++
-CXXFLAGS := -fPIC -O3 -Wall -Wno-sign-compare -Wno-multichar -Wunused -std=c++0x
+CXXFLAGS := -fPIC -O3 -Wall -Wno-sign-compare -Wno-multichar -std=c++0x #-Wunused 
 LD := g++
 INSTALL := install
 MKDIR := mkdir -p
@@ -112,7 +112,7 @@ CPPFLAGS:= $(DEFINES) $(INCLUDES)
 # Depdir information
 # DEPDIRS = $(addsuffix /$(DEPDIR),$(MODULE_DIRS))
 
-$(EXECUTABLE):  $(OBJS)
+$(EXECUTABLE): $(OBJS)
 	$(LD) $(LDFLAGS) $(PRE_OBJS_FLAGS) $+ $(POST_OBJS_FLAGS) $(LIBS) $(PROF) -o $@
 
 $(LIBRARY): $(OBJS)

@@ -9,7 +9,7 @@
 
 #include "self_detection_agent.h"
 #include "../common/random_tools.h"
-#include "../emucore/m6502/src/System.hxx""
+#include "../emucore/m6502/src/System.hxx"
 #include <limits>
 #include <sstream>
 #include <omp.h>

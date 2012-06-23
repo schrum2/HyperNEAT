@@ -23,7 +23,7 @@
 #include "class_discovery.h"
 
 class PlayerAgent : public SDLEventHandler {
-  /* *************************************************************************
+    /* *************************************************************************
      This is an abstract class and should be the Superclass for all
      agent classes that want to interact with stella
         
