@@ -6,7 +6,6 @@ MODULE_OBJS := \
 	src/os_dependent/SettingsUNIX.o \
 
 MODULE_HEADERS := \
-	src/os_dependent/FSNodePOSIX.hxx \
 	src/os_dependent/OSystemUNIX.hxx \
 	src/os_dependent/SettingsUNIX.hxx \
 

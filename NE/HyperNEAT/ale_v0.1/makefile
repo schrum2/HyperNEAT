@@ -20,7 +20,7 @@ DEBUG       := 0
 HUNGARIAN   := 0 
 
 CXX := g++
-CXXFLAGS := -O3 -Wall -Wno-sign-compare -Wno-multichar -Wunused -std=c++0x
+CXXFLAGS := -fPIC -O3 -Wall -Wno-sign-compare -Wno-multichar -Wunused -std=c++0x
 LD := g++
 INSTALL := install
 MKDIR := mkdir -p
@@ -116,7 +116,7 @@ $(EXECUTABLE):  $(OBJS)
 	$(LD) $(LDFLAGS) $(PRE_OBJS_FLAGS) $+ $(POST_OBJS_FLAGS) $(LIBS) $(PROF) -o $@
 
 $(LIBRARY): $(OBJS)
-	$(LD) $(LDFLAGS) $(LIBS) -shared -o $(LIBRARY) $(OBJECTS)
+	$(LD) $(LDFLAGS) -shared -o $(LIBRARY) $(OBJS)
 
 distclean: clean
 	$(RM_REC) $(DEPDIRS)
@@ -127,7 +127,7 @@ clean:
 
 .PHONY: all clean dist distclean
 
-.SUFFIXES: .cxx .o .cpp
+.SUFFIXES: .cxx .o .cpp .c
 
 .cxx.o: $(HEADERS)
 	$(CXX) $(CXXFLAGS) -c  -o $@ $<
@@ -135,6 +135,8 @@ clean:
 .cpp.o: $(HEADERS)
 	$(CXX) $(CXXFLAGS) -c  -o $@ $<
 
+.c.o: $(HEADERS)
+	$(CXX) $(CXXFLAGS) -c  -o $@ $<
 
 # Include the dependency tracking files. We add /dev/null at the end
 # of the list to avoid a warning/error if no .d file exist

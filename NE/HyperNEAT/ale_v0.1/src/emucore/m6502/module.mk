@@ -9,12 +9,12 @@ MODULE_OBJS := \
 	src/emucore/m6502/src/System.o
 
 MODULE_HEADERS := \
-	src/emucore/m6502/src/Device.h \
-	src/emucore/m6502/src/M6502.h \
-	src/emucore/m6502/src/M6502Low.h \
-	src/emucore/m6502/src/M6502Hi.h \
-	src/emucore/m6502/src/NullDev.h \
-	src/emucore/m6502/src/System.h
+	src/emucore/m6502/src/Device.hxx \
+	src/emucore/m6502/src/M6502.hxx \
+	src/emucore/m6502/src/M6502Low.hxx \
+	src/emucore/m6502/src/M6502Hi.hxx \
+	src/emucore/m6502/src/NullDev.hxx \
+	src/emucore/m6502/src/System.hxx
 
 MODULE_SOURCES := \
 	src/emucore/m6502/src/Device.cxx \

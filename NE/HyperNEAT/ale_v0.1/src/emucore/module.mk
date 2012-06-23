@@ -98,7 +98,7 @@ MODULE_HEADERS := \
 	src/emucore/Switches.hxx \
 	src/emucore/TIA.hxx \
 	src/emucore/TIASnd.hxx \
-	src/emucore/unzip.hxx \
+	src/emucore/unzip.h \
 
 MODULE_SOURCES := \
 	src/emucore/AtariVox.cxx \
@@ -148,7 +148,7 @@ MODULE_SOURCES := \
 	src/emucore/Switches.cxx \
 	src/emucore/TIA.cxx \
 	src/emucore/TIASnd.cxx \
-	src/emucore/unzip.cxx \
+	src/emucore/unzip.c \
 
 MODULE_DIRS += \
 	src/emucore
