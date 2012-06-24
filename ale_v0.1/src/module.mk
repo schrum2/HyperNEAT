@@ -7,7 +7,7 @@ MODULE_SOURCES := \
 	src/main.cpp 
 
 MODULE_HEADERS := \
-	src/interface.hpp
+	src/ale_interface.hpp
 
 MODULE_DIRS += \
 	src/

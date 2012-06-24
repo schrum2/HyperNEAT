@@ -2,7 +2,7 @@
 #define HCUBE_ATARIEXPERIMENT_H_INCLUDED
 
 #include "HCUBE_Experiment.h"
-#include "../../../ale_v0.1/test.h"
+#include "ale_interface.hpp"
 
 namespace HCUBE
 {
@@ -13,10 +13,11 @@ namespace HCUBE
     IntMatrix screen_matrix;
     IntVect ram_content;
     
-    InternalController* controller;
-    SelfDetectionAgent* self_detection_agent;
-    VisualProcessor* visProc;
-    GameSettings* game_settings;
+    /* ALEInterface ale; */
+    /* InternalController* controller; */
+    /* SelfDetectionAgent* self_detection_agent; */
+    /* VisualProcessor* visProc; */
+    /* GameSettings* game_settings; */
     string rom_file;
     bool display_active;
 

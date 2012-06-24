@@ -2,7 +2,6 @@
 
 #include "Experiments/HCUBE_AtariExperiment.h"
 #include <boost/foreach.hpp>
-#include "../../../ale_v0.1/test.hpp"
 
 using namespace NEAT;
 
@@ -92,9 +91,10 @@ namespace HCUBE
             exit(-1);
         }
 
-        // Initialize Atari Stuff 
-        initializeEmulator(rom_file.c_str(),display_active);
-        MediaSource &mediasrc = theOSystem->console().mediaSource();
+        // Initialize Atari Stuff
+        ALEInterface ale(rom_file.c_str(),display_active);
+        //initializeEmulator(rom_file.c_str(),display_active);
+        MediaSource &mediasrc = ale.theOSystem->console().mediaSource();
         int pixel_screen_width = mediasrc.width();
         int pixel_screen_height = mediasrc.height();
         for (int i=0; i<pixel_screen_height; ++i) { // Initialize our screen matrix
@@ -107,11 +107,11 @@ namespace HCUBE
         for (int i=0; i<RAM_LENGTH; i++)
             ram_content.push_back(0);
 
-        System* emulator_system = &theOSystem->console().system();
-        controller = (InternalController*) theOSystem->getGameController();
-        self_detection_agent = (SelfDetectionAgent*) controller->getPlayerAgentLeft();
-        visProc = &(self_detection_agent->visProc);
-        game_settings = controller->getGameSettings();
+        System* emulator_system = &ale.theOSystem->console().system();
+        InternalController* controller = (InternalController*) ale.theOSystem->getGameController();
+        // self_detection_agent = (SelfDetectionAgent*) controller->getPlayerAgentLeft();
+        // visProc = &(self_detection_agent->visProc);
+        GameSettings* game_settings = controller->getGameSettings();
         // Initialize Atari Stuff - fin
 
         // Main Loop
