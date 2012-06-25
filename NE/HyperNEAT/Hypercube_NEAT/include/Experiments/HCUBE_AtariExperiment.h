@@ -13,11 +13,7 @@ namespace HCUBE
     IntMatrix screen_matrix;
     IntVect ram_content;
     
-    /* ALEInterface ale; */
-    /* InternalController* controller; */
-    /* SelfDetectionAgent* self_detection_agent; */
-    /* VisualProcessor* visProc; */
-    /* GameSettings* game_settings; */
+    ALEInterface ale;
     string rom_file;
     bool display_active;
 

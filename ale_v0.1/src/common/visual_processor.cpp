@@ -345,9 +345,9 @@ VisualProcessor::VisualProcessor(OSystem* _osystem, GameSettings* _game_settings
     screen_height = mediasrc.height();
 
     // Parameters used for shape tracking
-    f_max_perc_difference = p_osystem->settings().getFloat("max_perc_difference", true);
-    i_max_obj_velocity = p_osystem->settings().getInt("max_obj_velocity", true);
-    f_max_shape_area_dif = p_osystem->settings().getFloat("max_shape_area_dif", true);
+    // f_max_perc_difference = p_osystem->settings().getFloat("max_perc_difference", true);
+    // i_max_obj_velocity = p_osystem->settings().getInt("max_obj_velocity", true);
+    // f_max_shape_area_dif = p_osystem->settings().getFloat("max_shape_area_dif", true);
 
     // (piyushk) Initialize the free color set structure
     for (int i = 258; i < 512; i++) {

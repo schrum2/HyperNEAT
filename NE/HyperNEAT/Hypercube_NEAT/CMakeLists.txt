@@ -562,11 +562,11 @@ TARGET_LINK_LIBRARIES(
 	optimized
 	board
 
-	# debug
-	# FuegoLib_d
+	debug
+	ale
 	
-	# optimized
-	# FuegoLib
+	optimized
+	ale
 
 	debug
 	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_DEBUG}
@@ -632,11 +632,11 @@ TARGET_LINK_LIBRARIES(
 	optimized
 	board
 
-	# debug
-	# FuegoLib_d
+	debug
+	ale
 	
-	# optimized
-	# FuegoLib
+	optimized
+	ale
 
 	debug
 	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_DEBUG}
@@ -702,11 +702,11 @@ TARGET_LINK_LIBRARIES(
 	optimized
 	board
 
-	# debug
-	# FuegoLib_d
+	debug
+	ale
 	
-	# optimized
-	# FuegoLib
+	optimized
+	ale
 
 	debug
 	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_DEBUG}

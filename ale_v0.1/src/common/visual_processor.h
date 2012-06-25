@@ -282,9 +282,9 @@ class VisualProcessor : public SDLEventHandler {
     bool display_self;   // Should the results of self detection be displayed?
 
     // Parameters used for shape tracking
-    float f_max_perc_difference;
-    int i_max_obj_velocity;
-    float f_max_shape_area_dif;
+    /* float f_max_perc_difference; */
+    /* int i_max_obj_velocity; */
+    /* float f_max_shape_area_dif; */
 
     //(piyushk)
     int prototype_ids;
