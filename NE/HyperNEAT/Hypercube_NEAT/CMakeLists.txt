@@ -62,7 +62,7 @@ ENDIF(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 
 SET(
 	USE_GUI 
-	OFF 
+	ON 
 	CACHE 
 	BOOL
 	"Should we add support for WxWidgets?"
@@ -80,8 +80,8 @@ SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D__WXDEBUG__ -DWXDEBUG=1")
 INCLUDE_REGULAR_EXPRESSION( "^.*([Hh][Cc][Uu][Bb][Ee]|[Nn][Ee][Aa][Tt]|main).*$" )
 
 SET(
-	WXWIDGETS_INCLUDE
-	"../../../../Libraries/wxWidgets-2.8.0/include"
+	WXWIDGETS_INCLUDE	
+"/usr/include/wx-2.8"
 	CACHE
 	PATH 
 	"WxWidgets include directory"
@@ -169,14 +169,14 @@ ELSE(CYGWIN)
 	ELSE(WIN32)
 		SET(
 			WXWIDGETS_BUILD_INCLUDE_DEBUG
-			"../../../../Libraries/wxWidgets-2.8.0/build/linux_release/lib/wx/include/gtk2-unicode-debug-2.8"
+			"/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-debug-2.8"
 			CACHE
 			PATH 
 			"WxWidgets setup.h include directory"
 			)
 		SET(
 			WXWIDGETS_BUILD_INCLUDE_RELEASE
-			"../../../../Libraries/wxWidgets-2.8.0/build/linux_release/lib/wx/include/gtk2-unicode-release-2.8"
+			"/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-release-2.8"
 			CACHE
 			PATH 
 			"WxWidgets setup.h include directory"
@@ -268,7 +268,8 @@ ELSE(CYGWIN)
 
 		SET(
 			WXWIDGETS_DEBUG_LIB
-			"${CMAKE_CURRENT_SOURCE_DIR}/../../../../Libraries/wxWidgets-2.8.0/build/linux_debug/lib/"
+			"/usr/lib/x86_64-linux-gnu"
+
 			CACHE
 			PATH 
 			"WxWidgets Debug Library Directory"
@@ -276,7 +277,8 @@ ELSE(CYGWIN)
 
 		SET(
 			WXWIDGETS_RELEASE_LIB
-			"${CMAKE_CURRENT_SOURCE_DIR}/../../../../Libraries/wxWidgets-2.8.0/build/linux_release/lib/"
+			"/usr/lib/x86_64-linux-gnu"
+
 			CACHE
 			PATH 
 			"WxWidgets Release Library Directory"
@@ -737,6 +739,17 @@ TARGET_LINK_LIBRARIES(
 	boost_thread-mt
 	boost_serialization
 	ncurses
+
+        wx_gtk2u_richtext-2.8
+        wx_gtk2u_aui-2.8
+        wx_gtk2u_xrc-2.8
+        wx_gtk2u_qa-2.8
+        wx_gtk2u_html-2.8
+        wx_gtk2u_adv-2.8
+        wx_gtk2u_core-2.8
+        wx_baseu_xml-2.8
+        wx_baseu_net-2.8
+        wx_baseu-2.8
 )
 
 TARGET_LINK_LIBRARIES(
@@ -748,6 +761,17 @@ TARGET_LINK_LIBRARIES(
 	boost_thread-mt
 	boost_serialization
 	ncurses
+
+        wx_gtk2u_richtext-2.8
+        wx_gtk2u_aui-2.8
+        wx_gtk2u_xrc-2.8
+        wx_gtk2u_qa-2.8
+        wx_gtk2u_html-2.8
+        wx_gtk2u_adv-2.8
+        wx_gtk2u_core-2.8
+        wx_baseu_xml-2.8
+        wx_baseu_net-2.8
+        wx_baseu-2.8
 )
 
 TARGET_LINK_LIBRARIES(
@@ -759,6 +783,17 @@ TARGET_LINK_LIBRARIES(
 	boost_thread-mt
 	boost_serialization
 	ncurses
+
+        wx_gtk2u_richtext-2.8
+        wx_gtk2u_aui-2.8
+        wx_gtk2u_xrc-2.8
+        wx_gtk2u_qa-2.8
+        wx_gtk2u_html-2.8
+        wx_gtk2u_adv-2.8
+        wx_gtk2u_core-2.8
+        wx_baseu_xml-2.8
+        wx_baseu_net-2.8
+        wx_baseu-2.8
 )
 
 

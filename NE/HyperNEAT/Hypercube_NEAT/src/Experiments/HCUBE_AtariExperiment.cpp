@@ -117,8 +117,12 @@ namespace HCUBE
 
                 // Map object classes to values
                 float assigned_value = 0;
-                if (proto.size == 66 || proto.size == 70) // HACK: Hardcoded mapping from object classes to values
-                    assigned_value = -1;
+                // HACK: Hardcoded mapping from object classes to values
+                //if (proto.size == 66 || proto.size == 70) // Freeway
+
+                // Asterix
+                if (proto.size == 41) assigned_value = 1;
+                if (proto.size == 42) assigned_value = -1;
 
                 // Assign values to each of the objects
                 for (set<long>::iterator it=proto.obj_ids.begin(); it!=proto.obj_ids.end(); it++) {

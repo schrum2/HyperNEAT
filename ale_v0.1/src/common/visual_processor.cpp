@@ -380,7 +380,7 @@ void VisualProcessor::process_image(const IntMatrix* screen_matrix, Action actio
         merge_objects(.96);
 
         // Identify which object we are
-        identify_self();
+        // identify_self();
 
         // float maxval = -1;
         // Prototype* best = NULL;
