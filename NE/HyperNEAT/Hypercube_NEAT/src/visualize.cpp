@@ -23,6 +23,11 @@ int HyperNEAT_main(int argc,char **argv) {
  
   CommandLineParser commandLineParser(argc,argv);
 
+#ifndef HCUBE_NOGUI
+  cout << "Starting wxEntry...\n";
+  retval = wxEntry(argc, argv);
+#endif
+
   if (commandLineParser.HasSwitch("-I") &&  // Experiment params
       commandLineParser.HasSwitch("-P") &&  // Population file
       commandLineParser.HasSwitch("-N") &&  // Individual number

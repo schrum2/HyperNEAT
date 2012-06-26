@@ -460,12 +460,12 @@ ADD_DEPENDENCIES(Hypercube_NEAT_Base NEATLib CakeFixedDepthLib ClicheLib)
 
 SET_TARGET_PROPERTIES(Hypercube_NEAT_Base PROPERTIES DEBUG_POSTFIX _d)
 
-#ADD_EXECUTABLE(
-#	Hypercube_NEAT
-#	MACOSX_BUNDLE
-#
-#	src/main.cpp
-#	)
+# ADD_EXECUTABLE(
+# 	Hypercube_NEAT
+# 	MACOSX_BUNDLE
+
+# 	src/main.cpp
+# 	)
 
 ADD_EXECUTABLE(
 	atari_generate
@@ -481,7 +481,7 @@ ADD_EXECUTABLE(
 	src/visualize.cpp
 	)
 
-#SET_TARGET_PROPERTIES(Hypercube_NEAT PROPERTIES DEBUG_POSTFIX _d)
+# SET_TARGET_PROPERTIES(Hypercube_NEAT PROPERTIES DEBUG_POSTFIX _d)
 SET_TARGET_PROPERTIES(atari_generate PROPERTIES DEBUG_POSTFIX _d)
 SET_TARGET_PROPERTIES(atari_evaluate PROPERTIES DEBUG_POSTFIX _d)
 SET_TARGET_PROPERTIES(atari_visualize PROPERTIES DEBUG_POSTFIX _d)
@@ -797,75 +797,75 @@ TARGET_LINK_LIBRARIES(
 )
 
 
-#TARGET_LINK_LIBRARIES(
-#	Hypercube_NEAT 
-#
-#	debug
-#	Hypercube_NEAT_Base_d
-#
-#	optimized
-#	Hypercube_NEAT_Base
-#		
-#	debug
-#	ClicheLib_d
-#		
-#	optimized
-#	ClicheLib
-#
-#	debug
-#	CakeFixedDepthLib_d
-#	
-#	optimized
-#	CakeFixedDepthLib
-#
-#	debug
-#	NEATLib_d
-#
-#	optimized
-#	NEATLib
-#	
-#	debug
-#	tinyxmlpluslib_d
-#
-#	optimized
-#	tinyxmlpluslib
-#
-#	debug
-#	zlib_d
-#	
-#	optimized
-#	zlib
-#
-#	debug
-#	board_d
-#
-#	optimized
-#	board
-#
-#	debug
-#	FuegoLib_d
-#	
-#	optimized
-#	FuegoLib
-#
-#	debug
-#	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_DEBUG}
-#
-#	optimized
-#	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_RELEASE}
-#
-#	debug
-#	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_DEBUG}
-#
-#	optimized
-#	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_RELEASE}
-#
-#	debug
-#	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_DEBUG}
-#
-#	optimized
-#	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_RELEASE}
-#)
+# TARGET_LINK_LIBRARIES(
+# 	Hypercube_NEAT 
+
+# 	debug
+# 	Hypercube_NEAT_Base_d
+
+# 	optimized
+# 	Hypercube_NEAT_Base
+		
+# 	debug
+# 	ClicheLib_d
+		
+# 	optimized
+# 	ClicheLib
+
+# 	debug
+# 	CakeFixedDepthLib_d
+	
+# 	optimized
+# 	CakeFixedDepthLib
+
+# 	debug
+# 	NEATLib_d
+
+# 	optimized
+# 	NEATLib
+	
+# 	debug
+# 	tinyxmlpluslib_d
+
+# 	optimized
+# 	tinyxmlpluslib
+
+# 	debug
+# 	zlib_d
+	
+# 	optimized
+# 	zlib
+
+# 	debug
+# 	board_d
+
+# 	optimized
+# 	board
+
+# 	debug
+# 	FuegoLib_d
+	
+# 	optimized
+# 	FuegoLib
+
+# 	debug
+# 	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_DEBUG}
+
+# 	optimized
+# 	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_RELEASE}
+
+# 	debug
+# 	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_DEBUG}
+
+# 	optimized
+# 	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_RELEASE}
+
+# 	debug
+# 	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_DEBUG}
+
+# 	optimized
+# 	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_RELEASE}
+# )
 
 #IF(USE_GUI)
 #	IF(CYGWIN)
