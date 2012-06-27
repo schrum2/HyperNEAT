@@ -32,7 +32,8 @@ int HyperNEAT_main(int argc,char **argv) {
   CommandLineParser commandLineParser(argc,argv);
 
   if (commandLineParser.HasSwitch("-I") &&
-      commandLineParser.HasSwitch("-O")) {
+      commandLineParser.HasSwitch("-O") &&
+      commandLineParser.HasSwitch("-G")) {
 
     NEAT::Globals::init(commandLineParser.GetSafeArgument("-I",0,"input.dat"));
     if (commandLineParser.HasSwitch("-R")) {
@@ -45,6 +46,11 @@ int HyperNEAT_main(int argc,char **argv) {
     HCUBE::ExperimentRun experimentRun;
     experimentRun.setupExperiment(experimentType, commandLineParser.GetSafeArgument("-O",0,"output.xml"));
 
+    string rom_file = commandLineParser.GetSafeArgument("-G",0,"../ale_v0.1/roms/asterix.bin");
+    boost::shared_ptr<HCUBE::AtariExperiment> exp = boost::static_pointer_cast<HCUBE::AtariExperiment>(experimentRun.getExperiment());
+    exp->setDisplayScreen(true);
+    exp->set_rom(rom_file.c_str());
+
     cout << "Experiment set up\n";
     experimentRun.createPopulation();
     experimentRun.setCleanup(true);
@@ -53,7 +59,7 @@ int HyperNEAT_main(int argc,char **argv) {
 
   } else {
     cout << "Syntax for passing command-line options to HyperNEAT (do not actually type '(' or ')' ):\n";
-    cout << "./HyperNEAT [-R (seed)] -I (datafile) -O (outputfile)\n";
+    cout << "./HyperNEAT [-R (seed)] -I (datafile) -O (outputfile) -G (ROMFile)\n";
   }
 
   NEAT::Globals::deinit();

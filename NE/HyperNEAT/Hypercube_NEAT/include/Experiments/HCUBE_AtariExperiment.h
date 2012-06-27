@@ -18,8 +18,12 @@ namespace HCUBE
     bool display_active;
 
   public:
-    NEAT::LayeredSubstrate<float> substrate;
-    shared_ptr<NEAT::GeneticIndividual> currentSubstrateIndividual;
+    NEAT::LayeredSubstrate<float> substrates[2];
+    int currentSubstrateIndex;
+    shared_ptr<const NEAT::GeneticIndividual> substrateIndividuals[2];
+    //shared_ptr<NEAT::GeneticIndividual> currentSubstrateIndividual;
+
+    void initializeExperiment(string rom_file);
 
     AtariExperiment(string _experimentName,int _threadID);
     virtual ~AtariExperiment() {}
@@ -27,9 +31,17 @@ namespace HCUBE
     virtual NEAT::GeneticPopulation* createInitialPopulation(int populationSize);
     virtual void processGroup(shared_ptr<NEAT::GeneticGeneration> generation);
     void runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual);
+
+    void setSubstrateObjectValues(VisualProcessor& visProc,
+                                  NEAT::LayeredSubstrate<float>* substrate);
+    void setSubstrateSelfValue(VisualProcessor& visProc,
+                                  NEAT::LayeredSubstrate<float>* substrate);
+    Action selectAction(VisualProcessor& visProc,
+                                  NEAT::LayeredSubstrate<float>* substrate);
+
     double gauss2D(double x, double y, double A, double mu_x, double mu_y, double sigma_x,
                    double sigma_y);
-    void populateSubstrate(shared_ptr<NEAT::GeneticIndividual> individual);
+    void populateSubstrate(shared_ptr<NEAT::GeneticIndividual> individual, int substrateNum=0);
     virtual void processIndividualPostHoc(shared_ptr<NEAT::GeneticIndividual> individual);
     void preprocessIndividual(shared_ptr<NEAT::GeneticGeneration> generation,
                               shared_ptr<NEAT::GeneticIndividual> individual);

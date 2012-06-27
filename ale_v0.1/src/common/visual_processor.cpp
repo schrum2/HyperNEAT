@@ -938,6 +938,10 @@ point VisualProcessor::get_self_centroid() {
     return composite_objs[self_id].get_centroid();
 };
 
+bool VisualProcessor::found_self() {
+    return composite_objs.find(self_id) != composite_objs.end();
+}
+
 // Merges together objects into classes of objects
 void VisualProcessor::merge_objects(float similarity_threshold) {
     set<long> checked_objs; // Objects found to match a prototype

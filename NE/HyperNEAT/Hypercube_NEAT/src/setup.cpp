@@ -5,6 +5,7 @@
 # include "HCUBE_MainApp.h"
 #endif
 
+#include "Experiments/HCUBE_AtariExperiment.h"
 #include "HCUBE_ExperimentRun.h"
 
 #ifndef HCUBE_NOGUI
@@ -22,23 +23,34 @@ int HyperNEAT_main(int argc,char **argv) {
  
   CommandLineParser commandLineParser(argc,argv);
 
-  if (commandLineParser.HasSwitch("-I") &&
-      commandLineParser.HasSwitch("-O")) {
+  // Quit if we don't have I/O/G
+  if (!commandLineParser.HasSwitch("-I") ||
+      !commandLineParser.HasSwitch("-O") ||
+      !commandLineParser.HasSwitch("-G")) {
+    cout << "[HyperNEAT core] Syntax for passing command-line options to HyperNEAT (do not actually type '(' or ')' ):\n";
+    cout << "[HyperNEAT core] ./atari_generate [-R (seed)] -I (datafile) -O (outputfile) -G (ROMFile) [-P (populationfile) -F (fitnessprefix) -E (evaluationFile)]\n";
+    cout << "[HyperNEAT core] \t(datafile) experiment data file - typically data/AtariExperiment.dat\n";
+    cout << "                 \t(outputfile) the next generation file containging all the individual in xml.gz format(also refers to initial file produced for generation 0) - typically generationXX.xml\n";
+    cout << "                 \t(populationfile) the current generation file (required when outputfile is > generation0) - typically generationXX(-1).xml.gz\n";
+    cout << "                 \t(fitnessprefix) used to locate the fitness files for individuals in the current generation (required for generation > 0) - typically fitness.XX.\n";
+    cout << "                 \t(evaluationfile) populationfile + fitness + speciation (output only - not required for next cycle) - typicall generationXX(-1).eval.xml\n";
+    return retval;
+  }
 
-    NEAT::Globals::init(commandLineParser.GetSafeArgument("-I",0,"input.dat"));
+  NEAT::Globals::init(commandLineParser.GetSafeArgument("-I",0,"input.dat"));
 
-    // Has the user specified a random seed?
-    if (commandLineParser.HasSwitch("-R")) {
+  // Has the user specified a random seed?
+  if (commandLineParser.HasSwitch("-R")) {
       NEAT::Globals::getSingleton()->seedRandom(stringTo<unsigned int>(commandLineParser.GetSafeArgument("-R",0,"0")));
-    }
+  }
 
-    int experimentType = int(NEAT::Globals::getSingleton()->getParameterValue("ExperimentType") + 0.001);
-    HCUBE::ExperimentRun experimentRun;
+  int experimentType = int(NEAT::Globals::getSingleton()->getParameterValue("ExperimentType") + 0.001);
+  HCUBE::ExperimentRun experimentRun;
 
-    // Is this an experiment in progress? If so we should load the current experiment
-    if (commandLineParser.HasSwitch("-P") &&
-        commandLineParser.HasSwitch("-F") &&
-        commandLineParser.HasSwitch("-E")) {
+  // Is this an experiment in progress? If so we should load the current experiment
+  if (commandLineParser.HasSwitch("-P") &&
+      commandLineParser.HasSwitch("-F") &&
+      commandLineParser.HasSwitch("-E")) {
       string populationFile = commandLineParser.GetSafeArgument("-P",0,"population.xml");
       string fitnessFunctionPrefix = commandLineParser.GetSafeArgument("-F",0,"fitness.0.");
       string evaluationFile = commandLineParser.GetSafeArgument("-E",0,"evaluation.xml");
@@ -46,24 +58,17 @@ int HyperNEAT_main(int argc,char **argv) {
 
       experimentRun.setupExperimentInProgress(populationFile,commandLineParser.GetSafeArgument("-O",0,"output.xml"));
       experimentRun.createPopulationFromCondorRun(populationFile, fitnessFunctionPrefix, evaluationFile);
-    } else {
-      cout << "[HyperNEAT core] Population for first generation created\n";
-
-      experimentRun.setupExperiment(experimentType, commandLineParser.GetSafeArgument("-O",0,"output.xml"));
-      experimentRun.createPopulation();
-    }
-    experimentRun.setCleanup(true);
-    experimentRun.startCondor();
-
   } else {
-    cout << "[HyperNEAT core] Syntax for passing command-line options to HyperNEAT (do not actually type '(' or ')' ):\n";
-    cout << "[HyperNEAT core] ./atari_generate [-R (seed)] -I (datafile) -O (outputfile) [-P (populationfile) -F (fitnessprefix) -E (evaluationFile)]\n";
-    cout << "[HyperNEAT core] \t(datafile) experiment data file - typically data/AtariExperiment.dat\n";
-    cout << "                 \t(outputfile) the next generation file containging all the individual in xml.gz format(also refers to initial file produced for generation 0) - typically generationXX.xml\n";
-    cout << "                 \t(populationfile) the current generation file (required when outputfile is > generation0) - typically generationXX(-1).xml.gz\n";
-    cout << "                 \t(fitnessprefix) used to locate the fitness files for individuals in the current generation (required for generation > 0) - typically fitness.XX.\n";
-    cout << "                 \t(evaluationfile) populationfile + fitness + speciation (output only - not required for next cycle) - typicall generationXX(-1).eval.xml\n";
+      cout << "[HyperNEAT core] Population for first generation created\n";
+      experimentRun.setupExperiment(experimentType, commandLineParser.GetSafeArgument("-O",0,"output.xml"));
+      string rom_file = commandLineParser.GetSafeArgument("-G",0,"../ale_v0.1/roms/asterix.bin");
+      boost::shared_ptr<HCUBE::AtariExperiment> exp = boost::static_pointer_cast<HCUBE::AtariExperiment>(experimentRun.getExperiment());
+      exp->initializeExperiment(rom_file.c_str());
+
+      experimentRun.createPopulation();
   }
+  experimentRun.setCleanup(true);
+  experimentRun.startCondor();
 
   NEAT::Globals::deinit();
   

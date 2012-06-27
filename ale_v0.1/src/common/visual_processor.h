@@ -245,6 +245,9 @@ class VisualProcessor : public SDLEventHandler {
     // Assumes identify self has already been called.
     point get_self_centroid();
 
+    // Returns true if a self object has been located.
+    bool found_self();
+
     void handleSDLEvent(const SDL_Event& event);
 
     void printVelHistory(CompositeObject& obj);
