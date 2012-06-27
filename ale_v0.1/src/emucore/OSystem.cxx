@@ -450,16 +450,17 @@ void OSystem::deleteConsole()
   #ifdef CHEATCODE_SUPPORT
 	myCheatManager->saveCheats(myConsole->properties().get(Cartridge_MD5));
   #endif
-	if(mySettings->getBool("showinfo"))
-	{
-	  double executionTime   = (double) myTimingInfo.totalTime / 1000000.0;
-	  double framesPerSecond = (double) myTimingInfo.totalFrames / executionTime;
-	  cout << "Game console stats:" << endl
-		   << "  Total frames drawn: " << myTimingInfo.totalFrames << endl
-		   << "  Total time (sec):   " << executionTime << endl
-		   << "  Frames per second:  " << framesPerSecond << endl
-		   << endl;
-	}
+        // HACK: Was Segfaulting on the next line with a bad settings array...
+	// if(mySettings->getBool("showinfo"))
+	// {
+	//   double executionTime   = (double) myTimingInfo.totalTime / 1000000.0;
+	//   double framesPerSecond = (double) myTimingInfo.totalFrames / executionTime;
+	//   cout << "Game console stats:" << endl
+	// 	   << "  Total frames drawn: " << myTimingInfo.totalFrames << endl
+	// 	   << "  Total time (sec):   " << executionTime << endl
+	// 	   << "  Frames per second:  " << framesPerSecond << endl
+	// 	   << endl;
+	// }
 	delete myConsole;  
 	myConsole = NULL;
   }

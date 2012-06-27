@@ -53,7 +53,7 @@ namespace HCUBE
             cerr << "Ale had problem loading rom..." << endl;
             exit(-1);
         }
-        int numActions = ale.allowed_actions->size();
+        numActions = ale.allowed_actions->size();
 
         layerInfo.layerSizes.push_back(Vector2<int>(substrate_width,substrate_height));
         layerInfo.layerIsInput.push_back(true);
@@ -149,6 +149,9 @@ namespace HCUBE
     void AtariExperiment::runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual) {
         NEAT::LayeredSubstrate<float>* substrate = &substrates[currentSubstrateIndex];
 
+        // Reset the game
+        ale.reset_game();
+        
         // Computes high level visual representation of the screen
         VisualProcessor visProc(ale.theOSystem, ale.game_settings);
         
@@ -182,8 +185,6 @@ namespace HCUBE
             // cin.get();
 
             substrate->getNetwork()->update();
-            float output = substrate->getValue((Node(0,0,2)));
-            cout << "Output from last layer node: " << output << endl;
 
             // Choose which action to take
             Action action = selectAction(visProc, substrate);
@@ -252,39 +253,55 @@ namespace HCUBE
 
     Action AtariExperiment::selectAction(VisualProcessor& visProc,
                                   NEAT::LayeredSubstrate<float>* substrate) {
-        // If no self detected, take a random action.
-        if (!visProc.found_self()) {
-            //printf("Unable to detect the self. Taking random action.\n");
-            return (*ale.allowed_actions)[rand() % ale.allowed_actions->size()];
-        }
-
-        point self_centroid = visProc.get_self_centroid();
-        int self_x = self_centroid.x * substrate_width / visProc.screen_width;
-        int self_y = self_centroid.y * substrate_height / visProc.screen_height;
-
-        // Choose which action to take
-        float noop_val = substrate->getValue((Node(self_x,self_y,1)));
-        float up_val   = (self_y <= 0) ? noop_val : substrate->getValue((Node(self_x,self_y-1,1)));
-        float down_val = (self_y >= substrate_height-1) ? noop_val : substrate->getValue((Node(self_x,self_y+1,1)));
-        float left_val = -1e37;//(self_x <= 0) ? noop_val : substrate->getValue((Node(self_x-1,self_y,1)));
-        float right_val= -1e37;//(self_x >= substrate_width-1) ? noop_val : substrate->getValue((Node(self_x+1,self_y,1)));
-
-        Action actionIds[] = {PLAYER_A_NOOP,PLAYER_A_UP,PLAYER_A_DOWN,PLAYER_A_LEFT,
-                              PLAYER_A_RIGHT};
-
-        float action_vals[] = {noop_val,up_val,down_val,left_val,right_val};
-          
-        int max_id = 0; // all games should have noop
-        float max_val = action_vals[0];
-        int size = sizeof(actionIds) / sizeof(Action);
-        for (int i=1; i < size; i++) {
-            if (action_vals[i] > max_val && 
-                std::find(ale.allowed_actions->begin(), ale.allowed_actions->end(), actionIds[i]) != ale.allowed_actions->end()) {
-                max_val = action_vals[i];
-                max_id = i;
+        vector<int> max_inds;
+        float max_val = -1e37;
+        for (int i=0; i < numActions; i++) {
+            float output = substrate->getValue(Node(i,0,2));
+            if (output == max_val)
+                max_inds.push_back(i);
+            else if (output > max_val) {
+                max_inds.clear();
+                max_inds.push_back(i);
+                max_val = output;
             }
         }
-        return actionIds[max_id];
+        int action_indx = max_inds[rand() % max_inds.size()];
+        return (*ale.allowed_actions)[action_indx];
+
+
+        // // If no self detected, take a random action.
+        // if (!visProc.found_self()) {
+        //     //printf("Unable to detect the self. Taking random action.\n");
+        //     return (*ale.allowed_actions)[rand() % ale.allowed_actions->size()];
+        // }
+
+        // point self_centroid = visProc.get_self_centroid();
+        // int self_x = self_centroid.x * substrate_width / visProc.screen_width;
+        // int self_y = self_centroid.y * substrate_height / visProc.screen_height;
+
+        // // Choose which action to take
+        // float noop_val = substrate->getValue((Node(self_x,self_y,1)));
+        // float up_val   = (self_y <= 0) ? noop_val : substrate->getValue((Node(self_x,self_y-1,1)));
+        // float down_val = (self_y >= substrate_height-1) ? noop_val : substrate->getValue((Node(self_x,self_y+1,1)));
+        // float left_val = -1e37;//(self_x <= 0) ? noop_val : substrate->getValue((Node(self_x-1,self_y,1)));
+        // float right_val= -1e37;//(self_x >= substrate_width-1) ? noop_val : substrate->getValue((Node(self_x+1,self_y,1)));
+
+        // Action actionIds[] = {PLAYER_A_NOOP,PLAYER_A_UP,PLAYER_A_DOWN,PLAYER_A_LEFT,
+        //                       PLAYER_A_RIGHT};
+
+        // float action_vals[] = {noop_val,up_val,down_val,left_val,right_val};
+          
+        // int max_id = 0; // all games should have noop
+        // float max_val = action_vals[0];
+        // int size = sizeof(actionIds) / sizeof(Action);
+        // for (int i=1; i < size; i++) {
+        //     if (action_vals[i] > max_val && 
+        //         std::find(ale.allowed_actions->begin(), ale.allowed_actions->end(), actionIds[i]) != ale.allowed_actions->end()) {
+        //         max_val = action_vals[i];
+        //         max_id = i;
+        //     }
+        // }
+        // return actionIds[max_id];
     }
 
     double AtariExperiment::gauss2D(double x, double y, double A, double mu_x, double mu_y,

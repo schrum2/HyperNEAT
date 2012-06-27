@@ -17,6 +17,8 @@ namespace HCUBE
     string rom_file;
     bool display_active;
 
+    int numActions;
+
   public:
     NEAT::LayeredSubstrate<float> substrates[2];
     int currentSubstrateIndex;
