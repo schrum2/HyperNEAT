@@ -3,6 +3,7 @@
 #include "Experiments/HCUBE_AtariExperiment.h"
 #include <boost/foreach.hpp>
 #include "common/visual_processor.h"
+#include "common/random_tools.h"
 
 using namespace NEAT;
 
@@ -73,7 +74,7 @@ namespace HCUBE
         layerInfo.layerAdjacencyList.push_back(std::pair<string,string>("Input","Processing"));
         layerInfo.layerAdjacencyList.push_back(std::pair<string,string>("Processing","Output"));
 
-        layerInfo.normalize = false;
+        layerInfo.normalize = true;
         layerInfo.useOldOutputNames = true;
         layerInfo.layerValidSizes = layerInfo.layerSizes;
 
@@ -166,25 +167,13 @@ namespace HCUBE
             setSubstrateObjectValues(visProc, substrate);
 
             // Set substrate value for self
-            setSubstrateSelfValue(visProc, substrate);
+            //setSubstrateSelfValue(visProc, substrate);
 
-            // for (int y=0; y<substrate_height; ++y) {
-            //     for (int x=0; x<substrate_width; ++x) {
-            //         float val = substrate->getValue(Node(x,y,0));
-            //         printf("%1.1f ",val);
-            //         // if (val == 0)
-            //         //     printf(". ");
-            //         // else if (val > 0)
-            //         //     printf("%1.0f ",val);
-            //         // else
-            //         //     printf("X ");
-            //     }
-            //     printf("\n");
-            // }
-            // printf("\n");
-            // cin.get();
-
+            // Propagate values through the ANN
             substrate->getNetwork()->update();
+
+            // Print the Activations of the different layers
+            //printLayerInfo(substrate);
 
             // Choose which action to take
             Action action = selectAction(visProc, substrate);
@@ -233,6 +222,28 @@ namespace HCUBE
         }
     }
 
+    void AtariExperiment::printLayerInfo(NEAT::LayeredSubstrate<float>* substrate) {
+        for (int i=0; i<layerInfo.layerNames.size(); i++) {
+            string layerName = layerInfo.layerNames[i];
+            JGTL::Vector2<int> layerSize = layerInfo.layerSizes[i];
+            JGTL::Vector2<int> layerValidSize = layerInfo.layerValidSizes[i];
+            bool isInput = layerInfo.layerIsInput[i];
+            printf("Layer%d Name:%s Size:<%d,%d> ValidSize:<%d,%d> Input:%d\n",i,layerName.c_str(),
+                   layerSize.x,layerSize.y,layerValidSize.x,layerValidSize.y,isInput);
+                
+            for (int y=0; y<layerSize.y; ++y) {
+                for (int x=0; x<layerSize.x; ++x) {
+                    float val = substrate->getValue(Node(x,y,i));
+                    printf("%1.1f ",val);
+                }
+                printf("\n");
+            }
+            printf("\n");
+        }
+        cin.get();
+    }
+
+
     void AtariExperiment::setSubstrateSelfValue(VisualProcessor& visProc,
                                                 NEAT::LayeredSubstrate<float>* substrate) {
         if (!visProc.found_self())
@@ -265,7 +276,7 @@ namespace HCUBE
                 max_val = output;
             }
         }
-        int action_indx = max_inds[rand() % max_inds.size()];
+        int action_indx = choice(&max_inds);
         return (*ale.allowed_actions)[action_indx];
 
 
