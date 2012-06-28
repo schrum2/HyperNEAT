@@ -33,7 +33,7 @@ namespace HCUBE
     virtual NEAT::GeneticPopulation* createInitialPopulation(int populationSize);
     virtual void processGroup(shared_ptr<NEAT::GeneticGeneration> generation);
     void runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual);
-
+    void printLayerInfo(NEAT::LayeredSubstrate<float>* substrate);
     void setSubstrateObjectValues(VisualProcessor& visProc,
                                   NEAT::LayeredSubstrate<float>* substrate);
     void setSubstrateSelfValue(VisualProcessor& visProc,

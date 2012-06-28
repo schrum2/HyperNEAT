@@ -23,10 +23,10 @@ int HyperNEAT_main(int argc,char **argv) {
  
   CommandLineParser commandLineParser(argc,argv);
 
-#ifndef HCUBE_NOGUI
-  cout << "Starting wxEntry...\n";
-  retval = wxEntry(argc, argv);
-#endif
+// #ifndef HCUBE_NOGUI
+//   cout << "Starting wxEntry...\n";
+//   retval = wxEntry(argc, argv);
+// #endif
 
   if (commandLineParser.HasSwitch("-I") &&  // Experiment params
       commandLineParser.HasSwitch("-P") &&  // Population file
@@ -56,7 +56,6 @@ int HyperNEAT_main(int argc,char **argv) {
     exp->setDisplayScreen(true);
     exp->initializeExperiment(rom_file.c_str());
     float fitness = experimentRun.evaluateIndividual(individualId);
-
     cout << "[HyperNEAT core] Fitness found to be " << fitness << endl;
 
   } else {
