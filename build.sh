@@ -12,5 +12,9 @@ mkdir -p build && mkdir -p build/release && cd build/release && cmake -i ../../ 
 cd Board
 mkdir -p build && mkdir -p build/release && cd build/release && cmake -i ../../ && make && cd ../../../
 
+cd ale_v0.1
+make && cd ..
+
 cd NE/HyperNEAT/
 mkdir -p build && mkdir -p build/release && cd build/release && cmake -i ../../ && make && cd ../../../
+
