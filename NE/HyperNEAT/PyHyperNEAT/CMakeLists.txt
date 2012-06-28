@@ -138,6 +138,7 @@ LINK_DIRECTORIES(
 	${PYTHON_LIB}
 	${LIBRARY_OUTPUT_PATH}
 	${FUEGO_LIB}
+        ${ALE_LIB}
 	${BOARD_LIB}
 	${OPENCL_LIB}
 )
@@ -220,10 +221,10 @@ Hypercube_NEAT_Base
 	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_RELEASE}
 
     debug
-    ${BOOST_LIB_PREFIX_NAME}boost_python-${BOOST_LIB_EXT_NAME_DEBUG}-py26
+    ${BOOST_LIB_PREFIX_NAME}boost_python-${BOOST_LIB_EXT_NAME_DEBUG}-py27
 
     optimized
-    ${BOOST_LIB_PREFIX_NAME}boost_python-${BOOST_LIB_EXT_NAME_RELEASE}-py26
+    ${BOOST_LIB_PREFIX_NAME}boost_python-${BOOST_LIB_EXT_NAME_RELEASE}-py27
 
     debug
     ${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_DEBUG}
@@ -369,7 +370,15 @@ ELSE(WIN32)
 		PyHyperNEAT
 	
 		general
-		python2.6
+		python2.7
+
+                ale
+	        SDL
+	        SDL_gfx
+	        SDL_image
+	        boost_thread-mt
+	        boost_serialization
+	        ncurses
 		)
 	ENDIF(APPLE)
 ENDIF(WIN32)

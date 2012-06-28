@@ -82,7 +82,7 @@ cmake_minimum_required(VERSION 2.6)
 
 SET(
 	BUILD_PYTHON
-	OFF 
+	ON
 	CACHE 
 	BOOL
 	"Build the python extension?"

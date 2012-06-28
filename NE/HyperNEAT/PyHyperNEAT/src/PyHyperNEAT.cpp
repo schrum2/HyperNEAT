@@ -7,8 +7,8 @@
 
 #include "Experiments/HCUBE_CheckersExperiment.h"
 
-#include "SgInit.h"
-#include "GoInit.h"
+// #include "SgInit.h"
+// #include "GoInit.h"
 
 using namespace NEAT;
 
@@ -50,8 +50,8 @@ void initializeHyperNEAT()
 {
     char str[1024];
     initcake(str);
-    SgInit();
-    GoInit();
+    // SgInit();
+    // GoInit();
 }
 
 void cleanupHyperNEAT()

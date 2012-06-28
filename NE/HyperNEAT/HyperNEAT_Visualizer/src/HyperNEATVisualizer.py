@@ -5,7 +5,7 @@ from SubstrateRenderer import *
 #populationFileName = "C:/Programming/NE/HyperNEAT/out/Results/GoNoScaling1000Gens/testGoNoScaling_T2610_Euler_Run$RUN_NUMBER$.xm_best.xml.gz"
 
 #populationFileName = "C:/Programming/NE/HyperNEAT/out/Results/GoNoScaling_T2718/testGoNoScaling_T2718_Hilbert_Run$RUN_NUMBER$.xml.backup.xml.gz"
-populationFileName = "../../out/Results/GoScalingBasic_T2718/GoScalingBasic_T2718_Euler_Run$RUN_NUMBER$.xml.backup.xml.gz"
+populationFileName = "../../out/results/generation$RUN_NUMBER$.xml.gz"
 
 outputDirName = "../../out/images"
 #outputDirName = "/Users/pawn/Programming/NE/HyperNEAT/out/images"
@@ -32,7 +32,7 @@ class HyperNEATVisualizer(object):
         self.mousePos = (0,0)
         self.currentGeneration = 0
         self.currentIndividual = 0
-        self.currentRun = 1
+        self.currentRun = 0
     
     # A general OpenGL initialization function.  Sets all of the initial parameters. 
     def InitGL(self,Width, Height):                # We call this right after our OpenGL window is created.
