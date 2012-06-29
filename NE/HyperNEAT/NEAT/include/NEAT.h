@@ -5,6 +5,7 @@
 #include "NEAT_Random.h"
 #include "NEAT_Network.h"
 #include "NEAT_ModularNetwork.h"
+#include "NEAT_FastLayeredNetwork.h"
 #include "NEAT_FastNetwork.h"
 #include "NEAT_FastBiasNetwork.h"
 #include "NEAT_LayeredSubstrate.h"

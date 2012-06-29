@@ -216,41 +216,47 @@ int Py_getExperimentType()
 BOOST_PYTHON_MODULE(PyHyperNEAT)
 {
     python::class_<NEAT::GeneticPopulation, shared_ptr<NEAT::GeneticPopulation> >("GeneticPopulation",python::init<>())
-		.def("getIndividual", &NEAT::GeneticPopulation::getIndividual)
-		.def("getGenerationCount", &NEAT::GeneticPopulation::getGenerationCount)
-		.def("getIndividualCount", &NEAT::GeneticPopulation::getIndividualCount)
+        .def("getIndividual", &NEAT::GeneticPopulation::getIndividual)
+        .def("getGenerationCount", &NEAT::GeneticPopulation::getGenerationCount)
+        .def("getIndividualCount", &NEAT::GeneticPopulation::getIndividualCount)
 	;
-	python::class_<NEAT::GeneticIndividual, shared_ptr<NEAT::GeneticIndividual>, boost::noncopyable >("GeneticIndividual", python::no_init)
+    python::class_<NEAT::GeneticIndividual, shared_ptr<NEAT::GeneticIndividual>, boost::noncopyable >("GeneticIndividual", python::no_init)
 	;
     python::class_<NEAT::FastNetwork<float> , shared_ptr<NEAT::FastNetwork<float> > >("FastNetwork",python::init<>())
-		.def("reinitialize", &NEAT::FastNetwork<float>::reinitialize)
-		.def("update", &NEAT::FastNetwork<float>::update)
-		.def("updateFixedIterations", &NEAT::FastNetwork<float>::updateFixedIterations)
-		.def("getValue", &NEAT::FastNetwork<float>::getValue)
-		.def("hasLink", &NEAT::FastNetwork<float>::hasLink)
-		.def("getLinkWeight", &NEAT::FastNetwork<float>::getLinkWeight)
-    ;
-	python::class_<NEAT::LayeredSubstrate<float> , shared_ptr<NEAT::LayeredSubstrate<float> > >("LayeredSubstrate",python::init<>())
-		.def("populateSubstrate", &NEAT::LayeredSubstrate<float>::populateSubstrate)
-	    .def("setLayerInfo", &Py_setLayerInfo)
-	    .def("setLayerInfoFromCurrentExperiment", &Py_setLayerInfoFromCurrentExperiment)
-		.def("getNetwork", &NEAT::LayeredSubstrate<float>::getNetwork, python::return_value_policy<python::reference_existing_object>())
-		.def("getNumLayers", &NEAT::LayeredSubstrate<float>::getNumLayers)
-		.def("setValue", &NEAT::LayeredSubstrate<float>::setValue)
-		.def("getLayerSize", &Py_getLayerSize)
-		.def("getLayerLocation", &Py_getLayerLocation)
-		.def("getWeightRGB", &NEAT::LayeredSubstrate<float>::getWeightRGB)
-		.def("getActivationRGB", &NEAT::LayeredSubstrate<float>::getActivationRGB)
-		.def("dumpWeightsFrom", &NEAT::LayeredSubstrate<float>::dumpWeightsFrom)
-		.def("dumpActivationLevels", &NEAT::LayeredSubstrate<float>::dumpActivationLevels)
+        .def("reinitialize", &NEAT::FastNetwork<float>::reinitialize)
+        .def("update", &NEAT::FastNetwork<float>::update)
+        .def("updateFixedIterations", &NEAT::FastNetwork<float>::updateFixedIterations)
+        .def("getValue", &NEAT::FastNetwork<float>::getValue)
+        .def("hasLink", &NEAT::FastNetwork<float>::hasLink)
+        .def("getLinkWeight", &NEAT::FastNetwork<float>::getLinkWeight)
+        ;
+    python::class_<NEAT::FastLayeredNetwork<float> , shared_ptr<NEAT::FastLayeredNetwork<float> > >("FastLayeredNetwork",python::init<>())
+        .def("reinitialize", &NEAT::FastLayeredNetwork<float>::reinitialize)
+        .def("update", &NEAT::FastLayeredNetwork<float>::update)
+        .def("getValue", &NEAT::FastLayeredNetwork<float>::getValue)
+        .def("getLink", &NEAT::FastLayeredNetwork<float>::getLink)
+        ;
+    python::class_<NEAT::LayeredSubstrate<float> , shared_ptr<NEAT::LayeredSubstrate<float> > >("LayeredSubstrate",python::init<>())
+        .def("populateSubstrate", &NEAT::LayeredSubstrate<float>::populateSubstrate)
+        .def("setLayerInfo", &Py_setLayerInfo)
+        .def("setLayerInfoFromCurrentExperiment", &Py_setLayerInfoFromCurrentExperiment)
+        .def("getNetwork", &NEAT::LayeredSubstrate<float>::getNetwork, python::return_value_policy<python::reference_existing_object>())
+        .def("getNumLayers", &NEAT::LayeredSubstrate<float>::getNumLayers)
+        .def("setValue", &NEAT::LayeredSubstrate<float>::setValue)
+        .def("getLayerSize", &Py_getLayerSize)
+        .def("getLayerLocation", &Py_getLayerLocation)
+        .def("getWeightRGB", &NEAT::LayeredSubstrate<float>::getWeightRGB)
+        .def("getActivationRGB", &NEAT::LayeredSubstrate<float>::getActivationRGB)
+        .def("dumpWeightsFrom", &NEAT::LayeredSubstrate<float>::dumpWeightsFrom)
+        .def("dumpActivationLevels", &NEAT::LayeredSubstrate<float>::dumpActivationLevels)
 	;
-	python::class_<Vector3<int> >("NEAT_Vector3",python::init<>())
-		.def(python::init<int,int,int>())
+    python::class_<Vector3<int> >("NEAT_Vector3",python::init<>())
+        .def(python::init<int,int,int>())
 	;
-	python::def("loadFromPopulation", loadFromPopulation, python::return_value_policy<python::manage_new_object>());
+    python::def("loadFromPopulation", loadFromPopulation, python::return_value_policy<python::manage_new_object>());
     python::def("initializeHyperNEAT", initializeHyperNEAT);
-	python::def("cleanupHyperNEAT", cleanupHyperNEAT);
-	python::def("tupleToVector3Int", tupleToVector3Int, python::return_value_policy<python::return_by_value>());
+    python::def("cleanupHyperNEAT", cleanupHyperNEAT);
+    python::def("tupleToVector3Int", tupleToVector3Int, python::return_value_policy<python::return_by_value>());
 
     python::def("setupExperiment", Py_setupExperiment);
 

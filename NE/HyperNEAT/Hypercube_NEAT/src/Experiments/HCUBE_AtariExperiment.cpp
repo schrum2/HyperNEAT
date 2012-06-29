@@ -34,6 +34,8 @@ namespace HCUBE
         // substrate = NEAT::LayeredSubstrate<float>();
         // substrate.setLayerInfo(layerInfo);
 
+        // This can be re-initialized if necessary
+        initializeExperiment("/home/matthew/projects/HyperNEAT/ale_v0.1/roms/asterix.bin");
     }
 
     void AtariExperiment::initializeExperiment(string _rom_file) {
@@ -55,6 +57,14 @@ namespace HCUBE
             exit(-1);
         }
         numActions = ale.allowed_actions->size();
+
+        // Clear old layerinfo if present
+        layerInfo.layerNames.clear();
+        layerInfo.layerSizes.clear();
+        layerInfo.layerValidSizes.clear();
+        layerInfo.layerAdjacencyList.clear();
+        layerInfo.layerIsInput.clear();
+        layerInfo.layerLocations.clear();
 
         layerInfo.layerSizes.push_back(Vector2<int>(substrate_width,substrate_height));
         layerInfo.layerIsInput.push_back(true);

@@ -62,7 +62,7 @@ ENDIF(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 
 SET(
 	USE_GUI 
-	OFF
+	ON
 	CACHE 
 	BOOL
 	"Should we add support for WxWidgets?"

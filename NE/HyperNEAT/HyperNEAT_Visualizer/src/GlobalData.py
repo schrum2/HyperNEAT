@@ -10,7 +10,7 @@ OS_TYPE_OSX = 2;
 #4 = Windows
 OS_TYPE_WINDOWS = 3;
 
-is64bit = False
+is64bit = True
 
 osType = 0;
 

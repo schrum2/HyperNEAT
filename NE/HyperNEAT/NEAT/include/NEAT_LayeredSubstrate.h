@@ -15,25 +15,25 @@ namespace NEAT
     class LayeredSubstrateInfo
     {
     public:
-		vector< string > layerNames;
-		vector< JGTL::Vector2<int> > layerSizes;
-		vector< JGTL::Vector2<int> > layerValidSizes;
-		vector< std::pair<string,string> > layerAdjacencyList;
+        vector< string > layerNames;
+        vector< JGTL::Vector2<int> > layerSizes;
+        vector< JGTL::Vector2<int> > layerValidSizes;
+        vector< std::pair<string,string> > layerAdjacencyList;
         vector< bool > layerIsInput;
-		vector< JGTL::Vector3<float> > layerLocations;
-		bool normalize;
+        vector< JGTL::Vector3<float> > layerLocations;
+        bool normalize;
         bool useOldOutputNames;
         int maxDeltaLength;
         int maxConnectionLength;
 
-        LayeredSubstrateInfo()
-            :
+    LayeredSubstrateInfo()
+        :
         normalize(true),
-        useOldOutputNames(false),
-        maxDeltaLength(1000000),
-        maxConnectionLength(1000000)
-        {
-        }
+            useOldOutputNames(false),
+            maxDeltaLength(1000000),
+            maxConnectionLength(1000000)
+            {
+            }
     };
 
 	template< class NetworkDataType >

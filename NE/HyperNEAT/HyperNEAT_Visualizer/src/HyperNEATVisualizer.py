@@ -311,24 +311,23 @@ class HyperNEATVisualizer(object):
         self.substrateRenderer = SubstrateRenderer(self.substrate,hardcodedInputs)
             
     def initNEAT(self):
-        print "INIT NEAT1"
+        print "Loading Population..."
         self.loadPopulation()
         
-        print "INIT NEAT2"
+        print "Creating Substrate..."
         self.substrate = LayeredSubstrate()
-        
-        print "INIT NEAT3"
-        layerSizes = [(8,8),(8,8),(1,1)]
+        layerSizes = [(16,21),(16,21),(5,1)]
         layerAdjacencyList = [(0,1),(1,2)]
         layerIsInput = [True,False,False]
         layerLocations = [(0,0,0),(0,4,0),(0,8,0)]
         normalize = False
         useOldOutputNames = True
         
+        print "Setting Layer Info From Current Experiment"
         self.substrate.setLayerInfoFromCurrentExperiment()
-        print "INIT NEAT4"
+        print "Loading invidual..."
         self.loadIndividual()
-        print "INIT NEAT5"
+        print "Done with Neat Init."
         
         
     def update(self,value):
