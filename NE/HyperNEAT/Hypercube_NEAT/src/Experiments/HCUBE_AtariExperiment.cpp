@@ -13,27 +13,6 @@ namespace HCUBE
         Experiment(_experimentName,_threadID), rom_file(""),
         display_active(false), currentSubstrateIndex(0)
     {
-
-        // layerInfo = NEAT::LayeredSubstrateInfo();
-        // layerInfo.layerSizes.push_back(Vector2<int>(substrate_width,substrate_height));
-        // layerInfo.layerIsInput.push_back(true);
-        // layerInfo.layerLocations.push_back(Vector3<float>(0,0,0));
-        // layerInfo.layerNames.push_back("Input");
-
-        // layerInfo.layerSizes.push_back(Vector2<int>(substrate_width,substrate_height));
-        // layerInfo.layerIsInput.push_back(false);
-        // layerInfo.layerLocations.push_back(Vector3<float>(0,4,0));
-        // layerInfo.layerNames.push_back("Output");
-
-        // layerInfo.layerAdjacencyList.push_back(std::pair<string,string>("Input","Output"));
-
-        // layerInfo.normalize = true;
-        // layerInfo.useOldOutputNames = false;
-        // layerInfo.layerValidSizes = layerInfo.layerSizes;
-
-        // substrate = NEAT::LayeredSubstrate<float>();
-        // substrate.setLayerInfo(layerInfo);
-
         // This can be re-initialized if necessary
         initializeExperiment("/home/matthew/projects/HyperNEAT/ale_v0.1/roms/asterix.bin");
     }
@@ -105,14 +84,6 @@ namespace HCUBE
                                         ACTIVATION_FUNCTION_SIGMOID));
         genes.push_back(GeneticNodeGene("Output_bc","NetworkOutputNode",1,false,
                                         ACTIVATION_FUNCTION_SIGMOID));
-
-
-        // genes.push_back(GeneticNodeGene("Bias","NetworkSensor",0,false));
-        // genes.push_back(GeneticNodeGene("X1","NetworkSensor",0,false));
-        // genes.push_back(GeneticNodeGene("X2","NetworkSensor",0,false));
-        // genes.push_back(GeneticNodeGene("Y1","NetworkSensor",0,false));
-        // genes.push_back(GeneticNodeGene("Y2","NetworkSensor",0,false));
-        // genes.push_back(GeneticNodeGene("Output_Input_Output","NetworkOutputNode",1,false,ACTIVATION_FUNCTION_SIGMOID));
 
         for (int a=0; a<populationSize; a++) {
             shared_ptr<GeneticIndividual> individual(new GeneticIndividual(genes,true,1.0));

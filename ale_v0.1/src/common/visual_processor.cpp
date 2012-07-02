@@ -23,6 +23,8 @@
 #define IMAGE_FILENAME "images"
 #define SELF_IMAGE_PREFIX "selfimage-"
 #define SELF_IMAGE_SUFFIX ".bin"
+#define CLASS_IMAGE_PREFIX "classimage-"
+#define CLASS_IMAGE_SUFFIX ".bin"
 
 swath::swath(int _color, int _x, int _y) {
     color = _color;
@@ -1127,6 +1129,29 @@ void VisualProcessor::importMask(int& width, int& height, vector<char>& mask, co
     }
 };
 
+void VisualProcessor::saveSelection() {
+    if (focus_level != 1 && focus_level != 2) {
+        printf("First select and object or object class by pressing \'w\' or \'e\' and clicking an object.\n");
+        return;
+    }
+
+    if (focus_level == 1) { // Saving a self object
+        assert(composite_objs.find(focused_entity_id) != composite_objs.end());
+        
+    } else if (focus_level == 2) { // Saving an object class
+        // Find the selected prototype
+        int protoIndx = -1;
+        for (int i=0; i<obj_classes.size(); ++i) {
+            if (obj_classes[i].id == focused_entity_id) {
+                protoIndx = i;
+                break;
+            }
+        }
+        assert(protoIndx >= 0);
+        Prototype& proto = obj_classes[protoIndx];
+    }
+}
+
 void VisualProcessor::tagSelfObject() {
     if (focus_level != 1 || composite_objs.find(focused_entity_id) == composite_objs.end()) {
         printf("No object focused. Please press W and click an object and try again.\n");
@@ -1282,7 +1307,8 @@ void VisualProcessor::handleSDLEvent(const SDL_Event& event) {
             display_self = !display_self;
             break;
         case SDLK_s:
-            tagSelfObject();
+            saveSelection();
+            //tagSelfObject();
             break;
         case SDLK_q:
             if (focus_level == 0) {

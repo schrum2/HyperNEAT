@@ -254,6 +254,7 @@ class VisualProcessor : public SDLEventHandler {
 
     // Saves an image of the currently selected object -- this object should be the self
     void tagSelfObject();
+    void saveSelection();
     void loadSelfObject();
     void exportMask(int width, int height, vector<char>& mask, const string& filename);
     void importMask(int& width, int& height, vector<char>& mask, const string& filename);
