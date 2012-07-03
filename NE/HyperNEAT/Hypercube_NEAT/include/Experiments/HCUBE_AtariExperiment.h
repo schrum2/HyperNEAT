@@ -3,6 +3,7 @@
 
 #include "HCUBE_Experiment.h"
 #include "ale_interface.hpp"
+#include "common/visual_processor.h"
 
 namespace HCUBE
 {
@@ -14,6 +15,7 @@ namespace HCUBE
     IntVect ram_content;
     
     ALEInterface ale;
+    VisualProcessor* visProc;
     string rom_file;
     bool display_active;
 
@@ -28,7 +30,7 @@ namespace HCUBE
     void initializeExperiment(string rom_file);
 
     AtariExperiment(string _experimentName,int _threadID);
-    virtual ~AtariExperiment() {}
+    virtual ~AtariExperiment() { if (visProc) delete visProc; }
 
     virtual NEAT::GeneticPopulation* createInitialPopulation(int populationSize);
     virtual void processGroup(shared_ptr<NEAT::GeneticGeneration> generation);

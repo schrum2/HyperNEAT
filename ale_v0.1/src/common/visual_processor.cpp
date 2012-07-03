@@ -400,7 +400,6 @@ void VisualProcessor::process_image(const IntMatrix* screen_matrix, Action actio
         for (int i=0; i<manual_obj_classes.size(); ++i) {
             manual_obj_classes[i].obj_ids.clear();
         }
-        
         for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); it++) {
             CompositeObject& obj = it->second;
             // Try to assign this object to one of the object classes

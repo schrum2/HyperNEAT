@@ -52,7 +52,7 @@ void DisplayScreen::display_png(const string& filename) {
     poll(); // Check for quit event
 }
 
-void DisplayScreen::display_screen(const IntMatrix& screen_matrix, int image_widht, int image_height) {
+void DisplayScreen::display_screen(const IntMatrix& screen_matrix, int image_width, int image_height) {
   Uint32 rmask, gmask, bmask, amask;
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
   rmask = 0xff000000;
@@ -66,17 +66,17 @@ void DisplayScreen::display_screen(const IntMatrix& screen_matrix, int image_wid
   amask = 0xff000000;
 #endif
 
-  SDL_Surface* my_surface = SDL_CreateRGBSurface(SDL_SWSURFACE,image_widht,image_height,32,rmask,gmask,bmask,amask);
+  SDL_Surface* my_surface = SDL_CreateRGBSurface(SDL_SWSURFACE,image_width,image_height,32,rmask,gmask,bmask,amask);
 
   int r, g, b;
   for (int y=0; y<image_height; ++y) {
-    for (int x=0; x<image_widht; ++x) {
+    for (int x=0; x<image_width; ++x) {
       export_screen->get_rgb_from_pallete(screen_matrix[y][x], r, g, b);
       pixelRGBA(my_surface,x,y,r,g,b,255);
     }
   }
 
-  SDL_Surface* zoomed = zoomSurface(my_surface,screen->w/(double)image_widht,screen->h/(double)image_height,0);
+  SDL_Surface* zoomed = zoomSurface(my_surface,screen->w/(double)image_width,screen->h/(double)image_height,0);
   SDL_BlitSurface(zoomed, NULL, screen, NULL);
 
   SDL_Flip(screen);

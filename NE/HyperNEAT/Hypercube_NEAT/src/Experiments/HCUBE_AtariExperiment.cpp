@@ -2,7 +2,6 @@
 
 #include "Experiments/HCUBE_AtariExperiment.h"
 #include <boost/foreach.hpp>
-#include "common/visual_processor.h"
 #include "common/random_tools.h"
 
 using namespace NEAT;
@@ -10,7 +9,7 @@ using namespace NEAT;
 namespace HCUBE
 {
     AtariExperiment::AtariExperiment(string _experimentName,int _threadID):
-        Experiment(_experimentName,_threadID), rom_file(""),
+        Experiment(_experimentName,_threadID), visProc(NULL), rom_file(""),
         display_active(false), currentSubstrateIndex(0)
     {
         // This can be re-initialized if necessary
@@ -36,6 +35,9 @@ namespace HCUBE
             exit(-1);
         }
         numActions = ale.allowed_actions->size();
+
+        // Load the visual processing framework
+        visProc = new VisualProcessor(ale.theOSystem, ale.game_settings);
 
         // Clear old layerinfo if present
         layerInfo.layerNames.clear();
@@ -134,21 +136,18 @@ namespace HCUBE
         // Reset the game
         ale.reset_game();
         
-        // Computes high level visual representation of the screen
-        VisualProcessor visProc(ale.theOSystem, ale.game_settings);
-        
         while (!ale.game_over()) {
             // Get the object representation
-            visProc.process_image(&ale.screen_matrix, ale.last_action);
+            visProc->process_image(&ale.screen_matrix, ale.last_action);
 
             substrate->getNetwork()->reinitialize(); // Set value of all nodes to zero
             substrate->getNetwork()->dummyActivation();
 
             // Set substrate value for all objects (of a certain size)
-            setSubstrateObjectValues(visProc, substrate);
+            setSubstrateObjectValues(*visProc, substrate);
 
             // Set substrate value for self
-            //setSubstrateSelfValue(visProc, substrate);
+            //setSubstrateSelfValue(*visProc, substrate);
 
             // Propagate values through the ANN
             substrate->getNetwork()->update();
@@ -157,7 +156,7 @@ namespace HCUBE
             //printLayerInfo(substrate);
 
             // Choose which action to take
-            Action action = selectAction(visProc, substrate);
+            Action action = selectAction(*visProc, substrate);
             ale.apply_action(action);
         }
  
@@ -167,12 +166,12 @@ namespace HCUBE
 
     void AtariExperiment::setSubstrateObjectValues(VisualProcessor& visProc,
                                                    NEAT::LayeredSubstrate<float>* substrate) {
-        for (int i=0; i<visProc.obj_classes.size(); i++) {
-            Prototype& proto = visProc.obj_classes[i];
+        for (int i=0; i<visProc.manual_obj_classes.size(); i++) {
+            Prototype& proto = visProc.manual_obj_classes[i];
 
-            if (!proto.is_valid) // not a strong enough prototype yet
-                continue;
-            if (proto.obj_ids.size() == 0) // no obhects on screen
+            // if (!proto.is_valid) // not a strong enough prototype yet
+            //     continue;
+            if (proto.obj_ids.size() == 0) // no objects on screen
                 continue;
 
             // Map object classes to values
@@ -187,7 +186,7 @@ namespace HCUBE
             // Assign values to each of the objects
             for (set<long>::iterator it=proto.obj_ids.begin(); it!=proto.obj_ids.end(); it++) {
                 long obj_id = *it;
-                assert(visProc->composite_objs.find(obj_id) != visProc->composite_objs.end());
+                assert(visProc.composite_objs.find(obj_id) != visProc.composite_objs.end());
                 point obj_centroid = visProc.composite_objs[obj_id].get_centroid();
                 int adj_x = obj_centroid.x * substrate_width / visProc.screen_width;
                 int adj_y = obj_centroid.y * substrate_height / visProc.screen_height;

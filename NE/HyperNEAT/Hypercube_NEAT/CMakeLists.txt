@@ -81,7 +81,7 @@ INCLUDE_REGULAR_EXPRESSION( "^.*([Hh][Cc][Uu][Bb][Ee]|[Nn][Ee][Aa][Tt]|main).*$"
 
 SET(
 	WXWIDGETS_INCLUDE	
-"/usr/include/wx-2.8"
+        "/usr/include/wx-2.8"
 	CACHE
 	PATH 
 	"WxWidgets include directory"
@@ -522,210 +522,48 @@ ENDIF(WIN32)
 TARGET_LINK_LIBRARIES(
 	atari_generate 
 
-	debug
-	Hypercube_NEAT_Base_d
-
-	optimized
 	Hypercube_NEAT_Base
-		
-	debug
-	ClicheLib_d
-		
-	optimized
 	ClicheLib
-
-	debug
-	CakeFixedDepthLib_d
-	
-	optimized
 	CakeFixedDepthLib
-
-	debug
-	NEATLib_d
-
-	optimized
 	NEATLib
-	
-	debug
-	tinyxmlpluslib_d
-
-	optimized
 	tinyxmlpluslib
-
-	debug
-	zlib_d
-	
-	optimized
 	zlib
-
-	debug
-	board_d
-
-	optimized
 	board
-
-	debug
 	ale
-	
-	optimized
-	ale
-
-	debug
-	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_DEBUG}
-
-	optimized
 	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_RELEASE}
-
-	debug
-	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_DEBUG}
-
-	optimized
 	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_RELEASE}
-
-	debug
-	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_DEBUG}
-
-	optimized
 	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_RELEASE}
 )
 
 TARGET_LINK_LIBRARIES(
 	atari_evaluate 
 
-	debug
-	Hypercube_NEAT_Base_d
-
-	optimized
 	Hypercube_NEAT_Base
-		
-	debug
-	ClicheLib_d
-		
-	optimized
 	ClicheLib
-
-	debug
-	CakeFixedDepthLib_d
-	
-	optimized
 	CakeFixedDepthLib
-
-	debug
-	NEATLib_d
-
-	optimized
 	NEATLib
-	
-	debug
-	tinyxmlpluslib_d
-
-	optimized
 	tinyxmlpluslib
-
-	debug
-	zlib_d
-	
-	optimized
 	zlib
-
-	debug
-	board_d
-
-	optimized
 	board
-
-	debug
 	ale
-	
-	optimized
-	ale
-
-	debug
-	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_DEBUG}
-
-	optimized
 	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_RELEASE}
-
-	debug
-	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_DEBUG}
-
-	optimized
 	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_RELEASE}
-
-	debug
-	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_DEBUG}
-
-	optimized
 	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_RELEASE}
 )
 
 TARGET_LINK_LIBRARIES(
 	atari_visualize
 
-	debug
-	Hypercube_NEAT_Base_d
-
-	optimized
 	Hypercube_NEAT_Base
-		
-	debug
-	ClicheLib_d
-		
-	optimized
 	ClicheLib
-
-	debug
-	CakeFixedDepthLib_d
-	
-	optimized
 	CakeFixedDepthLib
-
-	debug
-	NEATLib_d
-
-	optimized
 	NEATLib
-	
-	debug
-	tinyxmlpluslib_d
-
-	optimized
 	tinyxmlpluslib
-
-	debug
-	zlib_d
-	
-	optimized
 	zlib
-
-	debug
-	board_d
-
-	optimized
 	board
-
-	debug
 	ale
-	
-	optimized
-	ale
-
-	debug
-	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_DEBUG}
-
-	optimized
 	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_RELEASE}
-
-	debug
-	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_DEBUG}
-
-	optimized
 	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_RELEASE}
-
-	debug
-	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_DEBUG}
-
-	optimized
 	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_RELEASE}
 )
 

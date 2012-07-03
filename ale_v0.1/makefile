@@ -20,7 +20,7 @@ DEBUG       := 0
 HUNGARIAN   := 0 
 
 CXX := g++
-CXXFLAGS := -fPIC -O3 -Wall -Wno-sign-compare -Wno-multichar -std=c++0x #-Wunused 
+CXXFLAGS := -fPIC -Wall -Wno-sign-compare -Wno-multichar -std=c++0x #-Wunused 
 LD := g++
 INSTALL := install
 MKDIR := mkdir -p
@@ -41,7 +41,9 @@ INCLUDES += -Isrc/emucore -Isrc/emucore/m6502/src -Isrc/emucore/m6502/src/bspf/s
 DEFINES += -DUNIX -DHAS_ALTIVEC -DUSE_NASM -DBSPF_UNIX -DHAVE_INTTYPES -DWINDOWED_SUPPORT -DHAVE_GETTIMEOFDAY -DSNAPSHOT_SUPPORT
 
 ifeq ("$(DEBUG)", "1")
-  CXXFLAGS += -g
+  CXXFLAGS += -g -O0
+else
+  CXXFLAGS += -O3
 endif
 
 # Hungarian alg is used for blob matching. Requires munkres library to be installed.
