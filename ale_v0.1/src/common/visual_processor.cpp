@@ -357,7 +357,8 @@ VisualProcessor::VisualProcessor(OSystem* _osystem, GameSettings* _game_settings
     }
 
     // Load up saved self images
-    loadSelfObject();
+    loadSelfObjects();
+    loadClassObjects();
   
     // Register ourselves as an event handler if a screen is present
     if (p_osystem->p_display_screen)
@@ -379,33 +380,35 @@ void VisualProcessor::process_image(const IntMatrix* screen_matrix, Action actio
         sanitize_objects();
 
         // Merge objects into classes
-        merge_objects(.96);
+        // merge_objects(.96);
 
         // Identify which object we are
         // identify_self();
 
-        // float maxval = -1;
-        // Prototype* best = NULL;
-        // for (int i=0; i<obj_classes.size(); i++) {
-        //     Prototype& p = obj_classes[i];
-        //     if (p.obj_ids.size() >= 1 && p.self_likelihood > maxval) {
-        //         maxval = p.self_likelihood;
-        //         best = &p;
-        //     }
-        // }
-
-        // if (best != NULL && best->obj_ids.size() > 0) {
-        //     set<long>::iterator it = best->obj_ids.begin();
-        //     self_id = *it;
-        //     printf("Proto %d Likelihood %f alpha %f\n",best->id,best->self_likelihood,best->alpha);
-        // }
-
-        // Identify the self based on the list of self objects
+        // Identify the self based on manually loaded self file
         for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); it++) {
             CompositeObject& obj = it->second;
-            for (int i=0; i<self_objects.size(); ++i) {
-                if (self_objects[i].maskEquals(obj)) {
+            for (int i=0; i<manual_self_objects.size(); ++i) {
+                if (manual_self_objects[i].maskEquals(obj)) {
                     self_id = obj.id;
+                    break;
+                }
+            }
+        }
+
+        // Sort objects into classes based on manually identified classes
+        for (int i=0; i<manual_obj_classes.size(); ++i) {
+            manual_obj_classes[i].obj_ids.clear();
+        }
+        
+        for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); it++) {
+            CompositeObject& obj = it->second;
+            // Try to assign this object to one of the object classes
+            for (int i=0; i<manual_obj_classes.size(); ++i) {
+                Prototype& proto = manual_obj_classes[i];
+                if (maskEquals(obj.width, obj.height, obj.mask,
+                               proto.width, proto.height, proto.mask)) {
+                    proto.obj_ids.insert(obj.id);
                     break;
                 }
             }
@@ -1097,9 +1100,10 @@ void VisualProcessor::exportMask(int width, int height, vector<char>& mask, cons
     }
 };
 
-void VisualProcessor::importMask(int& width, int& height, vector<char>& mask, const string& filename) {
+void VisualProcessor::importMask(int& width, int& height, vector<char>& mask, int& size,
+                                 const string& filename) {
     ifstream fin;
-    
+    size = 0;
     try {
         fin.open(filename.c_str(), ios_base::binary);
         if(!fin)
@@ -1118,6 +1122,7 @@ void VisualProcessor::importMask(int& width, int& height, vector<char>& mask, co
             if (fin.eof())
                 break;
             mask.push_back(c);
+            size += count_ones(c);
         }
         
         fin.close();
@@ -1135,9 +1140,18 @@ void VisualProcessor::saveSelection() {
         return;
     }
 
+    string image_prefix, image_suffix;
+    int width, height;
+    vector<char>* p_mask;
+
     if (focus_level == 1) { // Saving a self object
         assert(composite_objs.find(focused_entity_id) != composite_objs.end());
-        
+        CompositeObject& obj = composite_objs[focused_entity_id];
+        obj.computeMask(curr_blobs); // Recompute the object's mask just to be sure
+        width = obj.width; height = obj.height;
+        p_mask = &obj.mask;
+        image_prefix = SELF_IMAGE_PREFIX;
+        image_suffix = SELF_IMAGE_SUFFIX;
     } else if (focus_level == 2) { // Saving an object class
         // Find the selected prototype
         int protoIndx = -1;
@@ -1149,49 +1163,86 @@ void VisualProcessor::saveSelection() {
         }
         assert(protoIndx >= 0);
         Prototype& proto = obj_classes[protoIndx];
+        width = proto.width; height = proto.height;
+        p_mask = &proto.mask;
+        image_prefix = CLASS_IMAGE_PREFIX;
+        image_suffix = CLASS_IMAGE_SUFFIX;
     }
+
+    using namespace boost::filesystem;
+
+    // Take care of the directory creation
+    path p(IMAGE_FILENAME);
+    string rom_name = game_settings->s_rom_file;
+    p /= rom_name;
+    if (!exists(p) || !is_directory(p))
+        create_directories(p);
+
+    // Select which file to write to
+    for (int i=1; ; i++) {
+        string filename = image_prefix + boost::lexical_cast<std::string>(i) + image_suffix;
+        p /= filename;
+        if (exists(p) && is_regular_file(p)) {
+            // Import each previously saved object 
+            int saved_width, saved_height, saved_size;
+            vector<char> saved_mask;
+            importMask(saved_width, saved_height, saved_mask, saved_size, p.string());
+            if (maskEquals(width, height, *p_mask, saved_width, saved_height, saved_mask)) {
+                printf("Matching object was already saved in file %s.\n",p.string().c_str());
+                return;
+            }                
+            p = p.parent_path();
+        }
+        else
+            break;
+    }
+    printf("Exporting selection to %s.\n",p.string().c_str());
+    exportMask(width, height, *p_mask, p.string());
 }
 
-void VisualProcessor::tagSelfObject() {
-    if (focus_level != 1 || composite_objs.find(focused_entity_id) == composite_objs.end()) {
-        printf("No object focused. Please press W and click an object and try again.\n");
-    } else {
-        CompositeObject& obj = composite_objs[focused_entity_id];
-        obj.computeMask(curr_blobs); // Recompute the object's mask just to be sure
+void VisualProcessor::loadClassObjects() {
+    using namespace boost::filesystem;
+    path p(IMAGE_FILENAME);
+    string rom_name = game_settings->s_rom_file;
+    p /= rom_name;
 
-        // Check to make sure we don't alreayd have a self object load which is identical to this object
-        for (int j=0; j<self_objects.size(); ++j) {
-            if (self_objects[j].maskEquals(obj)) {
-                printf("Found matching self object in memory.\n");
-                return;
+    for (int i=1; ; i++) {
+        string filename = CLASS_IMAGE_PREFIX + boost::lexical_cast<std::string>(i) + CLASS_IMAGE_SUFFIX;
+        p /= filename;
+        if (exists(p) && is_regular_file(p)) {
+            CompositeObject obj;
+            importMask(obj.width, obj.height, obj.mask, obj.size, p.string());
+            printf("Loading class-image: %s ...",p.string().c_str());
+            Prototype proto;
+            proto.width = obj.width;
+            proto.height = obj.height;
+            proto.mask = obj.mask;
+            proto.size = obj.size;
+
+            // Check to make sure there isn't a duplicate object class already in memory
+            bool found_match = false;
+            for (int j=0; j<manual_obj_classes.size(); ++j) {
+                Prototype& p = manual_obj_classes[i];
+                if (maskEquals(p.width, p.height, p.mask, proto.width, proto.height, proto.mask)) {
+                    found_match = true;
+                    break;
+                }
             }
-        }
-        self_objects.push_back(obj);
 
-        using namespace boost::filesystem;
+            if (!found_match) {
+                manual_obj_classes.push_back(proto);
+                printf(" successful!\n");
+            } else {
+                printf(" cancelled due to existing duplicate.\n");
+            }
 
-        // Take care of the directory creation
-        path p(IMAGE_FILENAME);
-        string rom_name = game_settings->s_rom_file;
-        p /= rom_name;
-        if (!exists(p) || !is_directory(p))
-            create_directories(p);
-
-        // Select which file to write to
-        for (int i=1; ; i++) {
-            string filename = SELF_IMAGE_PREFIX + boost::lexical_cast<std::string>(i) + SELF_IMAGE_SUFFIX;
-            p /= filename;
-            if (exists(p) && is_regular_file(p))
-                p = p.parent_path();
-            else
-                break;
-        }
-        printf("Exporting self prototype to %s.\n",p.string().c_str());
-        exportMask(obj.width, obj.height, obj.mask, p.string());
+            p = p.parent_path();
+        } else
+            break;
     }
 };
 
-void VisualProcessor::loadSelfObject() {
+void VisualProcessor::loadSelfObjects() {
     using namespace boost::filesystem;
     path p(IMAGE_FILENAME);
     string rom_name = game_settings->s_rom_file;
@@ -1203,20 +1254,24 @@ void VisualProcessor::loadSelfObject() {
         p /= filename;
         if (exists(p) && is_regular_file(p)) {
             CompositeObject obj;
-            importMask(obj.width, obj.height, obj.mask, p.string());
-            printf("Loading self-image: %s\n",p.string().c_str());
+            importMask(obj.width, obj.height, obj.mask, obj.size, p.string());
+            printf("Loading self-image: %s ...",p.string().c_str());
 
             // Check to make sure there isn't a duplicate self object already in memory
             bool found_match = false;
-            for (int j=0; j<self_objects.size(); ++j) {
-                if (self_objects[j].maskEquals(obj)) {
+            for (int j=0; j<manual_self_objects.size(); ++j) {
+                if (manual_self_objects[j].maskEquals(obj)) {
                     found_match = true;
                     break;
                 }
             }
 
-            if (!found_match)
-                self_objects.push_back(obj);
+            if (!found_match) {
+                manual_self_objects.push_back(obj);
+                printf(" successful!\n");
+            } else {
+                printf(" cancelled due to existing duplicate.\n");
+            }
 
             p = p.parent_path();
         } else

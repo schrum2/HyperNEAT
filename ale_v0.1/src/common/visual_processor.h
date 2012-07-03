@@ -31,6 +31,16 @@ static bool get_pixel(int width, int height, int relx, int rely, vector<char>& m
     int indx_in_block = (width * rely + relx) % 8;
     return mask[block] & (1 << (7-indx_in_block));
 };
+
+static bool maskEquals(int m1_width, int m1_height, const vector<char>& mask1,
+                       int m2_width, int m2_height, const vector<char>& mask2) {
+    if (m1_width != m2_width || m1_height != m2_height || mask1.size() != mask2.size())
+        return false;
+    for (int i=0; i<mask1.size(); ++i)
+        if (mask1[i] != mask2[i])
+            return false;
+    return true;
+};
 // End pixel mask operations
 
 // Search a map for a key and returns default value if not found
@@ -194,6 +204,7 @@ struct Prototype {
     bool is_valid;
     float self_likelihood, alpha; // How likely is the prototype to be part of the "self"?
   
+    Prototype() {};
     Prototype(CompositeObject& obj, map<long,Blob>& blob_map);
 
     // How closely does an object resemble this prototype?
@@ -253,11 +264,12 @@ class VisualProcessor : public SDLEventHandler {
     void printVelHistory(CompositeObject& obj);
 
     // Saves an image of the currently selected object -- this object should be the self
-    void tagSelfObject();
     void saveSelection();
-    void loadSelfObject();
+    void loadSelfObjects();
+    void loadClassObjects();
+    
     void exportMask(int width, int height, vector<char>& mask, const string& filename);
-    void importMask(int& width, int& height, vector<char>& mask, const string& filename);
+    void importMask(int& width, int& height, vector<char>& mask, int& size, const string& filename);
 
     OSystem* p_osystem;
     GameSettings* game_settings;
@@ -277,7 +289,8 @@ class VisualProcessor : public SDLEventHandler {
     long self_id; // ID of the object which corresponds to the "self"
 
     // Self objects which are manually identified. These are loaded up from saved files of the game
-    vector<CompositeObject> self_objects; 
+    vector<CompositeObject> manual_self_objects;
+    vector<Prototype> manual_obj_classes;
 
     /** Graphical display stuff **/
     long focused_entity_id; // The focused object is selected by a click
