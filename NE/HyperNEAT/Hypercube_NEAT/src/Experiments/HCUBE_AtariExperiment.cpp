@@ -3,6 +3,7 @@
 #include "Experiments/HCUBE_AtariExperiment.h"
 #include <boost/foreach.hpp>
 #include "common/random_tools.h"
+#include <boost/lexical_cast.hpp>
 
 using namespace NEAT;
 
@@ -10,7 +11,7 @@ namespace HCUBE
 {
     AtariExperiment::AtariExperiment(string _experimentName,int _threadID):
         Experiment(_experimentName,_threadID), visProc(NULL), rom_file(""),
-        display_active(false), currentSubstrateIndex(0)
+        numActions(0), numObjClasses(0), display_active(false), currentSubstrateIndex(0)
     {
         // This can be re-initialized if necessary
         initializeExperiment("/home/matthew/projects/HyperNEAT/ale_v0.1/roms/asterix.bin");
@@ -38,6 +39,7 @@ namespace HCUBE
 
         // Load the visual processing framework
         visProc = new VisualProcessor(ale.theOSystem, ale.game_settings);
+        numObjClasses = visProc->manual_obj_classes.size();
 
         // Clear old layerinfo if present
         layerInfo.layerNames.clear();
@@ -47,26 +49,42 @@ namespace HCUBE
         layerInfo.layerIsInput.clear();
         layerInfo.layerLocations.clear();
 
+        // One input layer for each object class
+        for (int i=0; i<numObjClasses; ++i) {
+            layerInfo.layerSizes.push_back(Vector2<int>(substrate_width,substrate_height));
+            layerInfo.layerIsInput.push_back(true);
+            layerInfo.layerLocations.push_back(Vector3<float>(4*i,0,0));
+            layerInfo.layerNames.push_back("Input" + boost::lexical_cast<std::string>(i));
+        }
+
+        // One input layer for the self object
         layerInfo.layerSizes.push_back(Vector2<int>(substrate_width,substrate_height));
         layerInfo.layerIsInput.push_back(true);
-        layerInfo.layerLocations.push_back(Vector3<float>(0,0,0));
-        layerInfo.layerNames.push_back("Input");
+        layerInfo.layerLocations.push_back(Vector3<float>(4*numObjClasses,0,0));
+        layerInfo.layerNames.push_back("InputSelf");
 
+        // Processing level -- takes input from all the previous
         layerInfo.layerSizes.push_back(Vector2<int>(substrate_width,substrate_height));
         layerInfo.layerIsInput.push_back(false);
         layerInfo.layerLocations.push_back(Vector3<float>(0,4,0));
         layerInfo.layerNames.push_back("Processing");
 
+        // Output layer -- used for action selection
         layerInfo.layerSizes.push_back(Vector2<int>(numActions,1));
         layerInfo.layerIsInput.push_back(false);
         layerInfo.layerLocations.push_back(Vector3<float>(0,8,0));
         layerInfo.layerNames.push_back("Output");
 
-        layerInfo.layerAdjacencyList.push_back(std::pair<string,string>("Input","Processing"));
+        for (int i=0; i<numObjClasses; ++i) {
+            layerInfo.layerAdjacencyList.push_back(std::pair<string,string>(
+                                                       "Input" + boost::lexical_cast<std::string>(i),
+                                                       "Processing"));
+        }
+        layerInfo.layerAdjacencyList.push_back(std::pair<string,string>("InputSelf","Processing"));
         layerInfo.layerAdjacencyList.push_back(std::pair<string,string>("Processing","Output"));
 
         layerInfo.normalize = true;
-        layerInfo.useOldOutputNames = true;
+        layerInfo.useOldOutputNames = false;
         layerInfo.layerValidSizes = layerInfo.layerSizes;
 
         for (int a=0; a<2; a++)
@@ -77,14 +95,27 @@ namespace HCUBE
         GeneticPopulation *population = new GeneticPopulation();
         vector<GeneticNodeGene> genes;
 
+        // Input Nodes
         genes.push_back(GeneticNodeGene("Bias","NetworkSensor",0,false));
         genes.push_back(GeneticNodeGene("X1","NetworkSensor",0,false));
         genes.push_back(GeneticNodeGene("Y1","NetworkSensor",0,false));
         genes.push_back(GeneticNodeGene("X2","NetworkSensor",0,false));
         genes.push_back(GeneticNodeGene("Y2","NetworkSensor",0,false));
-        genes.push_back(GeneticNodeGene("Output_ab","NetworkOutputNode",1,false,
+        for (int i=0; i<numObjClasses; ++i) {
+            genes.push_back(GeneticNodeGene("Input" + boost::lexical_cast<std::string>(i),
+                                            "NetworkSensor",0,false));
+        }
+
+        // Output Nodes
+        for (int i=0; i<numObjClasses; ++i) {
+            genes.push_back(GeneticNodeGene("Output_Input" + boost::lexical_cast<std::string>(i) +
+                                            "_Processing",
+                                            "NetworkOutputNode",1,false,
+                                            ACTIVATION_FUNCTION_SIGMOID));
+        }
+        genes.push_back(GeneticNodeGene("Output_InputSelf_Processing","NetworkOutputNode",1,false,
                                         ACTIVATION_FUNCTION_SIGMOID));
-        genes.push_back(GeneticNodeGene("Output_bc","NetworkOutputNode",1,false,
+        genes.push_back(GeneticNodeGene("Output_Processing_Output","NetworkOutputNode",1,false,
                                         ACTIVATION_FUNCTION_SIGMOID));
 
         for (int a=0; a<populationSize; a++) {
@@ -147,13 +178,13 @@ namespace HCUBE
             setSubstrateObjectValues(*visProc, substrate);
 
             // Set substrate value for self
-            //setSubstrateSelfValue(*visProc, substrate);
+            setSubstrateSelfValue(*visProc, substrate);
 
             // Propagate values through the ANN
             substrate->getNetwork()->update();
 
             // Print the Activations of the different layers
-            //printLayerInfo(substrate);
+            printLayerInfo(substrate);
 
             // Choose which action to take
             Action action = selectAction(*visProc, substrate);
@@ -169,35 +200,31 @@ namespace HCUBE
         for (int i=0; i<visProc.manual_obj_classes.size(); i++) {
             Prototype& proto = visProc.manual_obj_classes[i];
 
-            // if (!proto.is_valid) // not a strong enough prototype yet
-            //     continue;
-            if (proto.obj_ids.size() == 0) // no objects on screen
-                continue;
-
             // Map object classes to values
-            float assigned_value = 0;
+            // float assigned_value = 0;
             // HACK: Hardcoded mapping from object classes to values
             //if (proto.size == 66 || proto.size == 70) // Freeway
 
             // Asterix
-            if (proto.size == 41) assigned_value = 1;
-            if (proto.size == 42) assigned_value = -1;
+            // if (proto.size == 41) assigned_value = 1;
+            // if (proto.size == 42) assigned_value = -1;
 
             // Assign values to each of the objects
+            float assigned_value = 1.0;
             for (set<long>::iterator it=proto.obj_ids.begin(); it!=proto.obj_ids.end(); it++) {
                 long obj_id = *it;
                 assert(visProc.composite_objs.find(obj_id) != visProc.composite_objs.end());
                 point obj_centroid = visProc.composite_objs[obj_id].get_centroid();
                 int adj_x = obj_centroid.x * substrate_width / visProc.screen_width;
                 int adj_y = obj_centroid.y * substrate_height / visProc.screen_height;
-                for (int y=0; y<substrate_height; ++y) {
-                    for (int x=0; x<substrate_width; ++x) {
-                        double val = gauss2D((double)x,(double)y, assigned_value,
-                                             (double)adj_x,(double)adj_y,1.0,1.0);
-                        substrate->setValue(Node(x,y,0),substrate->getValue(Node(x,y,0))+val);
-                    }
-                }
-                //substrate->setValue((Node(adj_x,adj_y,0)),assigned_value);
+                // for (int y=0; y<substrate_height; ++y) {
+                //     for (int x=0; x<substrate_width; ++x) {
+                //         double val = gauss2D((double)x,(double)y, assigned_value,
+                //                              (double)adj_x,(double)adj_y,1.0,1.0);
+                //         substrate->setValue(Node(x,y,i),substrate->getValue(Node(x,y,i))+val);
+                //     }
+                // }
+                substrate->setValue((Node(adj_x,adj_y,i)),assigned_value);
             }
         }
     }
@@ -239,7 +266,7 @@ namespace HCUBE
         //         substrate->setValue(Node(x,y,0),substrate->getValue(Node(x,y,0))+val);
         //     }
         // }
-        //substrate->setValue(Node(self_x,self_y,0),1.0);
+        substrate->setValue(Node(self_x,self_y,numObjClasses),1.0);
     }
 
     Action AtariExperiment::selectAction(VisualProcessor& visProc,
@@ -247,7 +274,7 @@ namespace HCUBE
         vector<int> max_inds;
         float max_val = -1e37;
         for (int i=0; i < numActions; i++) {
-            float output = substrate->getValue(Node(i,0,2));
+            float output = substrate->getValue(Node(i,0,numObjClasses+2));
             if (output == max_val)
                 max_inds.push_back(i);
             else if (output > max_val) {

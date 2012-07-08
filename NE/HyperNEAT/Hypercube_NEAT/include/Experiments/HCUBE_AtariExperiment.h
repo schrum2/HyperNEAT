@@ -20,6 +20,7 @@ namespace HCUBE
     bool display_active;
 
     int numActions;
+    int numObjClasses;
 
   public:
     NEAT::LayeredSubstrate<float> substrates[2];
@@ -36,10 +37,15 @@ namespace HCUBE
     virtual void processGroup(shared_ptr<NEAT::GeneticGeneration> generation);
     void runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual);
     void printLayerInfo(NEAT::LayeredSubstrate<float>* substrate);
+
+    // Locates the object of each class on screen and populates their values to the
+    // corresponding substrate layers
     void setSubstrateObjectValues(VisualProcessor& visProc,
                                   NEAT::LayeredSubstrate<float>* substrate);
+    // Identifies the self agent on the relevant layer of substrate
     void setSubstrateSelfValue(VisualProcessor& visProc,
                                   NEAT::LayeredSubstrate<float>* substrate);
+    // Selects an action based on the output layer of the network
     Action selectAction(VisualProcessor& visProc,
                                   NEAT::LayeredSubstrate<float>* substrate);
 
