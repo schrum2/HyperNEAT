@@ -533,6 +533,13 @@ TARGET_LINK_LIBRARIES(
 	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_RELEASE}
 	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_RELEASE}
 	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_RELEASE}
+
+	SDL
+	SDL_gfx
+	SDL_image
+	boost_thread-mt
+	boost_serialization
+	ncurses
 )
 
 TARGET_LINK_LIBRARIES(
@@ -549,6 +556,13 @@ TARGET_LINK_LIBRARIES(
 	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_RELEASE}
 	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_RELEASE}
 	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_RELEASE}
+
+	SDL
+	SDL_gfx
+	SDL_image
+	boost_thread-mt
+	boost_serialization
+	ncurses
 )
 
 TARGET_LINK_LIBRARIES(
@@ -565,11 +579,6 @@ TARGET_LINK_LIBRARIES(
 	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_RELEASE}
 	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_RELEASE}
 	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_RELEASE}
-)
-
-
-TARGET_LINK_LIBRARIES(
-	atari_generate
 
 	SDL
 	SDL_gfx
@@ -577,62 +586,54 @@ TARGET_LINK_LIBRARIES(
 	boost_thread-mt
 	boost_serialization
 	ncurses
-
-        wx_gtk2u_richtext-2.8
-        wx_gtk2u_aui-2.8
-        wx_gtk2u_xrc-2.8
-        wx_gtk2u_qa-2.8
-        wx_gtk2u_html-2.8
-        wx_gtk2u_adv-2.8
-        wx_gtk2u_core-2.8
-        wx_baseu_xml-2.8
-        wx_baseu_net-2.8
-        wx_baseu-2.8
 )
 
-TARGET_LINK_LIBRARIES(
-	atari_evaluate
+IF(USE_GUI)
+  TARGET_LINK_LIBRARIES(
+    atari_generate
+    
+    wx_gtk2u_richtext-2.8
+    wx_gtk2u_aui-2.8
+    wx_gtk2u_xrc-2.8
+    wx_gtk2u_qa-2.8
+    wx_gtk2u_html-2.8
+    wx_gtk2u_adv-2.8
+    wx_gtk2u_core-2.8
+    wx_baseu_xml-2.8
+    wx_baseu_net-2.8
+    wx_baseu-2.8
+    )
 
-	SDL
-	SDL_gfx
-	SDL_image
-	boost_thread-mt
-	boost_serialization
-	ncurses
+  TARGET_LINK_LIBRARIES(
+    atari_evaluate 
 
-        wx_gtk2u_richtext-2.8
-        wx_gtk2u_aui-2.8
-        wx_gtk2u_xrc-2.8
-        wx_gtk2u_qa-2.8
-        wx_gtk2u_html-2.8
-        wx_gtk2u_adv-2.8
-        wx_gtk2u_core-2.8
-        wx_baseu_xml-2.8
-        wx_baseu_net-2.8
-        wx_baseu-2.8
-)
+    wx_gtk2u_richtext-2.8
+    wx_gtk2u_aui-2.8
+    wx_gtk2u_xrc-2.8
+    wx_gtk2u_qa-2.8
+    wx_gtk2u_html-2.8
+    wx_gtk2u_adv-2.8
+    wx_gtk2u_core-2.8
+    wx_baseu_xml-2.8
+    wx_baseu_net-2.8
+    wx_baseu-2.8
+    )
 
-TARGET_LINK_LIBRARIES(
-	atari_visualize
+  TARGET_LINK_LIBRARIES(
+    atari_visualize
 
-	SDL
-	SDL_gfx
-	SDL_image
-	boost_thread-mt
-	boost_serialization
-	ncurses
-
-        wx_gtk2u_richtext-2.8
-        wx_gtk2u_aui-2.8
-        wx_gtk2u_xrc-2.8
-        wx_gtk2u_qa-2.8
-        wx_gtk2u_html-2.8
-        wx_gtk2u_adv-2.8
-        wx_gtk2u_core-2.8
-        wx_baseu_xml-2.8
-        wx_baseu_net-2.8
-        wx_baseu-2.8
-)
+    wx_gtk2u_richtext-2.8
+    wx_gtk2u_aui-2.8
+    wx_gtk2u_xrc-2.8
+    wx_gtk2u_qa-2.8
+    wx_gtk2u_html-2.8
+    wx_gtk2u_adv-2.8
+    wx_gtk2u_core-2.8
+    wx_baseu_xml-2.8
+    wx_baseu_net-2.8
+    wx_baseu-2.8
+    )
+ENDIF(USE_GUI)
 
 
 # TARGET_LINK_LIBRARIES(
