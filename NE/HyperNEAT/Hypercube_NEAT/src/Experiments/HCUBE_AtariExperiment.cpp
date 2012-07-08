@@ -13,7 +13,7 @@ namespace HCUBE
         display_active(false), currentSubstrateIndex(0)
     {
         // This can be re-initialized if necessary
-        initializeExperiment("/home/matthew/projects/HyperNEAT/ale_v0.1/roms/asterix.bin");
+        // initializeExperiment("/home/matthew/projects/HyperNEAT/ale_v0.1/roms/asterix.bin");
     }
 
     void AtariExperiment::initializeExperiment(string _rom_file) {
