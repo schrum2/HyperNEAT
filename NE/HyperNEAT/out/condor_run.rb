@@ -187,8 +187,8 @@ Dir.mkdir($experimentbase + "/results") unless File.exists?($experimentbase + "/
 Dir.mkdir($experimentbase + "/process") unless File.exists?($experimentbase + "/process")
 
 #generate initial pop first:
-print "Executing command: #{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results/generation0.xml -G #{rom_path}\n"
-generate_result = system("#{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results/generation0.xml -G #{rom_path}")
+print "Executing command: #{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results/generation0.xml -G #{$rom_path}\n"
+generate_result = system("#{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results/generation0.xml -G #{$rom_path}")
 #until(File.exists?("#{$experimentbase}/results/generation0.xml.gz")) 
 # print "Waiting on #{$experimentbase}/results/generation0.xml.gz\n"
 # sleep 1 
@@ -226,7 +226,7 @@ end
   end
 
   #now generate a new pop:
-  generate_result = system("#{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results/generation#{gen+1}.xml -P #{$experimentbase}/results/generation#{gen}.xml.gz -F #{$experimentbase}/results/fitness.#{gen}. -E #{$experimentbase}/results/generation#{gen}.eval.xml -G #{rom_path}")
+  generate_result = system("#{$path_to_generator} -I #{$experimentbase}/data/AtariExperiment.dat -O #{$experimentbase}/results/generation#{gen+1}.xml -P #{$experimentbase}/results/generation#{gen}.xml.gz -F #{$experimentbase}/results/fitness.#{gen}. -E #{$experimentbase}/results/generation#{gen}.eval.xml -G #{$rom_path}")
   
   # now wait until next parameters are written before continuing
   #until(File.exists?("#{$experimentbase}/results/generation#{gen+1}.xml.gz")) 
