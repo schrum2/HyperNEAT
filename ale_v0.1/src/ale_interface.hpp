@@ -158,8 +158,6 @@ public:
         // Generate the GameController
         game_controller = new InternalController(theOSystem);
         theOSystem->setGameController(game_controller);
-        cout << "Games will be controlled internally, " << 
-            "through the assigned player Agent" << endl;
 
         // Set the Pallete 
         theOSystem->console().setPalette("standard");
@@ -264,17 +262,13 @@ public:
         }
 
         // Display the screen
-        if (display_active)
-            display_screen(screen_matrix);
+        if (display_active) {
+            theOSystem->p_display_screen->display_screen(screen_matrix, screen_width, screen_height);
+        }
 
         game_score += action_reward;
         last_action = action;
         return action_reward;
-    }
-
-    // Used to graphically display the screen
-    void display_screen(const IntMatrix& pm_screen_matrix) {
-        game_controller->getPlayerAgentLeft()->display_screen(pm_screen_matrix);
     }
 };
 

@@ -81,7 +81,7 @@ INCLUDE_REGULAR_EXPRESSION( "^.*([Hh][Cc][Uu][Bb][Ee]|[Nn][Ee][Aa][Tt]|main).*$"
 
 SET(
 	WXWIDGETS_INCLUDE	
-"/usr/include/wx-2.8"
+        "/usr/include/wx-2.8"
 	CACHE
 	PATH 
 	"WxWidgets include directory"
@@ -113,7 +113,7 @@ SET(
 
 SET(
 	PYTHON_INCLUDE
-	"C:/Python25/include"
+	"/usr/include/python2.7"
 	CACHE
 	PATH 
 	"Python include directory"
@@ -522,216 +522,63 @@ ENDIF(WIN32)
 TARGET_LINK_LIBRARIES(
 	atari_generate 
 
-	debug
-	Hypercube_NEAT_Base_d
-
-	optimized
 	Hypercube_NEAT_Base
-		
-	debug
-	ClicheLib_d
-		
-	optimized
 	ClicheLib
-
-	debug
-	CakeFixedDepthLib_d
-	
-	optimized
 	CakeFixedDepthLib
-
-	debug
-	NEATLib_d
-
-	optimized
 	NEATLib
-	
-	debug
-	tinyxmlpluslib_d
-
-	optimized
 	tinyxmlpluslib
-
-	debug
-	zlib_d
-	
-	optimized
 	zlib
-
-	debug
-	board_d
-
-	optimized
 	board
-
-	debug
 	ale
-	
-	optimized
-	ale
-
-	debug
-	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_DEBUG}
-
-	optimized
 	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_RELEASE}
-
-	debug
-	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_DEBUG}
-
-	optimized
 	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_RELEASE}
-
-	debug
-	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_DEBUG}
-
-	optimized
 	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_RELEASE}
+
+	SDL
+	SDL_gfx
+	SDL_image
+	boost_thread-mt
+	boost_serialization
+	ncurses
 )
 
 TARGET_LINK_LIBRARIES(
 	atari_evaluate 
 
-	debug
-	Hypercube_NEAT_Base_d
-
-	optimized
 	Hypercube_NEAT_Base
-		
-	debug
-	ClicheLib_d
-		
-	optimized
 	ClicheLib
-
-	debug
-	CakeFixedDepthLib_d
-	
-	optimized
 	CakeFixedDepthLib
-
-	debug
-	NEATLib_d
-
-	optimized
 	NEATLib
-	
-	debug
-	tinyxmlpluslib_d
-
-	optimized
 	tinyxmlpluslib
-
-	debug
-	zlib_d
-	
-	optimized
 	zlib
-
-	debug
-	board_d
-
-	optimized
 	board
-
-	debug
 	ale
-	
-	optimized
-	ale
-
-	debug
-	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_DEBUG}
-
-	optimized
 	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_RELEASE}
-
-	debug
-	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_DEBUG}
-
-	optimized
 	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_RELEASE}
-
-	debug
-	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_DEBUG}
-
-	optimized
 	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_RELEASE}
+
+	SDL
+	SDL_gfx
+	SDL_image
+	boost_thread-mt
+	boost_serialization
+	ncurses
 )
 
 TARGET_LINK_LIBRARIES(
 	atari_visualize
 
-	debug
-	Hypercube_NEAT_Base_d
-
-	optimized
 	Hypercube_NEAT_Base
-		
-	debug
-	ClicheLib_d
-		
-	optimized
 	ClicheLib
-
-	debug
-	CakeFixedDepthLib_d
-	
-	optimized
 	CakeFixedDepthLib
-
-	debug
-	NEATLib_d
-
-	optimized
 	NEATLib
-	
-	debug
-	tinyxmlpluslib_d
-
-	optimized
 	tinyxmlpluslib
-
-	debug
-	zlib_d
-	
-	optimized
 	zlib
-
-	debug
-	board_d
-
-	optimized
 	board
-
-	debug
 	ale
-	
-	optimized
-	ale
-
-	debug
-	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_DEBUG}
-
-	optimized
 	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_RELEASE}
-
-	debug
-	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_DEBUG}
-
-	optimized
 	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_RELEASE}
-
-	debug
-	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_DEBUG}
-
-	optimized
 	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_RELEASE}
-)
-
-
-TARGET_LINK_LIBRARIES(
-	atari_generate
 
 	SDL
 	SDL_gfx
@@ -739,62 +586,54 @@ TARGET_LINK_LIBRARIES(
 	boost_thread-mt
 	boost_serialization
 	ncurses
-
-        wx_gtk2u_richtext-2.8
-        wx_gtk2u_aui-2.8
-        wx_gtk2u_xrc-2.8
-        wx_gtk2u_qa-2.8
-        wx_gtk2u_html-2.8
-        wx_gtk2u_adv-2.8
-        wx_gtk2u_core-2.8
-        wx_baseu_xml-2.8
-        wx_baseu_net-2.8
-        wx_baseu-2.8
 )
 
-TARGET_LINK_LIBRARIES(
-	atari_evaluate
+IF(USE_GUI)
+  TARGET_LINK_LIBRARIES(
+    atari_generate
+    
+    wx_gtk2u_richtext-2.8
+    wx_gtk2u_aui-2.8
+    wx_gtk2u_xrc-2.8
+    wx_gtk2u_qa-2.8
+    wx_gtk2u_html-2.8
+    wx_gtk2u_adv-2.8
+    wx_gtk2u_core-2.8
+    wx_baseu_xml-2.8
+    wx_baseu_net-2.8
+    wx_baseu-2.8
+    )
 
-	SDL
-	SDL_gfx
-	SDL_image
-	boost_thread-mt
-	boost_serialization
-	ncurses
+  TARGET_LINK_LIBRARIES(
+    atari_evaluate 
 
-        wx_gtk2u_richtext-2.8
-        wx_gtk2u_aui-2.8
-        wx_gtk2u_xrc-2.8
-        wx_gtk2u_qa-2.8
-        wx_gtk2u_html-2.8
-        wx_gtk2u_adv-2.8
-        wx_gtk2u_core-2.8
-        wx_baseu_xml-2.8
-        wx_baseu_net-2.8
-        wx_baseu-2.8
-)
+    wx_gtk2u_richtext-2.8
+    wx_gtk2u_aui-2.8
+    wx_gtk2u_xrc-2.8
+    wx_gtk2u_qa-2.8
+    wx_gtk2u_html-2.8
+    wx_gtk2u_adv-2.8
+    wx_gtk2u_core-2.8
+    wx_baseu_xml-2.8
+    wx_baseu_net-2.8
+    wx_baseu-2.8
+    )
 
-TARGET_LINK_LIBRARIES(
-	atari_visualize
+  TARGET_LINK_LIBRARIES(
+    atari_visualize
 
-	SDL
-	SDL_gfx
-	SDL_image
-	boost_thread-mt
-	boost_serialization
-	ncurses
-
-        wx_gtk2u_richtext-2.8
-        wx_gtk2u_aui-2.8
-        wx_gtk2u_xrc-2.8
-        wx_gtk2u_qa-2.8
-        wx_gtk2u_html-2.8
-        wx_gtk2u_adv-2.8
-        wx_gtk2u_core-2.8
-        wx_baseu_xml-2.8
-        wx_baseu_net-2.8
-        wx_baseu-2.8
-)
+    wx_gtk2u_richtext-2.8
+    wx_gtk2u_aui-2.8
+    wx_gtk2u_xrc-2.8
+    wx_gtk2u_qa-2.8
+    wx_gtk2u_html-2.8
+    wx_gtk2u_adv-2.8
+    wx_gtk2u_core-2.8
+    wx_baseu_xml-2.8
+    wx_baseu_net-2.8
+    wx_baseu-2.8
+    )
+ENDIF(USE_GUI)
 
 
 # TARGET_LINK_LIBRARIES(

@@ -3,6 +3,7 @@
 
 #include "HCUBE_Experiment.h"
 #include "ale_interface.hpp"
+#include "common/visual_processor.h"
 
 namespace HCUBE
 {
@@ -14,10 +15,12 @@ namespace HCUBE
     IntVect ram_content;
     
     ALEInterface ale;
+    VisualProcessor* visProc;
     string rom_file;
     bool display_active;
 
     int numActions;
+    int numObjClasses;
 
   public:
     NEAT::LayeredSubstrate<float> substrates[2];
@@ -28,16 +31,21 @@ namespace HCUBE
     void initializeExperiment(string rom_file);
 
     AtariExperiment(string _experimentName,int _threadID);
-    virtual ~AtariExperiment() {}
+    virtual ~AtariExperiment() { if (visProc) delete visProc; }
 
     virtual NEAT::GeneticPopulation* createInitialPopulation(int populationSize);
     virtual void processGroup(shared_ptr<NEAT::GeneticGeneration> generation);
     void runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual);
     void printLayerInfo(NEAT::LayeredSubstrate<float>* substrate);
+
+    // Locates the object of each class on screen and populates their values to the
+    // corresponding substrate layers
     void setSubstrateObjectValues(VisualProcessor& visProc,
                                   NEAT::LayeredSubstrate<float>* substrate);
+    // Identifies the self agent on the relevant layer of substrate
     void setSubstrateSelfValue(VisualProcessor& visProc,
                                   NEAT::LayeredSubstrate<float>* substrate);
+    // Selects an action based on the output layer of the network
     Action selectAction(VisualProcessor& visProc,
                                   NEAT::LayeredSubstrate<float>* substrate);
 

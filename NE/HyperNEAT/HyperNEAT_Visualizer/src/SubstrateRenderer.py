@@ -32,7 +32,7 @@ class SubstrateRenderer(object):
                                                inputValue
                                                )
                 
-            network.updateFixedIterations(2)
+            network.update()
             self.networkDirty=False;
 
     def render(self):
@@ -140,41 +140,45 @@ class SubstrateRenderer(object):
 
 
     def getRGB(self,currentNode,sourceNode):
+        vecCurrNode = tupleToVector3Int(currentNode)
+        vecSrcNode = tupleToVector3Int(sourceNode)
         if sourceNode[0]>=0:
-            sourceNodeName = self.layeredSubstrate.getNodeName(sourceNode)
-            currentNodeName = self.layeredSubstrate.getNodeName(currentNode)
+            linkweight = self.layeredSubstrate.getNetwork().getLink(vecSrcNode, vecCurrNode)
+            # sourceNodeName = self.layeredSubstrate.getNodeName(sourceNode)
+            # currentNodeName = self.layeredSubstrate.getNodeName(currentNode)
             
-            #Use the link weight to determine the color
-            if self.layeredSubstrate.getNetwork().hasLink(
-                sourceNodeName,
-                currentNodeName
-                ):
-                linkWeight = \
-                    self.layeredSubstrate.getNetwork().getLinkWeight(
-                    sourceNodeName,
-                    currentNodeName
-                    )
-            elif self.layeredSubstrate.getNetwork().hasLink(
-                currentNodeName,
-                sourceNodeName
-                ):
-                linkWeight = \
-                    self.layeredSubstrate.getNetwork().getLinkWeight(
-                    currentNodeName,
-                    sourceNodeName
-                    )
-            else:
-                linkWeight = 0
+            # #Use the link weight to determine the color
+            # if self.layeredSubstrate.getNetwork().hasLink(
+            #     sourceNodeName,
+            #     currentNodeName
+            #     ):
+            #     linkWeight = \
+            #         self.layeredSubstrate.getNetwork().getLinkWeight(
+            #         sourceNodeName,
+            #         currentNodeName
+            #         )
+            # elif self.layeredSubstrate.getNetwork().hasLink(
+            #     currentNodeName,
+            #     sourceNodeName
+            #     ):
+            #     linkWeight = \
+            #         self.layeredSubstrate.getNetwork().getLinkWeight(
+            #         currentNodeName,
+            #         sourceNodeName
+            #         )
+            # else:
+            #     linkWeight = 0
             
-            outputVal = linkWeight
+            outputVal = linkweight
             
             #Cap weight
             outputVal = max(-3.0,min(3.0,outputVal))
             
         else: #Use the activation level
             
-            outputVal = \
-                (self.layeredSubstrate.getNetwork().getValue(self.layeredSubstrate.getNodeName(currentNode)))
+            outputVal = self.layeredSubstrate.getNetwork().getValue(vecCurrNode)
+            # outputVal = \
+            #     (self.layeredSubstrate.getNetwork().getValue(self.layeredSubstrate.getNodeName(currentNode)))
             
             #Cap activation level
             outputVal = max(-1.0,min(1.0,outputVal))
