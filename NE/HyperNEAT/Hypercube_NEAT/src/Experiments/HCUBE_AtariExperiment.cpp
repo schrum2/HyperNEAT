@@ -40,6 +40,10 @@ namespace HCUBE
         // Load the visual processing framework
         visProc = new VisualProcessor(ale.theOSystem, ale.game_settings);
         numObjClasses = visProc->manual_obj_classes.size();
+        if (numObjClasses <= 0) {
+          cerr << "No object classes found. Make sure there is an images directory containg class images." << endl;
+          exit(-1);
+        }
 
         // Clear old layerinfo if present
         layerInfo.layerNames.clear();
@@ -96,15 +100,15 @@ namespace HCUBE
         vector<GeneticNodeGene> genes;
 
         // Input Nodes
-        genes.push_back(GeneticNodeGene("Bias","NetworkSensor",0,false));
+        genes.push_back(GeneticNodeGene("Bias","NetworkSensor",0,false)); // TODO: Check if this helps or not
         genes.push_back(GeneticNodeGene("X1","NetworkSensor",0,false));
         genes.push_back(GeneticNodeGene("Y1","NetworkSensor",0,false));
         genes.push_back(GeneticNodeGene("X2","NetworkSensor",0,false));
         genes.push_back(GeneticNodeGene("Y2","NetworkSensor",0,false));
-        for (int i=0; i<numObjClasses; ++i) {
-            genes.push_back(GeneticNodeGene("Input" + boost::lexical_cast<std::string>(i),
-                                            "NetworkSensor",0,false));
-        }
+        // for (int i=0; i<numObjClasses; ++i) {
+        //     genes.push_back(GeneticNodeGene("Input" + boost::lexical_cast<std::string>(i),
+        //                                     "NetworkSensor",0,false));
+        // }
 
         // Output Nodes
         for (int i=0; i<numObjClasses; ++i) {
@@ -132,6 +136,7 @@ namespace HCUBE
 
     void AtariExperiment::populateSubstrate(shared_ptr<NEAT::GeneticIndividual> individual,
         int substrateNum) {
+        
         NEAT::LayeredSubstrate<float>* substrate;
         if (substrateNum>=2)
             throw CREATE_LOCATEDEXCEPTION_INFO("ERROR: INVALID SUBSTRATE INDEX!");
@@ -184,7 +189,7 @@ namespace HCUBE
             substrate->getNetwork()->update();
 
             // Print the Activations of the different layers
-            printLayerInfo(substrate);
+            //printLayerInfo(substrate);
 
             // Choose which action to take
             Action action = selectAction(*visProc, substrate);

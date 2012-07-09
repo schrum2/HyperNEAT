@@ -5,6 +5,7 @@
 #include "NEAT_GeneticIndividual.h"
 
 #include "Board.h"
+#include <boost/lexical_cast.hpp>
 
 #define LAYERED_SUBSTRATE_DEBUG (0)
 
@@ -163,6 +164,8 @@ namespace NEAT
                     continue;
                 }
 
+                printf("Setting weights between layers %s and %s\n",layerNames[z1].c_str(),layerNames[z2].c_str());
+
                 // Find the (x1,y1) (x2,y2) coordinate sizes of the input,output layers
                 JGTL::Vector2<int> validInputStart = (layerSizes[z1] - layerValidSizes[z1])/2;
                 JGTL::Vector2<int> validInputEnd = ((layerSizes[z1] - layerValidSizes[z1])/2) + layerValidSizes[z1];
@@ -244,6 +247,20 @@ namespace NEAT
                                     cppn.setValue("X2",x2normal);
                                     cppn.setValue("Y2",y2normal);
                                 }
+                                // This is a specialized handler for Atari Game CPPNs
+                                // for (int inputSubstrate=0; ; inputSubstrate++) {
+                                //   string name("Input" + boost::lexical_cast<std::string>(inputSubstrate));
+                                //   if (cppn.hasNode(name)) {
+                                //     if (layerNames[z1] == name) {
+                                //       printf("Activating Atari Specific input node: %s\n",name.c_str());
+                                //       cppn.setValue(name,1.0);
+                                //     } else {
+                                //       cppn.setValue(name,0.0);
+                                //     }
+                                //   } else
+                                //     break;
+                                // }
+                                // TODO self input node
                                 if(cppn.hasNode("DeltaX"))
                                 {
                                     if(
