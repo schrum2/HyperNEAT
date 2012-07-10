@@ -172,12 +172,12 @@ END_OF_CONDORFILE
     lastJobsRemain = jobsRemain
     totalWaitTime = totalWaitTime + $sleepTime
     if (totalWaitTime > $maxWaitTime)
-      print "Exceeded max wait time of #{maxWaitTime}. Ending jobs.\n"
+      print "Exceeded max wait time of #{$maxWaitTime}. Ending jobs.\n"
       break
     end
   end
   # clean up remaining jobs
-  #system("condor_rm #{$user}")
+  system("condor_rm #{$user}")
   sleep $sleepTime
 end
 
