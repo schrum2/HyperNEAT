@@ -524,8 +524,7 @@ void VisualProcessor::find_connected_components(const IntMatrix& screen_matrix, 
                 // Add all of s' pixels to b as well as s' parent's pixels
                 do {
                     for (int i=0; i<s->x.size(); ++i) {
-                        add_pixel(b.width, b.height, s->x[i] - b.x_min, s->y[i] - b.y_min, b.mask);
-                        b.size++;
+                        b.mask.set_pixel(s->x[i] - b.x_min, s->y[i] - b.y_min, true);
                         blob_mat[s->y[i]][s->x[i]] = b.id;
                     }
                     swath_map[s] = b.id;
@@ -537,8 +536,7 @@ void VisualProcessor::find_connected_components(const IntMatrix& screen_matrix, 
                 Blob& b = blob_map[blob_parent_id];
                 do {
                     for (int i=0; i<s->x.size(); ++i) {
-                        add_pixel(b.width, b.height, s->x[i] - b.x_min, s->y[i] - b.y_min, b.mask);
-                        b.size++;
+                        b.mask.set_pixel(s->x[i] - b.x_min, s->y[i] - b.y_min, true);
                         blob_mat[s->y[i]][s->x[i]] = b.id;
                     }
                     swath_map[s] = b.id;
@@ -699,7 +697,7 @@ void VisualProcessor::update_existing_objs() {
 
         // Update the object with new blobs
         if (velocity_consistent) {
-            obj.clean();
+            obj.clear();
             obj.x_velocity = first.x_velocity;
             obj.y_velocity = first.y_velocity;
             for (set<long>::iterator bit=new_blob_ids.begin(); bit!=new_blob_ids.end(); ++bit) {
@@ -775,7 +773,7 @@ void VisualProcessor::sanitize_objects() {
         CompositeObject& obj = it->second;
 
         // (piyushk) if blob is too small or the velocity is 0, then remove the object
-        if (obj.size < 15) {
+        if (obj.mask.size < 15) {
             to_remove.push_back(obj.id);
             continue;
         }
@@ -879,13 +877,15 @@ void VisualProcessor::manual_identify_classes() {
     for (map<long,CompositeObject>::iterator it=composite_objs.begin();
          it!=composite_objs.end(); it++) {
         CompositeObject& obj = it->second;
+
         // Try to assign this object to one of the object classes
         for (int i=0; i<manual_obj_classes.size(); ++i) {
             Prototype& proto = manual_obj_classes[i];
-            if (maskEquals(obj.width, obj.height, obj.mask,
-                           proto.width, proto.height, proto.mask)) {
-                proto.obj_ids.insert(obj.id);
-                break;
+            for (int j=0; j<proto.masks.size(); ++j) {
+                if (proto.masks[i].equals(obj.mask)) {
+                    proto.obj_ids.insert(obj.id);
+                    break;
+                }
             }
         }
     }
@@ -995,9 +995,11 @@ void VisualProcessor::merge_objects(float similarity_threshold) {
                 continue;
             }
 
+            // Check to make sure that object still matches the prototype
             CompositeObject& obj = composite_objs[obj_id];
-            float pixel_match = p.get_pixel_match(obj);
-            if (pixel_match >= similarity_threshold) {
+            float pixel_similarity = 0; int best_indx = 0; // TODO: Only need to do this if obj changed
+            p.get_pixel_match(obj, pixel_similarity, best_indx);
+            if (pixel_similarity >= similarity_threshold) {
                 checked_objs.insert(obj.id);
                 p.times_seen_this_frame++; //(piyushk)
             } else {
@@ -1012,16 +1014,19 @@ void VisualProcessor::merge_objects(float similarity_threshold) {
         }
     }
 
+    // Create new prototypes for novel objects
     for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); it++) {
         if (checked_objs.find(it->first) != checked_objs.end())
             continue; 
-        CompositeObject& obj = it->second;
+
         // See if any of the existing prototypes match this object
+        CompositeObject& obj = it->second;
         bool found_match = false;
         for (int j=0; j<obj_classes.size(); ++j) {
             Prototype& p = obj_classes[j];
-            float pixel_match = p.get_pixel_match(obj);
-            if (pixel_match > .99) {
+            float pixel_similarity = 0; int best_indx = 0;
+            p.get_pixel_match(obj, pixel_similarity, best_indx);
+            if (pixel_similarity > similarity_threshold) {
                 p.obj_ids.insert(obj.id);
                 p.times_seen_this_frame++; //(piyushk)
                 found_match = true;
@@ -1029,15 +1034,14 @@ void VisualProcessor::merge_objects(float similarity_threshold) {
             }
         }
    
-        // Insert new prototype here
+        // Insert new prototype
         if (!found_match) {
-            Prototype p(obj,curr_blobs);
-            p.id = prototype_ids++;
+            Prototype p(obj, proto_ids++);
             obj_classes.push_back(p);
         }
     }
 
-    //(piyushk) remove bad prototypes here
+    //(piyushk) remove bad prototypes
     vector<int> prototypes_to_erase;
     for (int i=0; i<obj_classes.size(); ++i) {
         Prototype& p = obj_classes[i];
@@ -1055,17 +1059,6 @@ void VisualProcessor::merge_objects(float similarity_threshold) {
     for (int i = prototypes_to_erase.size() - 1; i >= 0; --i) {
         obj_classes.erase(obj_classes.begin() + prototypes_to_erase[i]);
     }
-
-    // std::cout << "Active Prototypes: " << obj_classes.size() << std::endl;
-    // for (int i=0; i<obj_classes.size(); ++i) {
-    //   Prototype& p = obj_classes[i];
-    //   if (p.is_valid) {
-    //     std::cout << " #";
-    //   } else {
-    //     std::cout << "  ";
-    //   }
-    //   std::cout << p.id << " " << p.value << " " << p.seen_count << " " << p.times_seen_this_frame << " " << p.frames_since_last_seen << std::endl;
-    // }
 };
 
 void VisualProcessor::printVelHistory(CompositeObject& obj) {
@@ -1166,7 +1159,7 @@ void VisualProcessor::saveSelection() {
         assert(composite_objs.find(focused_entity_id) != composite_objs.end());
         CompositeObject& obj = composite_objs[focused_entity_id];
         obj.computeMask(curr_blobs); // Recompute the object's mask just to be sure
-        width = obj.width; height = obj.height;
+        width = obj.mask.width; height = obj.mask.height;
         p_mask = &obj.mask;
         image_prefix = SELF_IMAGE_PREFIX;
         image_suffix = SELF_IMAGE_SUFFIX;
