@@ -19,29 +19,6 @@
 #include "../player_agents/game_settings.h"
 #include "../emucore/OSystem.hxx"
 
-// Operations for working on pixel masks
-static void add_pixel(int width, int height, int relx, int rely, vector<char>& mask) {
-    int block = (width * rely + relx) / 8;
-    int indx_in_block = (width * rely + relx) % 8;
-    mask[block] = mask[block] | (1 << (7-indx_in_block));
-};
-
-static bool get_pixel(int width, int height, int relx, int rely, vector<char>& mask) {
-    int block = (width * rely + relx) / 8;
-    int indx_in_block = (width * rely + relx) % 8;
-    return mask[block] & (1 << (7-indx_in_block));
-};
-
-static bool maskEquals(int m1_width, int m1_height, const vector<char>& mask1,
-                       int m2_width, int m2_height, const vector<char>& mask2) {
-    if (m1_width != m2_width || m1_height != m2_height || mask1.size() != mask2.size())
-        return false;
-    for (int i=0; i<mask1.size(); ++i)
-        if (mask1[i] != mask2[i])
-            return false;
-    return true;
-};
-// End pixel mask operations
 
 // Search a map for a key and returns default value if not found
 template <typename K, typename V>
@@ -88,7 +65,7 @@ struct point {
     };
 };
 
-/* A swath of color. Used as an intermediate data struct in blob detection. */
+/*|------- A swath of color. Used as an intermediate data struct in blob detection --------|*/
 struct swath {
     int color;
 
@@ -108,32 +85,56 @@ struct swath {
     void update_bounding_box(swath& other);
 };
 
-/* The blob is a region of contiguous color found in the game screen. */
+/*|------------ A b&w grid that is used to represent a group of pixels ------------|*/
+struct PixelMask {
+    vector<char> pixel_mask; // Pixel mask -- we may want an array here
+    int width, height, size; // Width and height and number of active pixels of the mask
+
+    PixelMask();
+    PixelMask(int width, int height);
+
+    // Sets pixel at location (x, y) to value val and updates size
+    void set_pixel(int x, int y, bool val);
+
+    // Gets the value of the pixel at location (x, y)
+    bool get_pixel(int x, int y);
+
+    // Checks if two pixel_masks are exact matches of each other
+    bool equals(const PixelMask& other);
+
+    // Returns the number of matching pixels between the two masks
+    int get_pixel_overlap(const PixelMask& other);
+
+    // Returns the percentage of pixels that overlap between the two masks
+    float get_pixel_overlap_percent(const PixelMask& other);
+
+    // Resets state and variables of this pixel mask
+    void clear();
+
+    void to_string();
+};
+
+/*|------------ The blob is a region of contiguous color found in the game screen ------------|*/
 struct Blob {
-    int color;            // Color of this blob
-    set<long> neighbors;  // Neighboring blob ids
-    vector<char> mask;    // Pixel mask -- we may want an array here
-    int size;             // Number of pixels
+    long id;                        // Used for the comparator function. Should be unique.
+    int color;                      // Color of this blob
+    set<long> neighbors;            // Neighboring blob ids
     int x_min, x_max, y_min, y_max; // Bounding box of blob region
-    int height, width;    // Width and height of the blob
-    int x_velocity, y_velocity; // Velocity of the blob
+    PixelMask mask;                 // Pixel mask
+    int x_velocity, y_velocity;     // Velocity of the blob
     long parent_id; long child_id;  // Pointers to ourself in the last and next timestep
-    long id;              // Used for the comparator function. Should be unique.
 
     Blob();
     Blob(int _color, long _id, int _x_min, int _x_max, int _y_min, int _y_max);
-    ~Blob();
 
-    void update_minmax(int x, int y);
-    /* void add_pixel_abs(int absx, int absy); */
-    /* void add_pixel_rel(int relx, int rely); */
-    /* bool get_pixel_abs(int absx, int absy); */
-    /* bool get_pixel_rel(int relx, int rely); */
+    // Adds a blob's id to the list of neighbors
     void add_neighbor(long neighbor_id);
+    
+    // Returns the centroid of this blob
     point get_centroid();
 
     // Computes our velocity relative to a given blob. Velocity is based on
-    // centroids of both blobs.
+    // the centroid distance of both blobs.
     void compute_velocity(const Blob& other);
 
     // Computes the euclidean distance between the blobs centroids
@@ -147,6 +148,7 @@ struct Blob {
     // any of the blobs in the excluded set.
     long find_matching_blob(map<long,Blob>& blobs);
 
+    // Prints the blob and its velocity history
     void to_string(bool verbose=false, deque<map<long,Blob> >* blob_hist=NULL);
 
     bool operator< (const Blob& other) const {
@@ -154,27 +156,29 @@ struct Blob {
     };
 };
 
-/* A composite object is an object composed of blobs. */
+/*|------------ A composite object is an object composed of blobs ------------|*/
 struct CompositeObject {
-    long id;
-    set<long> blob_ids;
-    vector<char> mask;
-    int x_velocity, y_velocity;
+    long id;                        // Unique identifier
+    set<long> blob_ids;             // Set of blob ids composing this object
+    PixelMask mask;                 // Pixel mask of the object
+    int x_velocity, y_velocity;     // Object velocity
     int x_min, x_max, y_min, y_max; // Bounding box
-    int width, height;
-    int size;
-    int frames_since_last_movement;
-    int age;  // # of timesteps since this object was discovered
+    int frames_since_last_movement; // Number of frames since object last moved
+    int age;                        // Number of frames since this object was discovered
 
     CompositeObject();
-    CompositeObject(int x_vel, int y_vel, long _id);
-    ~CompositeObject();
+    CompositeObject(int x_vel, int y_vel, long id);
 
-    void clean();
+    // Resets the state and variables of this object
+    void clear();
+    
     // Updates the bounding box from a blob
     void update_bounding_box(const Blob& b);
-    /* void add_pixel_rel(int relx, int rely); */
+
+    // Adds a blob to this object and updates the bounding box
     void add_blob(const Blob& b);
+
+    // Calculates the centroid of the object
     point get_centroid() { return point((x_max+x_min)/2,(y_max+y_min)/2); };
 
     // Attempts to expand the composite object by looking for any blobs who are
@@ -184,31 +188,28 @@ struct CompositeObject {
     // Builds the mask from the current set of blobs
     void computeMask(map<long,Blob>& blob_map);
 
-    // Compares to see if this object and another objects masks are the same
-    bool maskEquals(const CompositeObject& other);
-    
     void to_string(bool verbose=false);
 };
 
-/* A prototype represents a class of objects. */
+/*|------------ A prototype represents a class of objects ------------|*/
 struct Prototype {
-    int id;
-    set<long> obj_ids; // List of ids of objects belonging to this class
-    vector<char> mask;
-    int width, height;
-    int size;
-
-    long seen_count;
-    int frames_since_last_seen;
-    int times_seen_this_frame;
-    bool is_valid;
+    long id;                 // Unique identifier
+    set<long> obj_ids;       // Set of objects ids belonging to this class
+    vector<PixelMask> masks; // List of different pixel masks this object class assumes
+    long seen_count;         // Counts the number of times this prototype has been seen
+    int frames_since_last_seen; // Number of frames since prototype was last seen
+    int times_seen_this_frame;  // Number of times this prototype was seen in last frame
+    bool is_valid;              // Specifies if the prototype is valid or not
     float self_likelihood, alpha; // How likely is the prototype to be part of the "self"?
   
-    Prototype() {};
-    Prototype(CompositeObject& obj, map<long,Blob>& blob_map);
+    Prototype();
 
-    // How closely does an object resemble this prototype?
-    float get_pixel_match(CompositeObject& obj);
+    // Constructs a prototype from a specified object
+    Prototype(CompositeObject& obj, long id);
+
+    // Find the best matching mask to a given object. Sets the overlap score and the best
+    // masks index. 
+    void get_pixel_match(const CompositeObject& obj, float& overlap, int& mask_indx);
 
     void to_string(bool verbose=false);
 };
@@ -222,15 +223,7 @@ class VisualProcessor : public SDLEventHandler {
     // return the results.
     void process_image(const IntMatrix* screen_matrix, Action a);
 
-    virtual void display_screen(IntMatrix& screen_matrix);
-
-    void plot_blobs(IntMatrix& screen_matrix);   // Plots the blobs on screen
-    void plot_objects(IntMatrix& screen_matrix); // Plots the objects on screen
-    void plot_prototypes(IntMatrix& screen_matrix); // Plots the prototypes on screen
-    void plot_self(IntMatrix& screen_matrix);    // Plots the self blob
-    void box_object(CompositeObject& obj, IntMatrix& screen_matrix, int color); // Draws a box around an object
-    void box_blob(Blob& b, IntMatrix& screen_matrix, int color); // Draws a box around a blob  
-
+    // Blob Detection
     void find_connected_components(const IntMatrix& screen_matrix, map<long,Blob>& blobs);
 
     // Matches blobs found in the current timestep with those from
@@ -252,6 +245,12 @@ class VisualProcessor : public SDLEventHandler {
     // Looks through objects attempting to find one that we are controlling
     void identify_self();
 
+    // Identify the self object based on save self object image files
+    void manual_identify_self();
+
+    // Identifies object classes from saved object class image files
+    void manual_identify_classes();
+
     // Gives a point corresponding to the location of the self on the screen.
     // Assumes identify self has already been called.
     point get_self_centroid();
@@ -259,7 +258,16 @@ class VisualProcessor : public SDLEventHandler {
     // Returns true if a self object has been located.
     bool found_self();
 
+    virtual void display_screen(IntMatrix& screen_matrix);
     void handleSDLEvent(const SDL_Event& event);
+
+    // Plotting methods
+    void plot_blobs(IntMatrix& screen_matrix);      // Plots the blobs on screen
+    void plot_objects(IntMatrix& screen_matrix);    // Plots the objects on screen
+    void plot_prototypes(IntMatrix& screen_matrix); // Plots the prototypes on screen
+    void plot_self(IntMatrix& screen_matrix);       // Plots the self blob
+    void box_blob(Blob& b, IntMatrix& screen_matrix, int color); // Draws a box around a blob  
+    void box_object(CompositeObject& obj, IntMatrix& screen_matrix, int color); 
 
     void printVelHistory(CompositeObject& obj);
 
@@ -271,16 +279,19 @@ class VisualProcessor : public SDLEventHandler {
     void exportMask(int width, int height, vector<char>& mask, const string& filename);
     void importMask(int& width, int& height, vector<char>& mask, int& size, const string& filename);
 
+public:
     OSystem* p_osystem;
     GameSettings* game_settings;
     int screen_width, screen_height;
+
+    // History of past screens, actions, and blobs
     int max_history_len;
-    deque<IntMatrix> screen_hist;
-    deque<Action> action_hist;
+    deque<IntMatrix>        screen_hist;
+    deque<Action>           action_hist;
     deque<map<long,Blob> >  blob_hist;
 
-    long blob_ids;
-    long obj_ids;
+    // Used to generate new IDs
+    long blob_ids, obj_ids, proto_ids;
 
     map<long,Blob>            curr_blobs;      // Map of blob ids to blobs for the current frame
     map<long,CompositeObject> composite_objs;  // Map of obj ids to objs for the current frame
@@ -292,21 +303,11 @@ class VisualProcessor : public SDLEventHandler {
     vector<CompositeObject> manual_self_objects;
     vector<Prototype> manual_obj_classes;
 
-    /** Graphical display stuff **/
+    // Graphical display variables
     long focused_entity_id; // The focused object is selected by a click
-    int focus_level;     // Are we focusing on a blob/object/prototype?
-    int display_mode;    // Which graphical representation should we display?
-    bool display_self;   // Should the results of self detection be displayed?
-
-    // Parameters used for shape tracking
-    /* float f_max_perc_difference; */
-    /* int i_max_obj_velocity; */
-    /* float f_max_shape_area_dif; */
-
-    //(piyushk)
-    int prototype_ids;
-    float prototype_value;
-    set<int> free_colors;
+    int focus_level;        // Are we focusing on a blob/object/prototype?
+    int display_mode;       // Which graphical representation should we display?
+    bool display_self;      // Should the results of self detection be displayed?
 };
 
 #endif

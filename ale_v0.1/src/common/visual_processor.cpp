@@ -49,37 +49,89 @@ void swath::update_bounding_box(swath& other) {
     update_bounding_box(other.x_max, other.y_max);
 };
 
+PixelMask::PixelMask(int width, int height) :
+    width(width), height(height), size(0)
+{
+    // Do not need extra byte if modulo 8 is zero
+    // TODO: Do we need the +1?
+    for (int i=0; i<width*height/8 + 1; ++i)
+        pixel_mask.push_back(0x0);
+};
+
+void PixelMask::set_pixel(int x, int y, bool val) {
+    // Does the requested pixel already have the requested value?
+    if (get_pixel(x, y) == val)
+        return;
+    
+    int block = (width * y + x) / 8;
+    int indx_in_block = (width * y + x) % 8;
+    assert(block < pixel_mask.size());
+
+    if (val) {
+        pixel_mask[block] = pixel_mask[block] | (1 << (7-indx_in_block));
+        size++;
+    } else {
+        pixel_mask[block] = pixel_mask[block] & (0 << (7-indx_in_block));
+        size--;
+    }
+};
+
+bool PixelMask::get_pixel(int x, int y) {
+    int block = (width * y + x) / 8;
+    int indx_in_block = (width * y + x) % 8;
+    assert(block < pixel_mask.size());
+    return pixel_mask[block] & (1 << (7-indx_in_block));
+};
+
+bool PixelMask::equals(const PixelMask& other) {
+    if (width != other.width || height != other.height || pixel_mask.size() != other.pixel_mask.size())
+        return false;
+    for (int i=0; i<pixel_mask.size(); ++i)
+        if (pixel_mask[i] != other.pixel_mask[i])
+            return false;
+    return true;
+};
+
+int PixelMask::get_pixel_overlap(const PixelMask& other) {
+    assert(width == other.width && height == other.height);
+    assert(pixel_mask.size() == other.pixel_mask.size());
+
+    int overlap = 0;
+    for (int i=0; i<pixel_mask.size(); ++i) {
+        overlap += count_ones(pixel_mask[i] & other.pixel_mask[i]);
+    }
+    return overlap;
+};
+
+float PixelMask::get_pixel_overlap_percent(const PixelMask& other) {
+    return get_pixel_overlap(other) / (float) size;
+};
+
+void PixelMask::clear() {
+    pixel_mask.clear();
+    width = height = size = 0;
+};
+
+void PixelMask::to_string() {
+    printf("Pixel mask: Width %d  Height %d Size %d", width, height, size);
+    for (int y=0; y<height; ++y) {
+        printf("\n");
+        for (int x=0; x<width; ++x) {
+            printf("%d",get_pixel(width, height));
+        }
+    }
+    printf("\n");
+};
+
 Blob::Blob () {
     id = -1;
 };
 
-Blob::~Blob() {
-
-};
-
-Blob::Blob (int _color, long _id, int _x_min, int _x_max, int _y_min, int _y_max) {
-    color = _color;
-    x_min = _x_min;
-    x_max = _x_max;
-    y_min = _y_min;
-    y_max = _y_max;
-    height = y_max - y_min + 1;
-    width = x_max - x_min + 1;
-    x_velocity = 0; y_velocity = 0;
-    size = 0;
-    parent_id = -1; child_id = -1;
-    id = _id;
-    // Do not need extra byte if modulo 8 is zero
-    //mask = new char[width*height/8 + 1];
-    for (int i=0; i<width*height/8 + 1; ++i)
-        mask.push_back(0x0);
-};
-
-void Blob::update_minmax(int x, int y) {
-    x_min = min(x, x_min);
-    x_max = max(x, x_max);
-    y_min = min(y, y_min);
-    y_max = max(y, y_max);
+Blob::Blob (int color, long id, int x_min, int x_max, int y_min, int y_max) :
+    id(id), color(color), x_min(x_min), x_max(x_max), y_min(y_min), y_max(y_max),
+    mask(x_max - x_min + 1, y_max - y_min + 1),
+    x_velocity(0), y_velocity(0), parent_id(-1), child_id(-1)
+{
 };
 
 void Blob::add_neighbor(long neighbor_id) {
@@ -105,7 +157,7 @@ float Blob::get_centroid_dist(const Blob& other) {
 float Blob::get_aggregate_blob_match(const Blob& other) {
     int color_diff  = color == other.color;
     float dist_diff = get_centroid_dist(other);
-    float size_ratio = min(size, other.size) / (float) max(size, other.size);
+    float size_ratio = min(mask.size, other.mask.size) / (float) max(mask.size, other.mask.size);
 
     float normalized_dist_diff = max(0.0f, 1 - (dist_diff * dist_diff / 625.0f));
     float normalized_size_diff = size_ratio;
@@ -133,22 +185,12 @@ long Blob::find_matching_blob(map<long,Blob>& blobs) {
 };
 
 void Blob::to_string(bool verbose, deque<map<long,Blob> >* blob_hist) {
-    printf("Blob: %p BB: (%d,%d)->(%d,%d) Size: %d Col: %d\n",this,x_min,y_min,x_max,y_max,size,color);
+    printf("Blob: %p BB: (%d,%d)->(%d,%d) Size: %d Col: %d\n",this,x_min,y_min,x_max,y_max,
+           mask.size,color);
 
     if (verbose) {
-        printf("Pixel mask:");
-        int width = x_max - x_min + 1;
-        for (int y=0; y<height; ++y) {
-            printf("\n");
-            for (int x=0; x<width; ++x) {
-                if (get_pixel(width, height, x, y, mask))
-                    printf("1");
-                else
-                    printf("0");
-            }
-        }
-        printf("\n");
-
+        mask.to_string();
+        
         if (blob_hist != NULL) {
             printf("Velocity History: \n");
             Blob* b = this;
@@ -170,69 +212,21 @@ void Blob::to_string(bool verbose, deque<map<long,Blob> >* blob_hist) {
     }
 };
 
-Prototype::Prototype (CompositeObject& obj, map<long,Blob>& blob_map) {
-    width = obj.x_max - obj.x_min + 1;
-    height = obj.y_max - obj.y_min + 1;
-    size = 0;
-    self_likelihood = 0.0f;
-    alpha = .2f;
-  
-    obj_ids.insert(obj.id);
-
-    for (int i=0; i<width*height/8 + 1; ++i)
-        mask.push_back(0x0);
-
-    // Set the Prototype's pixel mask to that of the composite obj it was constructed from
-    for (set<long>::iterator it=obj.blob_ids.begin(); it!=obj.blob_ids.end(); ++it) {
-        long b_id = *it;
-        assert(blob_map.find(b_id) != blob_map.end());
-        Blob& b = blob_map[b_id];
-        for (int y=0; y<b.height; ++y) {
-            for (int x=0; x<b.width; ++x) {
-                if (get_pixel(b.width, b.height, x, y, b.mask)) {
-                    add_pixel(width, height, b.x_min - obj.x_min + x, b.y_min - obj.y_min + y, mask);
-                    size++;
-                }
-            }
-        }
-    }
-};
-
-float Prototype::get_pixel_match(CompositeObject& obj) {
-    int overlap = 0;
-    for (int i=0; i<min(mask.size(),obj.mask.size()); ++i) {
-        overlap += count_ones(mask[i] & obj.mask[i]);
-    }
-    return overlap / (float) max(size,obj.size);
-};
-
-void Prototype::to_string(bool verbose) {
-    printf("Prototype %d: size %d num_obj_instances %d self_likelihood %f\n",
-           id,size,(int)obj_ids.size(),self_likelihood);
-}
-
 CompositeObject::CompositeObject() {
     id = -1;
     frames_since_last_movement = 0;
 };
 
-CompositeObject::CompositeObject(int x_vel, int y_vel, long _id) {
+CompositeObject::CompositeObject(int x_vel, int y_vel, long id) :
+    id(id), x_velocity(x_vel), y_velocity(y_vel), frames_since_last_movement(0), age(0)
+{
     x_min = numeric_limits<int>::max();
     x_max = numeric_limits<int>::min();
     y_min = numeric_limits<int>::max();
     y_max = numeric_limits<int>::min();
-    x_velocity = x_vel; y_velocity = y_vel;
-    id = _id;
-    frames_since_last_movement = 0;
-    size = 0;
-    age = 0;
-    width = 0;
-    height = 0;
 };
 
-CompositeObject::~CompositeObject() {};
-
-void CompositeObject::clean() {
+void CompositeObject::clear() {
     x_min = numeric_limits<int>::max();
     x_max = numeric_limits<int>::min();
     y_min = numeric_limits<int>::max();
@@ -240,9 +234,6 @@ void CompositeObject::clean() {
   
     blob_ids.clear();
     mask.clear();
-    size = 0;
-    width = 0;
-    height = 0;
 };
 
 void CompositeObject::update_bounding_box(const Blob& b) {
@@ -250,8 +241,6 @@ void CompositeObject::update_bounding_box(const Blob& b) {
     x_max = max(b.x_max, x_max);
     y_min = min(b.y_min, y_min);
     y_max = max(b.y_max, y_max);
-    width = x_max - x_min +1;
-    height = y_max - y_min +1;
 };
 
 void CompositeObject::add_blob(const Blob& b) {
@@ -297,64 +286,93 @@ void CompositeObject::expand(map<long,Blob>& blob_map) {
 };
 
 void CompositeObject::computeMask(map<long,Blob>& blob_map) {
-    size = 0;
-    mask.clear();
-  
-    // Create pixel mask
-    for (int i=0; i<width*height/8 + 1; ++i)
-        mask.push_back(0x0);
-
+    // Recompute the bounding box
+    x_min = numeric_limits<int>::max();
+    x_max = numeric_limits<int>::min();
+    y_min = numeric_limits<int>::max();
+    y_max = numeric_limits<int>::min();
     for (set<long>::iterator it=blob_ids.begin(); it!=blob_ids.end(); ++it) {
         long b_id = *it;
         assert(blob_map.find(b_id) != blob_map.end());
         Blob& b = blob_map[b_id];
-        for (int y=0; y<b.height; ++y) {
-            for (int x=0; x<b.width; ++x) {
-                if (get_pixel(b.width, b.height, x, y, b.mask)) {
-                    add_pixel(width, height, b.x_min - x_min + x, b.y_min - y_min + y, mask);
-                    size++;
+        update_bounding_box(b);
+    }
+
+    // Create a new mask
+    // TODO: Maybe better to use a re-initialize method
+    mask = PixelMask(x_max - x_min + 1, y_max - y_min + 1);
+
+    // Fill in the new mask
+    for (set<long>::iterator it=blob_ids.begin(); it!=blob_ids.end(); ++it) {
+        long b_id = *it;
+        assert(blob_map.find(b_id) != blob_map.end());
+        Blob& b = blob_map[b_id];
+        for (int y=0; y<b.mask.height; ++y) {
+            for (int x=0; x<b.mask.width; ++x) {
+                if (b.mask.get_pixel(x, y)) {
+                    mask.set_pixel(b.x_min - x_min + x, b.y_min - y_min + y, true);
                 }
             }
         }
     }
 };
 
-bool CompositeObject::maskEquals(const CompositeObject& other) {
-    if (width != other.width || height != other.height || mask.size() != other.mask.size())
-        return false;
-    for (int i=0; i<mask.size(); i++)
-        if (mask[i] != other.mask[i])
-            return false;
-    return true;
+void CompositeObject::to_string(bool verbose) {
+    printf("Composite Object %ld: Size %d Velocity (%d,%d) FramesSinceLastMovement %d NumBlobs %d\n",
+           id, mask.size, x_velocity, y_velocity, frames_since_last_movement, int(blob_ids.size()));
 };
 
-void CompositeObject::to_string(bool verbose) {
-    printf("Composite Object %ld: Size %d Velocity (%d,%d) FramesSinceLastMovement %d NumBlobs %d\n",id,size,x_velocity,y_velocity,frames_since_last_movement,(int)blob_ids.size());
+Prototype::Prototype() {
+    id = -1;
 };
+
+Prototype::Prototype (CompositeObject& obj, long id) :
+    id(id), seen_count(0), frames_since_last_seen(0),
+    times_seen_this_frame(0), is_valid(false), self_likelihood(0), alpha(.2)
+{
+    // Add this object and save its mask
+    obj_ids.insert(obj.id);
+    masks.push_back(obj.mask);
+};
+
+void Prototype::get_pixel_match(const CompositeObject& obj, float& overlap, int& mask_indx) {
+    float best_match = -1;
+    int best_match_indx = -1;
+    for (int i=0; i<masks.size(); ++i) {
+        float match = masks[i].get_pixel_overlap_percent(obj.mask);
+        if (match > best_match) {
+            best_match = match;
+            best_match_indx = i;
+        }
+    }
+    overlap = best_match;
+    mask_indx = best_match_indx;
+};
+
+void Prototype::to_string(bool verbose) {
+    printf("Prototype %ld: num_obj_instances %d self_likelihood %f\n",
+           id, int(obj_ids.size()), self_likelihood);
+
+    if (verbose) {
+        for (int i=0; i<masks.size(); ++i) {
+            printf("Mask %d:\n", i);
+            masks[i].to_string();
+        }
+    }
+}
 
 VisualProcessor::VisualProcessor(OSystem* _osystem, GameSettings* _game_settings) : 
     p_osystem(_osystem),
     game_settings(_game_settings),
     max_history_len(50), //numeric_limits<int>::max()),
-    blob_ids(0), obj_ids(0), self_id(-1),
-    focused_entity_id(-1), focus_level(-1), display_mode(0), display_self(false),
-    prototype_ids(0),//(piyushk)
-    prototype_value(1.0) //(piyushk)
+    blob_ids(0), obj_ids(0), proto_ids(0),
+    self_id(-1),
+    focused_entity_id(-1), focus_level(-1), display_mode(0), display_self(false)
 {
     // Get the height and width of the screen
     MediaSource& mediasrc = p_osystem->console().mediaSource();
     screen_width  = mediasrc.width();
     screen_height = mediasrc.height();
-
-    // Parameters used for shape tracking
-    // f_max_perc_difference = p_osystem->settings().getFloat("max_perc_difference", true);
-    // i_max_obj_velocity = p_osystem->settings().getInt("max_obj_velocity", true);
-    // f_max_shape_area_dif = p_osystem->settings().getFloat("max_shape_area_dif", true);
-
-    // (piyushk) Initialize the free color set structure
-    for (int i = 258; i < 512; i++) {
-        free_colors.insert(i);
-    }
 
     // Load up saved self images
     loadSelfObjects();
@@ -380,38 +398,15 @@ void VisualProcessor::process_image(const IntMatrix* screen_matrix, Action actio
         sanitize_objects();
 
         // Merge objects into classes
-        // merge_objects(.96);
+        merge_objects(.96);
 
         // Identify which object we are
         // identify_self();
+        manual_identify_self();
 
-        // Identify the self based on manually loaded self file
-        for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); it++) {
-            CompositeObject& obj = it->second;
-            for (int i=0; i<manual_self_objects.size(); ++i) {
-                if (manual_self_objects[i].maskEquals(obj)) {
-                    self_id = obj.id;
-                    break;
-                }
-            }
-        }
+        // Assign objects to the save obj class files
+        manual_identify_classes();
 
-        // Sort objects into classes based on manually identified classes
-        for (int i=0; i<manual_obj_classes.size(); ++i) {
-            manual_obj_classes[i].obj_ids.clear();
-        }
-        for (map<long,CompositeObject>::iterator it=composite_objs.begin(); it!=composite_objs.end(); it++) {
-            CompositeObject& obj = it->second;
-            // Try to assign this object to one of the object classes
-            for (int i=0; i<manual_obj_classes.size(); ++i) {
-                Prototype& proto = manual_obj_classes[i];
-                if (maskEquals(obj.width, obj.height, obj.mask,
-                               proto.width, proto.height, proto.mask)) {
-                    proto.obj_ids.insert(obj.id);
-                    break;
-                }
-            }
-        }
     }
 
     // Save State and action history
@@ -862,6 +857,41 @@ void VisualProcessor::identify_self() {
     }
 };
 
+void VisualProcessor::manual_identify_self() {
+    // Identify the self based on manually loaded self file
+    for (map<long,CompositeObject>::iterator it=composite_objs.begin();
+         it!=composite_objs.end(); it++) {
+        CompositeObject& obj = it->second;
+        for (int i=0; i<manual_self_objects.size(); ++i) {
+            if (manual_self_objects[i].mask.equals(obj.mask)) {
+                self_id = obj.id;
+                break;
+            }
+        }
+    }
+};
+
+void VisualProcessor::manual_identify_classes() {
+    // Sort objects into classes based on manually identified classes
+    for (int i=0; i<manual_obj_classes.size(); ++i) {
+        manual_obj_classes[i].obj_ids.clear();
+    }
+    for (map<long,CompositeObject>::iterator it=composite_objs.begin();
+         it!=composite_objs.end(); it++) {
+        CompositeObject& obj = it->second;
+        // Try to assign this object to one of the object classes
+        for (int i=0; i<manual_obj_classes.size(); ++i) {
+            Prototype& proto = manual_obj_classes[i];
+            if (maskEquals(obj.width, obj.height, obj.mask,
+                           proto.width, proto.height, proto.mask)) {
+                proto.obj_ids.insert(obj.id);
+                break;
+            }
+        }
+    }
+}
+
+
 // void VisualProcessor::identify_self() {
 //     float max_info_gain = -1;
 //     long best_blob_id = -1;
@@ -1002,14 +1032,6 @@ void VisualProcessor::merge_objects(float similarity_threshold) {
         // Insert new prototype here
         if (!found_match) {
             Prototype p(obj,curr_blobs);
-            p.seen_count = p.frames_since_last_seen = p.times_seen_this_frame = 0; //(piyushk)
-            p.is_valid = false;
-            // if (free_colors.size() != 0) {
-            //   p.color = *(free_colors.begin()); //(piyushk)
-            //   free_colors.erase(p.color); //(piyushk)
-            // } else {
-            //   p.color = 256;
-            // }
             p.id = prototype_ids++;
             obj_classes.push_back(p);
         }
@@ -1027,13 +1049,10 @@ void VisualProcessor::merge_objects(float similarity_threshold) {
             prototypes_to_erase.push_back(i);
         } else if (p.seen_count >= 25 && !p.is_valid) {
             p.is_valid = true;
-            prototype_value += 1.0;
         }
         p.seen_count += p.times_seen_this_frame;
     }
     for (int i = prototypes_to_erase.size() - 1; i >= 0; --i) {
-        // if (free_colors.find(obj_classes[prototypes_to_erase[i]].color) != free_colors.end())
-        //   free_colors.insert(obj_classes[prototypes_to_erase[i]].color);
         obj_classes.erase(obj_classes.begin() + prototypes_to_erase[i]);
     }
 
