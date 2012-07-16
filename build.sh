@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set +e
+
 echo "Building zlib"
 cd zlib
 mkdir -p build && mkdir -p build/release && cd build/release && cmake -i ../../ && make && cd ../../../
@@ -24,3 +26,4 @@ echo "Builiding HyperNEAT"
 cd NE/HyperNEAT/
 mkdir -p build && mkdir -p build/release && cd build/release && cmake -i ../../ && make && cd ../../../
 
+set -e

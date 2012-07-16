@@ -157,7 +157,7 @@ namespace HCUBE
         shared_ptr<NEAT::GeneticIndividual> individual = group.front();
         individual->setFitness(10);
 
-        // Print the individual
+        // Print the individual. This is rarely useful...
         //individual->print();
 
         populateSubstrate(individual);
@@ -204,15 +204,6 @@ namespace HCUBE
                                                    NEAT::LayeredSubstrate<float>* substrate) {
         for (int i=0; i<visProc.manual_obj_classes.size(); i++) {
             Prototype& proto = visProc.manual_obj_classes[i];
-
-            // Map object classes to values
-            // float assigned_value = 0;
-            // HACK: Hardcoded mapping from object classes to values
-            //if (proto.size == 66 || proto.size == 70) // Freeway
-
-            // Asterix
-            // if (proto.size == 41) assigned_value = 1;
-            // if (proto.size == 42) assigned_value = -1;
 
             // Assign values to each of the objects
             float assigned_value = 1.0;

@@ -57,8 +57,7 @@ PixelMask::PixelMask(int width, int height) :
     width(width), height(height), size(0)
 {
     // Do not need extra byte if modulo 8 is zero
-    // TODO: Do we need the +1?
-    for (int i=0; i<width*height/8 + 1; ++i)
+    for (int i=0; i<width*height/8+1; ++i)
         pixel_mask.push_back(0x0);
 };
 
@@ -179,7 +178,10 @@ void PixelMask::to_string() {
     for (int y=0; y<height; ++y) {
         printf("\n");
         for (int x=0; x<width; ++x) {
-            printf("%d",get_pixel(x, y));
+            if (get_pixel(x, y))
+                printf("X");
+            else
+                printf(" ");
         }
     }
     printf("\n");
@@ -420,7 +422,6 @@ void Prototype::find_matching_objects(float similarity_threshold, map<long,Compo
         get_pixel_match(obj, similarity, indx);
         if (similarity >= similarity_threshold) {
             obj_ids.insert(obj.id);
-            break;
         }
     }
 };
@@ -1316,13 +1317,19 @@ void VisualProcessor::handleSDLEvent(const SDL_Event& event) {
             break;
         case SDLK_s: // Saves the mask for the current selection
             // Add the mask to the selected proto's list of masks
-            if (focus_level != 1 || proto_indx < -1 || proto_indx >= manual_obj_classes.size()) {
+            if (focus_level != 1 || proto_indx < -1 ||
+                composite_objs.find(focused_entity_id) == composite_objs.end()) {
                 printf("Invalid Selection. Press \"m\" to select a valid prototype then click on an object.\n");
                 break;
             }
-            assert(composite_objs.find(focused_entity_id) != composite_objs.end());
             composite_objs[focused_entity_id].computeMask(curr_blobs);
-            manual_obj_classes[proto_indx].masks.push_back(composite_objs[focused_entity_id].mask);
+            
+            if (proto_indx >= 0) {
+                assert(proto_indx < int(manual_obj_classes.size()));
+                manual_obj_classes[proto_indx].masks.push_back(composite_objs[focused_entity_id].mask);
+            } else {
+                manual_self.masks.push_back(composite_objs[focused_entity_id].mask);
+            }
             
             saveSelection();
             break;
@@ -1386,6 +1393,10 @@ void VisualProcessor::handleSDLEvent(const SDL_Event& event) {
             focus_level = 1;
             break;
         case SDLK_n: // Create and select a new prototype
+            if (manual_obj_classes.size() > 0 && manual_obj_classes.back().masks.size() == 0) {
+                printf("Empty object class already detected.\n");
+                break;
+            }
             printf("Creating and selecting new Prototype. Press \"s\" to save masks.\n");
             manual_obj_classes.push_back(Prototype());
             proto_indx = manual_obj_classes.size()-1;
