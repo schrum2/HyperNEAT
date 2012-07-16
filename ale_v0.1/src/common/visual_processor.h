@@ -13,6 +13,7 @@
 #include <deque>
 #include "../player_agents/common_constants.h"
 #include <boost/unordered_set.hpp>
+#include <boost/filesystem.hpp>
 #include <set>
 #include <map>
 #include "display_screen.h"
@@ -92,9 +93,10 @@ struct PixelMask {
 
     PixelMask();
     PixelMask(int width, int height);
+    PixelMask(const string& filename);
 
     // Sets pixel at location (x, y) to value val and updates size
-    void set_pixel(int x, int y, bool val);
+    void add_pixel(int x, int y);
 
     // Gets the value of the pixel at location (x, y)
     bool get_pixel(int x, int y);
@@ -110,6 +112,12 @@ struct PixelMask {
 
     // Resets state and variables of this pixel mask
     void clear();
+
+    // Saves this mask to a file
+    void save(const string& filename);
+
+    // Loads a mask from a file
+    void load(const string& filename);
 
     void to_string();
 };
@@ -211,6 +219,10 @@ struct Prototype {
     // masks index. 
     void get_pixel_match(const CompositeObject& obj, float& overlap, int& mask_indx);
 
+    // Populates the obj_ids field by looking for objects in the map which match or exceed
+    // the specified similarity threshold.
+    void find_matching_objects(float similarity_threshold, map<long,CompositeObject>& obj_map);
+
     void to_string(bool verbose=false);
 };
 
@@ -245,12 +257,6 @@ class VisualProcessor : public SDLEventHandler {
     // Looks through objects attempting to find one that we are controlling
     void identify_self();
 
-    // Identify the self object based on save self object image files
-    void manual_identify_self();
-
-    // Identifies object classes from saved object class image files
-    void manual_identify_classes();
-
     // Gives a point corresponding to the location of the self on the screen.
     // Assumes identify self has already been called.
     point get_self_centroid();
@@ -273,12 +279,10 @@ class VisualProcessor : public SDLEventHandler {
 
     // Saves an image of the currently selected object -- this object should be the self
     void saveSelection();
-    void loadSelfObjects();
-    void loadClassObjects();
+    // Loads masks of images. Assumes files have format prefix + image_num + suffix.
+    void loadPrototype(boost::filesystem::path p, const string& prefix, const string& suffix,
+                       Prototype& proto);
     
-    void exportMask(int width, int height, vector<char>& mask, const string& filename);
-    void importMask(int& width, int& height, vector<char>& mask, int& size, const string& filename);
-
 public:
     OSystem* p_osystem;
     GameSettings* game_settings;
@@ -299,8 +303,8 @@ public:
 
     long self_id; // ID of the object which corresponds to the "self"
 
-    // Self objects which are manually identified. These are loaded up from saved files of the game
-    vector<CompositeObject> manual_self_objects;
+    // Prototypes which are manually identified. These are loaded up from saved files of the game
+    Prototype manual_self;
     vector<Prototype> manual_obj_classes;
 
     // Graphical display variables
@@ -308,6 +312,7 @@ public:
     int focus_level;        // Are we focusing on a blob/object/prototype?
     int display_mode;       // Which graphical representation should we display?
     bool display_self;      // Should the results of self detection be displayed?
+    int proto_indx;         // Indicates which prototype we are saving masks for
 };
 
 #endif
