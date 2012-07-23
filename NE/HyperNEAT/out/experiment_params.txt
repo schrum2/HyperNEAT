@@ -1,7 +1,7 @@
 ; Parameters regarding running an experiment
 random_seed = 100
 ;max_num_frames = 18000000
-max_num_frames_per_episode = 1800000
+max_num_frames_per_episode = 100000
 num_episodes_to_avg_results = 1000
 export_weights_frq = 5000
 export_rewards_frq = 2000

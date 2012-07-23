@@ -36,30 +36,19 @@ public:
     System* emulator_system;
     GameSettings* game_settings;
 
-    // Indicates if we take actions on each timestep or skip some frames
-    int skip_frames_num;
-
-    int frame;
-
-    // Score accumulated throughout the course of a game
-    float game_score;
-
-    // Vector of allowed actions for this game
-    ActionVect *allowed_actions;
-
-    // Always stores the latest action taken
-    Action last_action;
-
-    // Used to keep track of fps
-    time_t time_start, time_end;
-
-    // Should the screen be displayed or not
-    bool display_active;
+    int skip_frames_num;         // Indicates if we take actions on each timestep or skip some frames
+    int frame;                   // Current frame number
+    int max_num_frames;          // Maximum number of frames allowed in this episode
+    float game_score;            // Score accumulated throughout the course of a game
+    ActionVect *allowed_actions; // Vector of allowed actions for this game
+    Action last_action;          // Always stores the latest action taken
+    time_t time_start, time_end; // Used to keep track of fps
+    bool display_active;         // Should the screen be displayed or not
 
 public:
     ALEInterface(): theOSystem(NULL), game_controller(NULL), mediasrc(NULL), emulator_system(NULL),
-                    game_settings(NULL), skip_frames_num(0), frame(0), game_score(0),
-                    display_active(false) {}
+                    game_settings(NULL), skip_frames_num(0), frame(0), max_num_frames(-1),
+                    game_score(0), display_active(false) {}
 
     ~ALEInterface() {
         if (theOSystem) delete theOSystem;
@@ -125,6 +114,9 @@ public:
         // Create the full OSystem after the settings, since settings are
         // probably needed for defaults
         theOSystem->create();
+
+        // Get the max number of frames per episode
+        max_num_frames = theOSystem->settings().getInt("max_num_frames_per_episode",true);
 
         //// Main loop ////
         // First we check if a ROM is specified on the commandline.  If so, and if
@@ -220,12 +212,16 @@ public:
         }
     }
 
-    // Indicates if the game has ended
+    // Indicates if the game has ended either naturally or due to exceeding
+    // the frame limit.
     bool game_over() {
-        return game_settings->is_end_of_game(&screen_matrix,&ram_content,frame);
+        return game_settings->is_end_of_game(&screen_matrix,&ram_content,frame) ||
+            (max_num_frames > -1 && frame >= max_num_frames);
     }
 
-    // Applies an action to the game and returns the reward
+    // Applies an action to the game and returns the reward. It is the user's responsibility
+    // to check if the game has ended and reset when necessary -- this method will keep pressing
+    // buttons on the game over screen.
     float apply_action(Action action) {
         float action_reward = 0;
         for (int fskip = 0; fskip <= skip_frames_num; fskip++) {

@@ -195,6 +195,7 @@ namespace HCUBE
             Action action = selectAction(*visProc, substrate);
             ale.apply_action(action);
         }
+        cout << "Game ended in " << ale.frame << " frames with score " << ale.game_score << endl;
  
         // Give the reward to the agent
         individual->reward(ale.game_score);
