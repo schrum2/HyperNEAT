@@ -277,8 +277,8 @@ class VisualProcessor : public SDLEventHandler {
 
     void printVelHistory(CompositeObject& obj);
 
-    // Saves an image of the currently selected object -- this object should be the self
-    void saveSelection();
+    // Saves an image of the currently selected object. Returns true if successful, false otherwise.
+    bool saveSelection();
     // Loads masks of images. Assumes files have format prefix + image_num + suffix.
     void loadPrototype(boost::filesystem::path p, const string& prefix, const string& suffix,
                        Prototype& proto);

@@ -1151,11 +1151,11 @@ void VisualProcessor::printVelHistory(CompositeObject& obj) {
     }  
 };
 
-void VisualProcessor::saveSelection() {
+bool VisualProcessor::saveSelection() {
     if (focus_level != 1 || proto_indx <= -2) {
         printf("Focus lv %d Proto Indx %d\n",focus_level, proto_indx);
         printf("Invalid Selection. Press \"m\" to select a valid prototype then click on an object.\n");
-        return;
+        return false;
     }
 
     // Make sure a valid object is selected
@@ -1193,7 +1193,7 @@ void VisualProcessor::saveSelection() {
             PixelMask saved(p.string());
             if (obj.mask.equals(saved)) {
                 printf("Matching object was already saved in file %s.\n",p.string().c_str());
-                return;
+                return false;
             }                
             p = p.parent_path();
         }
@@ -1202,6 +1202,7 @@ void VisualProcessor::saveSelection() {
     }
     printf("Exporting selection to %s.\n",p.string().c_str());
     obj.mask.save(p.string());
+    return true;
 }
 
 void VisualProcessor::loadPrototype(boost::filesystem::path p, const string& prefix,
@@ -1316,22 +1317,15 @@ void VisualProcessor::handleSDLEvent(const SDL_Event& event) {
                 printf("Disabled self display.\n");
             break;
         case SDLK_s: // Saves the mask for the current selection
-            // Add the mask to the selected proto's list of masks
-            if (focus_level != 1 || proto_indx < -1 ||
-                composite_objs.find(focused_entity_id) == composite_objs.end()) {
-                printf("Invalid Selection. Press \"m\" to select a valid prototype then click on an object.\n");
-                break;
+            // Add the mask to the selected proto's list of masks if saving goes well
+            if (saveSelection()) {
+                if (proto_indx >= 0) {
+                    assert(proto_indx < int(manual_obj_classes.size()));
+                    manual_obj_classes[proto_indx].masks.push_back(composite_objs[focused_entity_id].mask);
+                } else {
+                    manual_self.masks.push_back(composite_objs[focused_entity_id].mask);
+                }
             }
-            composite_objs[focused_entity_id].computeMask(curr_blobs);
-            
-            if (proto_indx >= 0) {
-                assert(proto_indx < int(manual_obj_classes.size()));
-                manual_obj_classes[proto_indx].masks.push_back(composite_objs[focused_entity_id].mask);
-            } else {
-                manual_self.masks.push_back(composite_objs[focused_entity_id].mask);
-            }
-            
-            saveSelection();
             break;
         case SDLK_q:
             if (focus_level == 0) {
