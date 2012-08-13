@@ -1,4 +1,4 @@
 #!/bin/bash
-./ale -random_seed time -game_controller internal -player_agent self_detection_agent -num_block_per_row 16 -num_block_per_col 21 -display_screen true ./roms/space_invaders.bin
+./ale -random_seed time -game_controller internal -player_agent self_detection_agent -num_block_per_row 16 -num_block_per_col 21 -display_screen true ./roms/bank_heist.bin
 
 
