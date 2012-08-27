@@ -129,7 +129,7 @@ SET(
 
 SET(
 	ALE_INCLUDE
-	"../../../ale_v0.1/src"
+	"../../../ale/src"
 	CACHE
 	PATH 
 	"Ale include directory"
@@ -313,7 +313,7 @@ SET(
 
 SET(
     ALE_LIB
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../../ale_v0.1/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../../ale/"
     CACHE
     PATH 
     "ALE Library Directory"

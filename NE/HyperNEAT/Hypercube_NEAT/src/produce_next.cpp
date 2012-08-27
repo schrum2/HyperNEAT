@@ -46,7 +46,7 @@ int HyperNEAT_main(int argc,char **argv) {
     HCUBE::ExperimentRun experimentRun;
     experimentRun.setupExperiment(experimentType, commandLineParser.GetSafeArgument("-O",0,"output.xml"));
 
-    string rom_file = commandLineParser.GetSafeArgument("-G",0,"../ale_v0.1/roms/asterix.bin");
+    string rom_file = commandLineParser.GetSafeArgument("-G",0,"../ale/roms/asterix.bin");
     boost::shared_ptr<HCUBE::AtariExperiment> exp = boost::static_pointer_cast<HCUBE::AtariExperiment>(experimentRun.getExperiment());
     exp->setDisplayScreen(true);
     exp->set_rom(rom_file.c_str());

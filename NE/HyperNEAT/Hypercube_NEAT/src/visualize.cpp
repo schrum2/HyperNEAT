@@ -51,7 +51,7 @@ int HyperNEAT_main(int argc,char **argv) {
     unsigned int individualId = stringTo<unsigned int>(commandLineParser.GetSafeArgument("-N",0,"0"));
 
     cout << "[HyperNEAT core] Visualizing individual: " << individualId << endl;
-    string rom_file = commandLineParser.GetSafeArgument("-G",0,"../ale_v0.1/roms/asterix.bin");
+    string rom_file = commandLineParser.GetSafeArgument("-G",0,"../ale/roms/asterix.bin");
     boost::shared_ptr<HCUBE::AtariExperiment> exp = boost::static_pointer_cast<HCUBE::AtariExperiment>(experimentRun.getExperiment());
     exp->setDisplayScreen(true);
     exp->initializeExperiment(rom_file.c_str());

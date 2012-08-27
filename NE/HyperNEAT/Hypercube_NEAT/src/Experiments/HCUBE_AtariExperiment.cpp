@@ -31,14 +31,14 @@ namespace HCUBE
         }
 
         // Initialize Atari Stuff
-        if (!ale.loadROM(rom_file.c_str(), display_active)) {
+        if (!ale.loadROM(rom_file.c_str(), display_active, true)) {
             cerr << "Ale had problem loading rom..." << endl;
             exit(-1);
         }
-        numActions = ale.allowed_actions->size();
+        numActions = ale.allowed_actions.size();
 
         // Load the visual processing framework
-        visProc = new VisualProcessor(ale.theOSystem, ale.game_settings);
+        visProc = ale.visProc;
         numObjClasses = visProc->manual_obj_classes.size();
         if (numObjClasses <= 0) {
           cerr << "No object classes found. Make sure there is an images directory containg class images." << endl;
@@ -173,10 +173,8 @@ namespace HCUBE
         ale.reset_game();
         
         while (!ale.game_over()) {
-            // Get the object representation
-            visProc->process_image(&ale.screen_matrix, ale.last_action);
-
-            substrate->getNetwork()->reinitialize(); // Set value of all nodes to zero
+            // Set value of all nodes to zero
+            substrate->getNetwork()->reinitialize(); 
             substrate->getNetwork()->dummyActivation();
 
             // Set substrate value for all objects (of a certain size)
@@ -193,7 +191,7 @@ namespace HCUBE
 
             // Choose which action to take
             Action action = selectAction(*visProc, substrate);
-            ale.apply_action(action);
+            ale.act(action);
         }
         cout << "Game ended in " << ale.frame << " frames with score " << ale.game_score << endl;
  
@@ -281,7 +279,7 @@ namespace HCUBE
             }
         }
         int action_indx = choice(&max_inds);
-        return (*ale.allowed_actions)[action_indx];
+        return ale.allowed_actions[action_indx];
 
 
         // // If no self detected, take a random action.

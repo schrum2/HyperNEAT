@@ -1,3 +1,17 @@
 This is a fork of Jason Gauci's HyperNEAT repo. Specifically it is intended to apply HyperNEAT to the problem of playing general Atari games.
 
+INSTALLATION:
+
+1) The ALE submodule must first be checked out. From the HyperNEAT directory run the command:
+
+git submodule init
+
+followed by:
+
+git submodule update
+
+This should populate the ALE submodule.
+
+2) There is a build script included which gives a rough sense of the build process. The individual components built by this script will require user input for cmake options. I believe all the defaults are configured correctly so the user can simply press ENTER through all the options.
+
 
