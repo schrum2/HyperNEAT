@@ -1,2 +1,2 @@
 #!/bin/sh
-./atari_visualize -I data/AtariExperiment.dat -P results/generation0.xml.gz -N 0 -G ../../../ale_v0.1/roms/asterix.bin
+./atari_visualize -I data/AtariExperiment.dat -P results/generation0.xml.gz -N 0 -G ../../../ale/roms/asterix.bin

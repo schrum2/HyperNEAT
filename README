@@ -15,3 +15,10 @@ This should populate the ALE submodule.
 2) There is a build script included which gives a rough sense of the build process. The individual components built by this script will require user input for cmake options. I believe all the defaults are configured correctly so the user can simply press ENTER through all the options.
 
 
+REQUIREMENTS:
+
+1) Several libraries are required including: SDL, SDL graphics, SDL image, boost, boost thread, boost serialization, boost system, and boost filesystem.
+
+2) ROM files for the games are not provided due to copyright issues. Check Atari enthusiast websites.
+
+3) Image files for manual object detection are not included. These may be generated through the ALE codebase.
