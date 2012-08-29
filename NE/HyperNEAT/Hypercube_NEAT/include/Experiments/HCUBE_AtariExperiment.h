@@ -31,7 +31,7 @@ namespace HCUBE
     void initializeExperiment(string rom_file);
 
     AtariExperiment(string _experimentName,int _threadID);
-    virtual ~AtariExperiment() { if (visProc) delete visProc; }
+    virtual ~AtariExperiment() {};
 
     virtual NEAT::GeneticPopulation* createInitialPopulation(int populationSize);
     virtual void processGroup(shared_ptr<NEAT::GeneticGeneration> generation);
