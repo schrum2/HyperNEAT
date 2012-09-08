@@ -29,7 +29,7 @@ import argparse, os, random, time
 # This runs a single Atari game.
 def run_game(executable, dataFile, generationFile, individualId, fitnessFile, rom):
     from subprocess import call
-    call([executable, "-I", dataFile, "-P", generationFile, "-N",
+    call(["./" + executable, "-I", dataFile, "-P", generationFile, "-N",
                      str(individualId), "-F", fitnessFile, "-G", rom])
                     
 parser = argparse.ArgumentParser(description='Runs Atari games without tire.')
