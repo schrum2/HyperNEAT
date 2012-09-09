@@ -213,7 +213,7 @@ namespace HCUBE
         fitnessFunctionPrefix + boost::lexical_cast<string>(a);
       ifstream fin(individualFile.c_str());
       if (fin.fail()) {
-        cout << "Failed to read individual fitness. Setting fitness to 10." << endl;
+          cout << "Failed to read individual fitness from file " << individualFile << ". Setting fitness to 10." << endl;
         (*tmpIterator)->setFitness(10);
       } else {
         float fitness;
