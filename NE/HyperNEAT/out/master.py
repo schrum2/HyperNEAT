@@ -55,6 +55,8 @@ def startWorker(workerNum, executable, resultsDir, dataFile, numIndividuals, num
     condorSubmitPipe.close()
     output = subprocess.Popen(["condor_submit","-verbose",condorFile], stdout=subprocess.PIPE).communicate()[0]
 
+    #os.remove(condorFile)
+
     # Get the process ID for this job so we can monitor it
     s = output.find('** Proc ')+8
     procID = output[s:output.find(':\n',s)]
@@ -91,6 +93,10 @@ individualsPerGeneration = args.n
 numWorkers               = args.w
 startGen                 = args.s
 
+if not os.path.exists(rom):
+    print 'Rom not found. Exiting.'
+    sys.exit(0)
+
 # Create results directory if it doesnt exist
 if not os.path.isdir(resultsDir):
     os.makedirs(resultsDir)
@@ -103,7 +109,7 @@ if startGen == 0 and not os.listdir(resultsDir) == [] and not os.listdir(results
 # Create Generation 0
 if startGen == 0:
     gen0File = os.path.join(resultsDir,"generation0.xml")
-    subprocess.call(["./" + generateExec, "-I", dataFile, "-O", gen0File, "-G", rom])
+    subprocess.check_call(["./" + generateExec, "-I", dataFile, "-O", gen0File, "-G", rom])
 else:
     # Make sure there is a generation file for the specified start generation
     genPath = os.path.join(resultsDir,"generation"+str(startGen)+".xml.gz")
@@ -112,6 +118,8 @@ else:
         sys.exit(0)
 
 # Start worker threads running
+print 'Starting Workers...'
+sys.stdout.flush()
 procIDs = [] # Keep track of the ids of the condor jobs
 for i in range(numWorkers):
     pid = startWorker(i, executable, resultsDir, dataFile, individualsPerGeneration, maxGeneration, rom)
@@ -130,23 +138,26 @@ while currentGeneration < maxGeneration:
                 if os.path.getsize(fitnessPath) > 0:
                     individualIds.remove(individualId)
                 # Delete fitness file if it hasn't been written to in 30 mins. Job is likely dead or fubar.
-                else if time.time() - os.path.getmtime(fitnessPath) > 1800:
+                elif time.time() - os.path.getmtime(fitnessPath) > 1800:
                     print 'Deleting empty and old fitness file',fitnessPath
                     os.remove(fitnessPath)
+                    individualIds.remove(individualId) # It will be given a minimum fitness score when new generation is started
 
         # Restart any workers that have ended unexpectedly
-        out = subprocess.Popen(["condor_q"], stdout=subprocess.PIPE).communicate()[0]
+        out = subprocess.Popen(["condor_q","mhauskn"], stdout=subprocess.PIPE).communicate()[0]
         for procID in procIDs:
-            if out.find(procID+'   mhauskn') == -1:
+            if out.find(procID) == -1:
+                print 'Missing pid:',procID,'starting replacement job.'
+                sys.stdout.flush()
                 indx = procIDs.index(procID)
                 procIDs.remove(procID)
-                pid = startWorker(indx, executable, resultsDir, dataFile, individualsPerGeneration,
-                                  maxGeneration, rom)
+                pid = startWorker(indx, executable, resultsDir, dataFile, individualsPerGeneration, maxGeneration, rom)
                 procIDs.append(pid)
-                print 'Process',procID,'dissapeared... Starting a new worker.'
                 
         # Wait for a little while 
-        time.sleep(1)
+        print 'Waiting for',len(individualIds),'job(s) to finish...'
+        sys.stdout.flush()
+        time.sleep(5)
 
     # Create next generation
     currGenFile = os.path.join(resultsDir,"generation"+str(currentGeneration)+".xml.gz")

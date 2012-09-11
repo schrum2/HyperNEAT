@@ -12,12 +12,18 @@ fi
 
 echo "Starting Experimental Run..."
 
+if [ $# -lt 2 ]
+then
+    echo "Usage: $0 rom_path results_path"
+    exit 0
+fi
+
 let STARTGEN=0
 let NUMGENS=150
 let POPSIZE=100
-let WORKERS=20
-ROMPATH="../../../ale/roms/asterix.bin"
-RESPATH="results/asterix/0"
+let WORKERS=10
+ROMPATH=$1
+RESPATH=$2
 
 # Experiments Here
 for i in {1..1}

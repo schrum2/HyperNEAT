@@ -28,8 +28,8 @@ import argparse, os, random, time
 
 # This runs a single Atari game.
 def run_game(executable, dataFile, generationFile, individualId, fitnessFile, rom):
-    from subprocess import call
-    call(["./" + executable, "-I", dataFile, "-P", generationFile, "-N",
+    from subprocess import check_call
+    check_call(["./" + executable, "-I", dataFile, "-P", generationFile, "-N",
                      str(individualId), "-F", fitnessFile, "-G", rom])
                     
 parser = argparse.ArgumentParser(description='Runs Atari games without tire.')
@@ -68,7 +68,7 @@ while currentGeneration < maxGeneration:
     generationPath = os.path.join(resultsDir,generationFile)
     while not os.path.exists(generationPath):
         print 'Generation file:',generationFile,'not found... sleeping.'
-        time.sleep(1)
+        time.sleep(5)
 
     # Look for fitness files which indicate that games are being run
     individualIds = range(individualsPerGeneration)
@@ -84,3 +84,4 @@ while currentGeneration < maxGeneration:
         open(fitnessPath,'w').close() # Touch this fitness file
         run_game(executable, dataFile, generationPath, individualId, fitnessPath, rom)
 
+    currentGeneration += 1
