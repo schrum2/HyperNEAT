@@ -12,10 +12,17 @@ fi
 
 echo "Starting Experimental Run..."
 
+let STARTGEN=0
+let NUMGENS=150
+let POPSIZE=100
+let WORKERS=20
+ROMPATH="../../../ale/roms/asterix.bin"
+RESPATH="results/asterix/0"
+
 # Experiments Here
 for i in {1..1}
 do
-	./condor_run.rb /u/mhauskn/projects/HyperNEAT/NE/HyperNEAT/out/ 250 100
+    /lusr/bin/python master.py -e atari_evaluate -p atari_generate -d data/AtariExperiment.dat -s $STARTGEN -n $POPSIZE -g $NUMGENS -G $ROMPATH -w $WORKERS -r $RESPATH
 done
 
 echo "Experiments Finished!"
