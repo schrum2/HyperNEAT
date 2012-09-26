@@ -203,24 +203,28 @@ namespace HCUBE
                                                    NEAT::LayeredSubstrate<float>* substrate) {
         for (int i=0; i<visProc.manual_obj_classes.size(); i++) {
             Prototype& proto = visProc.manual_obj_classes[i];
+            paintSubstrate(visProc, proto, substrate, i);
+        }
+    }
 
-            // Assign values to each of the objects
-            float assigned_value = 1.0;
-            for (set<long>::iterator it=proto.obj_ids.begin(); it!=proto.obj_ids.end(); it++) {
-                long obj_id = *it;
-                assert(visProc.composite_objs.find(obj_id) != visProc.composite_objs.end());
-                point obj_centroid = visProc.composite_objs[obj_id].get_centroid();
-                int adj_x = obj_centroid.x * substrate_width / visProc.screen_width;
-                int adj_y = obj_centroid.y * substrate_height / visProc.screen_height;
-                // for (int y=0; y<substrate_height; ++y) {
-                //     for (int x=0; x<substrate_width; ++x) {
-                //         double val = gauss2D((double)x,(double)y, assigned_value,
-                //                              (double)adj_x,(double)adj_y,1.0,1.0);
-                //         substrate->setValue(Node(x,y,i),substrate->getValue(Node(x,y,i))+val);
-                //     }
-                // }
-                substrate->setValue((Node(adj_x,adj_y,i)),assigned_value);
-            }
+    void AtariExperiment::paintSubstrate(VisualProcessor& visProc, Prototype& proto,
+                                         NEAT::LayeredSubstrate<float>* substrate, int substrateIndx) {
+        // Assign values to each of the objects
+        float assigned_value = 1.0;
+        for (set<long>::iterator it=proto.obj_ids.begin(); it!=proto.obj_ids.end(); it++) {
+            long obj_id = *it;
+            assert(visProc.composite_objs.find(obj_id) != visProc.composite_objs.end());
+            point obj_centroid = visProc.composite_objs[obj_id].get_centroid();
+            int adj_x = obj_centroid.x * substrate_width / visProc.screen_width;
+            int adj_y = obj_centroid.y * substrate_height / visProc.screen_height;
+            // for (int y=0; y<substrate_height; ++y) {
+            //     for (int x=0; x<substrate_width; ++x) {
+            //         double val = gauss2D((double)x,(double)y, assigned_value,
+            //                              (double)adj_x,(double)adj_y,1.0,1.0);
+            //         substrate->setValue(Node(x,y,i),substrate->getValue(Node(x,y,i))+val);
+            //     }
+            // }
+            substrate->setValue((Node(adj_x,adj_y,substrateIndx)),assigned_value);
         }
     }
 
@@ -251,17 +255,12 @@ namespace HCUBE
         if (!visProc.found_self())
             return;
 
-        point self_centroid = visProc.get_self_centroid();
-        int self_x = self_centroid.x * substrate_width / visProc.screen_width;
-        int self_y = self_centroid.y * substrate_height / visProc.screen_height;
-                    
-        // for (int y=0; y<substrate_height; ++y) {
-        //     for (int x=0; x<substrate_width; ++x) {
-        //         double val = gauss2D((double)x,(double)y,1.0,(double)self_x,(double)self_y,.5,.5);
-        //         substrate->setValue(Node(x,y,0),substrate->getValue(Node(x,y,0))+val);
-        //     }
-        // }
-        substrate->setValue(Node(self_x,self_y,numObjClasses),1.0);
+        paintSubstrate(visProc, visProc.manual_self, substrate, numObjClasses);
+
+        // point self_centroid = visProc.get_self_centroid();
+        // int self_x = self_centroid.x * substrate_width / visProc.screen_width;
+        // int self_y = self_centroid.y * substrate_height / visProc.screen_height;
+        // substrate->setValue(Node(self_x,self_y,numObjClasses),1.0);
     }
 
     Action AtariExperiment::selectAction(VisualProcessor& visProc,

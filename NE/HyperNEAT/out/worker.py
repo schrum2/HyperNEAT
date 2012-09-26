@@ -24,7 +24,7 @@
 # `--`\____       __..---~~ ~~--..~--------~~   |                  ,'       ,'
 #                                           "Catbus" (from "My Neighbor Totoro")
 
-import argparse, os, random, time
+import argparse, os, random, time, sys
 
 # This runs a single Atari game.
 def run_game(executable, dataFile, generationFile, individualId, fitnessFile, rom):
@@ -67,7 +67,6 @@ while currentGeneration < maxGeneration:
     generationFile = "generation" + str(currentGeneration) + ".xml.gz"
     generationPath = os.path.join(resultsDir,generationFile)
     while not os.path.exists(generationPath):
-        print 'Generation file:',generationFile,'not found... sleeping.'
         time.sleep(5)
 
     # Look for fitness files which indicate that games are being run
@@ -81,7 +80,8 @@ while currentGeneration < maxGeneration:
         fitnessPath = os.path.join(resultsDir,fitnessFile)
         if os.path.exists(fitnessPath):
             continue
-        open(fitnessPath,'w').close() # Touch this fitness file
+
         run_game(executable, dataFile, generationPath, individualId, fitnessPath, rom)
 
+    # By this time all fitness evaluations should be complete
     currentGeneration += 1

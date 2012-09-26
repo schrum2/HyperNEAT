@@ -45,6 +45,11 @@ namespace HCUBE
     // Identifies the self agent on the relevant layer of substrate
     void setSubstrateSelfValue(VisualProcessor& visProc,
                                   NEAT::LayeredSubstrate<float>* substrate);
+
+    // Takes the centroids of the objects locations and paints them onto the substrate
+    void paintSubstrate(VisualProcessor& visProc, Prototype& proto, NEAT::LayeredSubstrate<float>* substrate,
+        int substrateIndx);
+    
     // Selects an action based on the output layer of the network
     Action selectAction(VisualProcessor& visProc,
                                   NEAT::LayeredSubstrate<float>* substrate);
