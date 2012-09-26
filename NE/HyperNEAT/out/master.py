@@ -139,14 +139,16 @@ while currentGeneration < maxGeneration:
                 individualIds.remove(individualId)
 
         # Restart any missing workers
+        deadWorkerIndexes = []
         out = subprocess.Popen(["condor_q","mhauskn"], stdout=subprocess.PIPE).communicate()[0]
         for procID in procIDs:
             if out.find(procID) == -1:
-                print 'Missing pid:',procID,'starting replacement job.'
+                print 'Missing pid:',procID
                 sys.stdout.flush()
 
                 indx = procIDs.index(procID)
                 procIDs.remove(procID)
+                deadWorkerIndexes.append(indx)
 
                 # Read its error log and save to global error log
                 glog = open(os.path.join(resultsDir,'global.err'),'a')
@@ -156,11 +158,10 @@ while currentGeneration < maxGeneration:
                 glog.close()
                 llog.close()
                 
-                # Start a new worker 
-                pid = startWorker(indx, executable, resultsDir, dataFile,
-                                  individualsPerGeneration, maxGeneration, rom)
-                procIDs.append(pid)
-                
+        for indx in deadWorkerIndexes:
+            pid = startWorker(indx, executable, resultsDir, dataFile, individualsPerGeneration, maxGeneration, rom)
+            procIDs.append(pid)
+
         # Wait for a little while 
         print 'Waiting for',len(individualIds),'job(s) to finish...'
         sys.stdout.flush()
@@ -173,7 +174,6 @@ while currentGeneration < maxGeneration:
     fitnessRoot = os.path.join(resultsDir,"fitness." + str(currentGeneration)+".")
     subprocess.Popen(["./" + generateExec, "-I", dataFile, "-O", nextGenFile, "-P", currGenFile,
                      "-F", fitnessRoot, "-E", evalGenFile, "-G", rom])
-
     currentGeneration += 1
 
 

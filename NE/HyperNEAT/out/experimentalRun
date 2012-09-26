@@ -18,7 +18,6 @@ then
     exit 0
 fi
 
-let STARTGEN=0
 let NUMGENS=150
 let POPSIZE=100
 let WORKERS=10
@@ -28,7 +27,7 @@ RESPATH=$2
 # Experiments Here
 for i in {1..1}
 do
-    /lusr/bin/python master.py -e atari_evaluate -p atari_generate -d data/AtariExperiment.dat -s $STARTGEN -n $POPSIZE -g $NUMGENS -G $ROMPATH -w $WORKERS -r $RESPATH
+    /lusr/bin/python master.py -e atari_evaluate -p atari_generate -d data/AtariExperiment.dat -n $POPSIZE -g $NUMGENS -G $ROMPATH -w $WORKERS -r $RESPATH
 done
 
 echo "Experiments Finished!"
