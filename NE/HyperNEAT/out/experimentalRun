@@ -21,13 +21,14 @@ fi
 let NUMGENS=150
 let POPSIZE=100
 let WORKERS=10
+let SEED=123
 ROMPATH=$1
 RESPATH=$2
 
 # Experiments Here
 for i in {1..1}
 do
-    /lusr/bin/python master.py -e atari_evaluate -p atari_generate -d data/AtariExperiment.dat -n $POPSIZE -g $NUMGENS -G $ROMPATH -w $WORKERS -r $RESPATH
+    /lusr/bin/python master.py -e atari_evaluate -p atari_generate -d data/AtariExperiment.dat -n $POPSIZE -g $NUMGENS -G $ROMPATH -w $WORKERS -r $RESPATH -R $SEED
 done
 
 echo "Experiments Finished!"

@@ -31,7 +31,7 @@
 import argparse, os, subprocess, time, sys
 
 # Submits a condor job which starts a worker running
-def startWorker(workerNum, executable, resultsDir, dataFile, numIndividuals, numGenerations, rom):
+def startWorker(workerNum, executable, resultsDir, dataFile, numIndividuals, numGenerations, seed, rom):
     cOutFile = os.path.join(resultsDir,"worker" + str(workerNum) + ".out")
     cErrFile = os.path.join(resultsDir,"worker" + str(workerNum) + ".err")
     cLogFile = os.path.join(resultsDir,"worker" + str(workerNum) + ".log")
@@ -41,7 +41,7 @@ def startWorker(workerNum, executable, resultsDir, dataFile, numIndividuals, num
     Log = " + cLogFile + "\n\
     universe = vanilla\n\
     Executable = " + "/usr/bin/python2.6" + "\n\
-    Arguments = worker.py -e "+ executable + " -r " + resultsDir + " -d " + dataFile + " -n " + str(numIndividuals) + " -g " + str(numGenerations) + " -G " + rom + "\n\
+    Arguments = worker.py -e "+ executable + " -r " + resultsDir + " -d " + dataFile + " -n " + str(numIndividuals) + " -g " + str(numGenerations) + " -R " + str(seed) + " -G " + rom + "\n\
     Requirements = LUCID && (Arch == \"x86_64\" || Arch==\"INTEL\")\n\
     +Group=\"GRAD\"\n\
     +Project=\"AI_ROBOTICS\"\n\
@@ -86,9 +86,13 @@ parser.add_argument('-G', metavar='rom-file', required=True,
                     help='This should point to the rom to be run.')
 parser.add_argument('-w', metavar='num-workers', required=True, type=int,
                     help='The number of workers devoted to running this game.')
+parser.add_argument('-R', metavar='random-seed', required=False, type=int, default=-1,
+                    help='Seed the random number generator.')
+
 
 args = parser.parse_args()
 rom                      = args.G
+seed                     = args.R
 executable               = args.e
 generateExec             = args.p
 dataFile                 = args.d
@@ -115,7 +119,7 @@ print 'Starting Workers...'
 sys.stdout.flush()
 procIDs = [] # Keep track of the ids of the condor jobs
 for i in range(numWorkers):
-    pid = startWorker(i, executable, resultsDir, dataFile, individualsPerGeneration, maxGeneration, rom)
+    pid = startWorker(i, executable, resultsDir, dataFile, individualsPerGeneration, maxGeneration, seed, rom)
     procIDs.append(pid)
 
 # Find the generation to start on by incrementally searching for eval files
@@ -159,7 +163,8 @@ while currentGeneration < maxGeneration:
                 llog.close()
                 
         for indx in deadWorkerIndexes:
-            pid = startWorker(indx, executable, resultsDir, dataFile, individualsPerGeneration, maxGeneration, rom)
+            pid = startWorker(indx, executable, resultsDir, dataFile,
+                              individualsPerGeneration, maxGeneration, seed, rom)
             procIDs.append(pid)
 
         # Wait for a little while 
