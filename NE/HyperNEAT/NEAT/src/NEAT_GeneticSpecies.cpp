@@ -86,7 +86,7 @@ namespace NEAT
         }
     }
 
-    void GeneticSpecies::makeBabies(vector<shared_ptr<GeneticIndividual> > &babies)
+    void GeneticSpecies::makeBabies(vector<shared_ptr<GeneticIndividual> > &babies, double minGenerationalFitness)
     {
         int lastIndex = int(Globals::getSingleton()->getParameterValue("SurvivalThreshold")*currentIndividuals.size());
 
@@ -149,7 +149,7 @@ namespace NEAT
                 }
                 else
                 {
-                    babies.push_back(shared_ptr<GeneticIndividual>(new GeneticIndividual(parent1,parent2)));
+                    babies.push_back(shared_ptr<GeneticIndividual>(new GeneticIndividual(parent1,parent2,false,minGenerationalFitness)));
                 }
                 offspringCount--;
             }

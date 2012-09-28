@@ -68,7 +68,7 @@ namespace NEAT
         /**
          * Create a baby individual from two parents
         */
-        NEAT_DLL_EXPORT GeneticIndividual(shared_ptr<GeneticIndividual> parent1,shared_ptr<GeneticIndividual> parent2,bool mate_multipoint_avg=false);
+        NEAT_DLL_EXPORT GeneticIndividual(shared_ptr<GeneticIndividual> parent1,shared_ptr<GeneticIndividual> parent2,bool mate_multipoint_avg=false, double minFitness=-.0001);
 
         /**
          * Create a baby individual from one parent

@@ -372,27 +372,33 @@ namespace NEAT
         int numParents = int(generations[onGeneration]->getIndividualCount());
 
         cout << "[HyperNEAT Core - Genetic Population] numParents: " << numParents << ", speciesSize: " << species.size() << endl;
-        for(int a=0;a<numParents;a++)
-        {
-            if(generations[onGeneration]->getIndividual(a)->getFitness() < 1e-6)
-            {
-                throw CREATE_LOCATEDEXCEPTION_INFO("ERROR: Fitness must be a positive number!\n");
-            }
-        }
 
         cout << "[HyperNEAT Core - Genetic Population] Bad parents thrown out\n";
-        double totalFitness=0;
-
+        double maxFitness = species[0]->getAdjustedFitness();
+        double minFitness = species[0]->getAdjustedFitness();
         for (int a=0;a<(int)species.size();a++)
         {
-            totalFitness += species[a]->getAdjustedFitness();
+            double adjustedFitness = species[a]->getAdjustedFitness();
+            if (adjustedFitness > maxFitness)
+                maxFitness = adjustedFitness;
+            if (adjustedFitness < minFitness)
+                minFitness = adjustedFitness;
+        }
+        cout << "[HyperNEAT Core - Genetic Population] MinFitness: " << minFitness << " MaxFitness: " << maxFitness << endl;
+        double totalFitness=0;
+        for (int a=0;a<(int)species.size();a++)
+        {
+            double normalizedFitness = (species[a]->getAdjustedFitness() - minFitness) / (maxFitness - minFitness);
+            if (maxFitness == minFitness) normalizedFitness = 1.0;
+            totalFitness += normalizedFitness;
         }
         cout << "[HyperNEAT Core - Genetic Population] Did some other stuff: totalFit: " << totalFitness << endl;
         int totalOffspring=0;
         for (int a=0;a<(int)species.size();a++)
         {
-            double adjustedFitness = species[a]->getAdjustedFitness();
-            int offspring = int(adjustedFitness/totalFitness*numParents);
+            double normalizedFitness = (species[a]->getAdjustedFitness() - minFitness) / (maxFitness - minFitness);
+            if (maxFitness == minFitness) normalizedFitness = 1.0;
+            int offspring = int(normalizedFitness/totalFitness*numParents);
             totalOffspring+=offspring;
             species[a]->setOffspringCount(offspring);
         }
@@ -498,7 +504,7 @@ namespace NEAT
         for (int a=0;a<(int)species.size();a++)
         {
             //cout << "Making babies\n";
-            species[a]->makeBabies(babies);
+            species[a]->makeBabies(babies, minFitness);
         }
         if ((int)babies.size()!=generations[onGeneration]->getIndividualCount())
         {

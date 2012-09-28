@@ -126,7 +126,7 @@ namespace NEAT
 
         NEAT_DLL_EXPORT void incrementAge();
 
-        NEAT_DLL_EXPORT void makeBabies(vector<shared_ptr<GeneticIndividual> > &babies);
+        NEAT_DLL_EXPORT void makeBabies(vector<shared_ptr<GeneticIndividual> > &babies, double minGenerationalFitness);
 
         NEAT_DLL_EXPORT void dump(TiXmlElement *speciesElement);
     };

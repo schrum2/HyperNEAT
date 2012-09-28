@@ -276,37 +276,28 @@ namespace NEAT
 		isValid();
     }
 
-    GeneticIndividual::GeneticIndividual(shared_ptr<GeneticIndividual> parent1,shared_ptr<GeneticIndividual> parent2,bool mate_multipoint_avg)
+    GeneticIndividual::GeneticIndividual(shared_ptr<GeneticIndividual> parent1,shared_ptr<GeneticIndividual> parent2,bool mate_multipoint_avg, double minFitness)
         :
     fitness(0),
         canReproduce(true)
     {
-        if (parent1->getFitness()==0)
-        {
-            parent1->setFitness(0.0001);
-        }
-
-        if (parent2->getFitness()==0)
-        {
-            parent2->setFitness(0.0001);
-        }
-
-        double totalFitness = parent1->getFitness()+parent2->getFitness();
+        // Pad each fitness value by the minimum fitness in the generation
+        double parent1PaddedFitness = max(parent1->getFitness() - minFitness, .0001);
+        double parent2PaddedFitness = max(parent2->getFitness() - minFitness, .0001);
+        double totalFitness = parent1PaddedFitness + parent2PaddedFitness;
 
         int link1index = 0,link2index=0;
 
 #if CROSSOVER_PICKS_INDIVIDUAL_GENES==0
         double randomChoice = Globals::getSingleton()->getRandom().getRandomDouble(double(0),totalFitness);
-
-        bool chooseFirstParent = (randomChoice<=parent1->getFitness());
+        bool chooseFirstParent = (randomChoice<=parent1PaddedFitness);
 #endif
 
         while (link1index<parent1->getLinksCount()||link2index<parent2->getLinksCount())
         {
 #if CROSSOVER_PICKS_INDIVIDUAL_GENES==1
 			double randomChoice = Globals::getSingleton()->getRandom().getRandomDouble(double(0),totalFitness);
-
-			bool chooseFirstParent = (randomChoice<=parent1->getFitness());
+			bool chooseFirstParent = (randomChoice<=parent1PaddedFitness);
 #endif
 
             GeneticLinkGene *link1=NULL,*link2=NULL;
