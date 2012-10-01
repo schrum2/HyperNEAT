@@ -33,6 +33,8 @@ namespace NEAT
 
         int nodeCounter,linkCounter,speciesCounter;
 
+        double minPossibleFitness;
+
         vector<shared_ptr<GeneticLinkGene> > linkGenesThisGeneration;
 
 		StackMap<string,double,4096> parameters;
@@ -101,7 +103,7 @@ namespace NEAT
 
         NEAT_DLL_EXPORT bool hasParameterValue(const string &name);
 
-		NEAT_DLL_EXPORT double getParameterValue(const char *cname);
+        NEAT_DLL_EXPORT double getParameterValue(const char *cname);
 
         NEAT_DLL_EXPORT double getParameterValue(string name);
 

@@ -87,7 +87,8 @@ namespace NEAT
             :
             nodeCounter(0),
             linkCounter(0),
-            speciesCounter(0)
+            speciesCounter(0),
+            minPossibleFitness(0)
     {
         cout << "Populating sigmoid table...";
         for (int a=0;a<6001;a++)
@@ -134,6 +135,7 @@ namespace NEAT
         parameters.insert("ExtraActivationUpdates", 9.0);
         parameters.insert("OnlyGaussianHiddenNodes", 0.0);
         parameters.insert("ExperimentType", 15.0);
+        parameters.insert("MinPossibleFitness", 0.0);
 
 		cacheParameters();
 
@@ -144,7 +146,8 @@ namespace NEAT
             :
             nodeCounter(0),
             linkCounter(0),
-            speciesCounter(0)
+            speciesCounter(0),
+            minPossibleFitness(0)
     {
         cout << "Populating sigmoid table...";
         for (int a=0;a<6001;a++)
@@ -204,7 +207,8 @@ namespace NEAT
             :
             nodeCounter(-1),
             linkCounter(-1),
-            speciesCounter(-1)
+            speciesCounter(-1),
+            minPossibleFitness(-1)
     {
         cout << "Populating sigmoid table...";
         for (int a=0;a<6001;a++)
@@ -275,6 +279,7 @@ namespace NEAT
         root->SetAttribute("NodeCounter",nodeCounter);
         root->SetAttribute("LinkCounter",linkCounter);
         root->SetAttribute("SpeciesCounter",speciesCounter);
+        root->SetAttribute("MinPossibleFitness",minPossibleFitness);
         StackMap<string,double,4096>::iterator mapIterator = getMapBegin();
         StackMap<string,double,4096>::iterator mapEnd = getMapEnd();
         for (;mapIterator!=mapEnd;mapIterator++)

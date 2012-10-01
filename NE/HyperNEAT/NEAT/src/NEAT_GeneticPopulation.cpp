@@ -374,31 +374,28 @@ namespace NEAT
         cout << "[HyperNEAT Core - Genetic Population] numParents: " << numParents << ", speciesSize: " << species.size() << endl;
 
         cout << "[HyperNEAT Core - Genetic Population] Bad parents thrown out\n";
-        double maxFitness = species[0]->getAdjustedFitness();
-        double minFitness = species[0]->getAdjustedFitness();
+        double minFitness = Globals::getSingleton()->getParameterValue("MinPossibleFitness");
         for (int a=0;a<(int)species.size();a++)
         {
             double adjustedFitness = species[a]->getAdjustedFitness();
-            if (adjustedFitness > maxFitness)
-                maxFitness = adjustedFitness;
-            if (adjustedFitness < minFitness)
+            if (adjustedFitness < minFitness) {
                 minFitness = adjustedFitness;
+            }
         }
-        cout << "[HyperNEAT Core - Genetic Population] MinFitness: " << minFitness << " MaxFitness: " << maxFitness << endl;
+        // Set the minimum global fitness
+        Globals::getSingleton()->setParameterValue("MinPossibleFitness", minFitness);
+        cout << "[HyperNEAT Core - Genetic Population] MinFitness: " << minFitness << endl;
         double totalFitness=0;
         for (int a=0;a<(int)species.size();a++)
         {
-            double normalizedFitness = (species[a]->getAdjustedFitness() - minFitness) / (maxFitness - minFitness);
-            if (maxFitness == minFitness) normalizedFitness = 1.0;
-            totalFitness += normalizedFitness;
+            totalFitness += species[a]->getAdjustedFitness();
         }
         cout << "[HyperNEAT Core - Genetic Population] Did some other stuff: totalFit: " << totalFitness << endl;
         int totalOffspring=0;
         for (int a=0;a<(int)species.size();a++)
         {
-            double normalizedFitness = (species[a]->getAdjustedFitness() - minFitness) / (maxFitness - minFitness);
-            if (maxFitness == minFitness) normalizedFitness = 1.0;
-            int offspring = int(normalizedFitness/totalFitness*numParents);
+            double adjustedFitness = species[a]->getAdjustedFitness();
+            int offspring = int(adjustedFitness/totalFitness*numParents);
             totalOffspring+=offspring;
             species[a]->setOffspringCount(offspring);
         }
