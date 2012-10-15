@@ -1,4 +1,10 @@
 #!/bin/bash
+if [ $# -lt 4 ]
+then
+    echo "Usage: $0 rom_path results_path seed num_workers"
+    exit 0
+fi
+
 date
 
 if [ -a .svn ]
@@ -12,18 +18,13 @@ fi
 
 echo "Starting Experimental Run..."
 
-if [ $# -lt 2 ]
-then
-    echo "Usage: $0 rom_path results_path"
-    exit 0
-fi
 
 let NUMGENS=150
 let POPSIZE=100
-let WORKERS=10
-let SEED=123
 ROMPATH=$1
 RESPATH=$2
+SEED=$3
+WORKERS=$4
 
 # Experiments Here
 for i in {1..1}
