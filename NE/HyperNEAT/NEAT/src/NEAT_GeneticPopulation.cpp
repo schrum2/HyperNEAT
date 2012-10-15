@@ -389,7 +389,7 @@ namespace NEAT
         for (int a=0;a<(int)species.size();a++)
         {
             double adjustedFitness = species[a]->getAdjustedFitness() - minFitness;
-            if (adjustFitness <= 0) adjustFitness = 1e-6;
+            if (adjustedFitness <= 0) adjustedFitness = 1e-6;
             totalFitness += adjustedFitness;
         }
         cout << "[HyperNEAT Core - Genetic Population] Did some other stuff: totalFit: " << totalFitness << endl;
@@ -397,7 +397,7 @@ namespace NEAT
         for (int a=0;a<(int)species.size();a++)
         {
             double adjustedFitness = species[a]->getAdjustedFitness() - minFitness;
-            if (adjustFitness <= 0) adjustFitness = 1e-6;
+            if (adjustedFitness <= 0) adjustedFitness = 1e-6;
             int offspring = int(adjustedFitness/totalFitness*numParents);
             totalOffspring+=offspring;
             species[a]->setOffspringCount(offspring);
