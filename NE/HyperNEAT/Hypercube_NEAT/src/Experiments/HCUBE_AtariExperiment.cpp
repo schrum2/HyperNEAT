@@ -148,7 +148,7 @@ namespace HCUBE
     void AtariExperiment::processGroup(shared_ptr<NEAT::GeneticGeneration> generation)
     {
         shared_ptr<NEAT::GeneticIndividual> individual = group.front();
-        individual->setFitness(10);
+        individual->setFitness(0);
 
         // Print the individual. This is rarely useful...
         //individual->print();
