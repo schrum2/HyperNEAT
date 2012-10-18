@@ -32,7 +32,7 @@ namespace HCUBE
             cerr << "Ale had problem loading rom..." << endl;
             exit(-1);
         }
-        numActions = ale.allowed_actions.size();
+        numActions = ale.legal_actions.size();
 
         // Load the visual processing framework
         visProc = ale.visProc;
@@ -265,7 +265,7 @@ namespace HCUBE
         }
         int action_indx = NEAT::Globals::getSingleton()->getRandom().getRandomInt(max_inds.size());
         //int action_indx = choice(&max_inds);
-        return ale.allowed_actions[max_inds[action_indx]];
+        return ale.legal_actions[max_inds[action_indx]];
     }
 
     double AtariExperiment::gauss2D(double x, double y, double A, double mu_x, double mu_y,
