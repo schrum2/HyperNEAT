@@ -6,6 +6,7 @@
 #endif
 
 #include "Experiments/HCUBE_AtariExperiment.h"
+#include "Experiments/HCUBE_AtariNoGeomExperiment.h"
 #include "HCUBE_ExperimentRun.h"
 
 #ifndef HCUBE_NOGUI
@@ -62,8 +63,13 @@ int HyperNEAT_main(int argc,char **argv) {
       cout << "[HyperNEAT core] Population for first generation created\n";
       experimentRun.setupExperiment(experimentType, commandLineParser.GetSafeArgument("-O",0,"output.xml"));
       string rom_file = commandLineParser.GetSafeArgument("-G",0,"../ale/roms/asterix.bin");
-      boost::shared_ptr<HCUBE::AtariExperiment> exp = boost::static_pointer_cast<HCUBE::AtariExperiment>(experimentRun.getExperiment());
-      exp->initializeExperiment(rom_file.c_str());
+      if (experimentType == 30) {
+          boost::shared_ptr<HCUBE::AtariExperiment> exp = boost::static_pointer_cast<HCUBE::AtariExperiment>(experimentRun.getExperiment());
+          exp->initializeExperiment(rom_file.c_str());
+      } else if (experimentType == 31) {
+          boost::shared_ptr<HCUBE::AtariNoGeomExperiment> exp = boost::static_pointer_cast<HCUBE::AtariNoGeomExperiment>(experimentRun.getExperiment());
+          exp->initializeExperiment(rom_file.c_str());
+      }
 
       experimentRun.createPopulation();
   }
