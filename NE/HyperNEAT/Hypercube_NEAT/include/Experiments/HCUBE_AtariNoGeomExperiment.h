@@ -48,6 +48,9 @@ namespace HCUBE
         // Selects an action based on the output layer of the network
         Action selectAction(VisualProcessor& visProc);
 
+        // Prints a visual representation of each input layer
+        void printLayerInfo();
+
         double gauss2D(double x, double y, double A, double mu_x, double mu_y, double sigma_x,
                        double sigma_y);
 

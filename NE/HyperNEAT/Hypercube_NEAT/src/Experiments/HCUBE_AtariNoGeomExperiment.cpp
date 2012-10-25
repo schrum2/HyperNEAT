@@ -17,8 +17,8 @@ namespace HCUBE
     void AtariNoGeomExperiment::initializeExperiment(string _rom_file) {
         rom_file = _rom_file;
 
-        substrate_width = 16;
-        substrate_height = 21;
+        substrate_width = 8;
+        substrate_height = 10;
 
         // Check that rom exists and is readable
         ifstream file(rom_file.c_str());
@@ -102,9 +102,6 @@ namespace HCUBE
         shared_ptr<NEAT::GeneticIndividual> individual = group.front();
         individual->setFitness(0);
 
-        // Print the individual. This is rarely useful...
-        //individual->print();
-
         substrate = individual->spawnFastPhenotypeStack<double>();
 
         runAtariEpisode(individual);
@@ -127,6 +124,8 @@ namespace HCUBE
 
             // Propagate values through the ANN
             substrate.update();
+
+            //printLayerInfo();
 
             // Choose which action to take
             Action action = selectAction(*visProc);
@@ -186,6 +185,21 @@ namespace HCUBE
                                     double sigma_x, double sigma_y)
     {
         return A * exp(-1.0 * ((x-mu_x) * (x-mu_x) / 2.0 * sigma_x * sigma_x + (y-mu_y) * (y-mu_y) / 2.0 * sigma_y * sigma_y));
+    }
+
+    void AtariNoGeomExperiment::printLayerInfo() {
+        for (int i=0; i<=numObjClasses; i++) {
+            printf("Obj Class %d Substrate:\n",i);
+            for (int y=0; y<substrate_height; y++) {
+                for (int x=0; x<substrate_width; x++) {
+                    float output = substrate.getValue(nameLookup[Node(i*substrate_width+x,y,0)]);
+                    printf("%1.1f ",output);
+                }
+                printf("\n");
+            }
+            printf("\n");
+        }
+        cin.get();
     }
 
     Experiment* AtariNoGeomExperiment::clone()
