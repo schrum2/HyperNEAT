@@ -6,6 +6,7 @@
 
 #include "Experiments/HCUBE_XorExperiment.h"
 #include "Experiments/HCUBE_AtariExperiment.h"
+#include "Experiments/HCUBE_AtariNoGeomExperiment.h"
 #ifdef EPLEX_INTERNAL
 #include "Experiments/HCUBE_XorCoExperiment.h"
 #include "Experiments/HCUBE_SimpleImageExperiment.h"
@@ -111,6 +112,9 @@ namespace HCUBE
             break;
           case EXPERIMENT_ATARI:
             experiments.push_back(shared_ptr<Experiment>(new AtariExperiment("",a)));
+            break;
+          case EXPERIMENT_ATARI_NO_GEOM:
+            experiments.push_back(shared_ptr<Experiment>(new AtariNoGeomExperiment("",a)));
             break;
 #ifdef EPLEX_INTERNAL
           case EXPERIMENT_COXOR:

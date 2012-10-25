@@ -365,6 +365,7 @@ ADD_LIBRARY(
 	src/HCUBE_NeuralNetworkWeightGrid.cpp
 
         src/Experiments/HCUBE_AtariExperiment.cpp
+        src/Experiments/HCUBE_AtariNoGeomExperiment.cpp
 	src/Experiments/HCUBE_XorExperiment.cpp
 	src/Experiments/HCUBE_XorCoExperiment.cpp
 	src/Experiments/HCUBE_CheckersCommon.cpp
@@ -416,6 +417,7 @@ ADD_LIBRARY(
 	include/HCUBE_ViewIndividualFrame.h
 
         include/Experiments/HCUBE_AtariExperiment.h
+        include/Experiments/HCUBE_AtariNoGeomExperiment.h
 	include/Experiments/HCUBE_XorExperiment.h
 	include/Experiments/HCUBE_XorCoExperiment.h
 	include/Experiments/HCUBE_Experiment.h
