@@ -127,6 +127,8 @@ namespace NEAT
 
         NEAT_DLL_EXPORT void sortByFitness();
 
+        NEAT_DLL_EXPORT void printGenerationalStatistics();
+        
         NEAT_DLL_EXPORT virtual shared_ptr<GeneticIndividual> getGenerationChampion();
 
         /**

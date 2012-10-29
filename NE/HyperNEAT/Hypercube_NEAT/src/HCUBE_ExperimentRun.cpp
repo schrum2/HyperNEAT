@@ -217,8 +217,8 @@ namespace HCUBE
         fitnessFunctionPrefix + boost::lexical_cast<string>(a);
       ifstream fin(individualFile.c_str());
       if (fin.fail()) {
-          cout << "Failed to read individual fitness from file " << individualFile << ". Setting fitness to 10." << endl;
-        (*tmpIterator)->setFitness(10);
+          cout << "Failed to read individual fitness from file " << individualFile << ". Setting fitness to 0." << endl;
+        (*tmpIterator)->setFitness(0);
       } else {
         float fitness;
         fin >> fitness;
@@ -235,6 +235,7 @@ namespace HCUBE
     population->dumpBest(evaluationFile, true, true);
 
     shared_ptr<NEAT::GeneticGeneration> generation = population->getGeneration();
+    generation->printGenerationalStatistics();
     experiments[0]->resetGenerationData(generation);
 
     for (int a=0;a<population->getIndividualCount();a++) {

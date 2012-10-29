@@ -262,4 +262,32 @@ namespace NEAT
 
         delete[] randPos;
     }
+
+    void GeneticGeneration::printGenerationalStatistics()
+    {
+        cout << "[Generation " << generationNumber << " - Statistics] Individual Fitness Values: ";
+        float totalFit = 0.0f;
+        float minFitness = individuals[0]->getFitness();
+        float maxFitness = individuals[0]->getFitness();
+        for (int a=0;a<int(individuals.size());a++)
+        {
+            float fitness = individuals[a]->getFitness();
+            cout << fitness << " ";
+            totalFit += fitness;
+            minFitness = min(fitness, minFitness);
+            maxFitness = max(fitness, maxFitness);
+        }
+        cout << endl;
+        float avgFitness = totalFit / float(individuals.size());
+        float popVariance = 0.0f;
+        for (int a=0;a<int(individuals.size());a++)
+        {
+            float fitness = individuals[a]->getFitness();
+            popVariance += (fitness - avgFitness) * (fitness - avgFitness);
+        }
+        popVariance = popVariance / float(individuals.size());
+        float stdDeviation = sqrt(popVariance);
+        float stdErr = stdDeviation / sqrt(individuals.size());
+        cout << "[Generation " << generationNumber << " - Statistics] PopulationSize: " << individuals.size() << " MinFitness: " << minFitness << " MaxFitness: " << maxFitness << " AverageFitness: " << avgFitness << " PopulationVariance: " << popVariance << " StandardDeviation: " << stdDeviation << " StandardError: " << stdErr << endl;
+    }
 }
