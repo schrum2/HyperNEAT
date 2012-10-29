@@ -119,7 +119,7 @@ print 'Starting on generation',currentGeneration
 
 # Create Generation 0 if it doesnt already exist
 if currentGeneration == 0:
-    gen0Path = os.path.join(resultsDir,"generation0.xml")
+    gen0Path = os.path.join(resultsDir,"generation0.xml.gz")
     if not os.path.exists(gen0Path):
         subprocess.check_call(["./" + generateExec, "-I", dataFile, "-O", gen0Path, "-G", rom])
 
