@@ -109,10 +109,19 @@ if not os.path.exists(rom):
 if not os.path.isdir(resultsDir):
     os.makedirs(resultsDir)
 
+# Find the generation to start on by incrementally searching for eval files
+currentGeneration = 0
+for f in os.listdir(resultsDir):
+    if f.startswith('generation') and 'eval' not in f:
+        genNumber = int(f[len('generation'):-len('.xml.gz')])
+        currentGeneration = max(currentGeneration, genNumber)
+print 'Starting on generation',currentGeneration
+
 # Create Generation 0 if it doesnt already exist
-gen0Path = os.path.join(resultsDir,"generation0.xml")
-if not os.path.exists(gen0Path):
-    subprocess.check_call(["./" + generateExec, "-I", dataFile, "-O", gen0Path, "-G", rom])
+if currentGeneration == 0:
+    gen0Path = os.path.join(resultsDir,"generation0.xml")
+    if not os.path.exists(gen0Path):
+        subprocess.check_call(["./" + generateExec, "-I", dataFile, "-O", gen0Path, "-G", rom])
 
 # Start worker threads running
 print 'Starting Workers...'
@@ -122,17 +131,7 @@ for i in range(numWorkers):
     pid = startWorker(i, executable, resultsDir, dataFile, individualsPerGeneration, maxGeneration, seed, rom)
     procIDs.append(pid)
 
-# Find the generation to start on by incrementally searching for eval files
-currentGeneration = 0
-while True:
-    evalFile = "generation" + str(currentGeneration) + ".eval.xml.gz"
-    evalPath = os.path.join(resultsDir,evalFile)
-    if not os.path.exists(evalPath):
-        break
-    currentGeneration += 1
-print 'Starting on generation',currentGeneration
-sys.stdout.flush()
-
+# Main Loop
 while currentGeneration < maxGeneration:
     individualIds = range(individualsPerGeneration)
     while individualIds:
@@ -179,6 +178,11 @@ while currentGeneration < maxGeneration:
     fitnessRoot = os.path.join(resultsDir,"fitness." + str(currentGeneration)+".")
     subprocess.Popen(["./" + generateExec, "-I", dataFile, "-O", nextGenFile, "-P", currGenFile,
                      "-F", fitnessRoot, "-E", evalGenFile, "-G", rom])
+
+    # Delete current generation and eval files
+    os.remove(currGenFile)
+    os.remove(evalGenFile)
+    
     currentGeneration += 1
 
 
