@@ -58,11 +58,15 @@ resultsDir               = args.r
 individualsPerGeneration = args.n
 
 # Detect the current generation
-currentGeneration = 0
+currentGeneration = -1
 for f in os.listdir(resultsDir):
     if f.startswith('generation') and 'eval' not in f:
         genNumber = int(f[len('generation'):-len('.xml.gz')])
         currentGeneration = max(currentGeneration, genNumber)
+if currentGeneration < 0:
+        sys.stderr.write('Did not find any generation files! Exiting.\n')
+        sys.stderr.flush()
+        sys.exit(0)
 
 while currentGeneration < maxGeneration:
     # If an eval file for this generation already exists, go to next gen

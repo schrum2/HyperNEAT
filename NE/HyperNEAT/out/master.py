@@ -110,18 +110,19 @@ if not os.path.isdir(resultsDir):
     os.makedirs(resultsDir)
 
 # Find the generation to start on by incrementally searching for eval files
-currentGeneration = 0
+currentGeneration = -1
 for f in os.listdir(resultsDir):
     if f.startswith('generation') and 'eval' not in f:
         genNumber = int(f[len('generation'):-len('.xml.gz')])
         currentGeneration = max(currentGeneration, genNumber)
-print 'Starting on generation',currentGeneration
 
 # Create Generation 0 if it doesnt already exist
-if currentGeneration == 0:
-    gen0Path = os.path.join(resultsDir,"generation0.xml.gz")
-    if not os.path.exists(gen0Path):
+if currentGeneration < 0:
+        gen0Path = os.path.join(resultsDir,"generation0.xml")
         subprocess.check_call(["./" + generateExec, "-I", dataFile, "-O", gen0Path, "-G", rom])
+        currentGeneration = 0
+
+print 'Starting on generation',currentGeneration
 
 # Start worker threads running
 print 'Starting Workers...'
@@ -176,13 +177,16 @@ while currentGeneration < maxGeneration:
     nextGenFile = os.path.join(resultsDir,"generation"+str(currentGeneration+1)+".xml")
     evalGenFile = os.path.join(resultsDir,"generation"+str(currentGeneration)+".eval.xml")
     fitnessRoot = os.path.join(resultsDir,"fitness." + str(currentGeneration)+".")
-    subprocess.Popen(["./" + generateExec, "-I", dataFile, "-O", nextGenFile, "-P", currGenFile,
+    subprocess.check_call(["./" + generateExec, "-I", dataFile, "-O", nextGenFile, "-P", currGenFile,
                      "-F", fitnessRoot, "-E", evalGenFile, "-G", rom])
 
     # Delete current generation and eval files
-    os.remove(currGenFile)
-    os.remove(evalGenFile)
-    
+    if currentGeneration < maxGeneration - 1:
+        os.remove(currGenFile)
+        os.remove(evalGenFile+str('.gz'))
+    elif currentGeneration == maxGeneration - 1:
+        os.remove(nextGenFile+str('.gz'))
+
     currentGeneration += 1
 
 
