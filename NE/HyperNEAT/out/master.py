@@ -60,14 +60,15 @@ def startWorker(workerNum, executable, resultsDir, dataFile, numIndividuals, num
     procID = output[s:output.find(':\n',s)]
 
     # Wait for this job to show up in the condor_q before returning
-    # This could go badly if the job dies/completes super fast.
-    while True:
+    for i in range(60):
         out = subprocess.Popen(["condor_q","mhauskn"], stdout=subprocess.PIPE).communicate()[0]
         if out.find(procID) != -1:
-            break
+            return procID
         time.sleep(1)        
 
-    return procID
+    print 'Failed to start worker thread.'
+    return -1
+
 
 parser = argparse.ArgumentParser(description='Creates condor worker jobs who execute atari games.')
 parser.add_argument('-e', metavar='atari_evaulate', required=True,
@@ -129,7 +130,9 @@ print 'Starting Workers...'
 sys.stdout.flush()
 procIDs = [] # Keep track of the ids of the condor jobs
 for i in range(numWorkers):
-    pid = startWorker(i, executable, resultsDir, dataFile, individualsPerGeneration, maxGeneration, seed, rom)
+    pid = -1
+    while pid < 0:
+        pid = startWorker(i, executable, resultsDir, dataFile, individualsPerGeneration, maxGeneration, seed, rom)
     procIDs.append(pid)
 
 # Main Loop
@@ -163,8 +166,10 @@ while currentGeneration < maxGeneration:
                 llog.close()
                 
         for indx in deadWorkerIndexes:
-            pid = startWorker(indx, executable, resultsDir, dataFile,
-                              individualsPerGeneration, maxGeneration, seed, rom)
+            pid = -1
+            while pid < 0:
+                pid = startWorker(indx, executable, resultsDir, dataFile,
+                                  individualsPerGeneration, maxGeneration, seed, rom)
             procIDs.append(pid)
 
         # Wait for a little while 
