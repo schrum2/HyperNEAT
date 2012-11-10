@@ -8,6 +8,7 @@
 #include "HCUBE_ExperimentRun.h"
 #include "Experiments/HCUBE_AtariExperiment.h"
 #include "Experiments/HCUBE_AtariNoGeomExperiment.h"
+#include "Experiments/HCUBE_AtariFTNeatExperiment.h"
 
 #ifndef HCUBE_NOGUI
 namespace HCUBE
@@ -56,7 +57,11 @@ int HyperNEAT_main(int argc,char **argv) {
     } else if (experimentType == 31) {
         boost::shared_ptr<HCUBE::AtariNoGeomExperiment> exp = boost::static_pointer_cast<HCUBE::AtariNoGeomExperiment>(experimentRun.getExperiment());
         exp->initializeExperiment(rom_file.c_str());
+    } else if (experimentType == 32) {
+        boost::shared_ptr<HCUBE::AtariFTNeatExperiment> exp = boost::static_pointer_cast<HCUBE::AtariFTNeatExperiment>(experimentRun.getExperiment());
+        exp->initializeExperiment(rom_file.c_str());
     }
+
 
     float fitness = experimentRun.evaluateIndividual(individualId);
 
