@@ -367,6 +367,7 @@ ADD_LIBRARY(
         src/Experiments/HCUBE_AtariExperiment.cpp
         src/Experiments/HCUBE_AtariNoGeomExperiment.cpp
         src/Experiments/HCUBE_AtariFTNeatExperiment.cpp
+        src/Experiments/HCUBE_AtariIntrinsicExperiment.cpp
 	src/Experiments/HCUBE_XorExperiment.cpp
 	src/Experiments/HCUBE_XorCoExperiment.cpp
 	src/Experiments/HCUBE_CheckersCommon.cpp
