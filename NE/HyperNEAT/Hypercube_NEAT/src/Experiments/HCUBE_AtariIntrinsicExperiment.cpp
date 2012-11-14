@@ -64,9 +64,6 @@ namespace HCUBE
             phi.push_back(false);
             e.push_back(0);
         }
-
-        // Get the global RNG
-        random = NEAT::Globals::getSingleton()->getRandom();
     }
 
     NEAT::GeneticPopulation* AtariIntrinsicExperiment::createInitialPopulation(int populationSize) {
@@ -85,6 +82,7 @@ namespace HCUBE
         }
 
         // Output Layer
+        Node node(0,0,2);
         genes.push_back(GeneticNodeGene(nameLookup[node],"NetworkOutputNode",1,false, ACTIVATION_FUNCTION_SIGMOID));
 
         // Bias node
@@ -113,6 +111,7 @@ namespace HCUBE
     }
 
     void AtariIntrinsicExperiment::runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual) {
+        int numEpisodes = 50;
         for (int episode = 0; episode < numEpisodes; episode++) {
             ale.reset_game();
 
@@ -139,7 +138,7 @@ namespace HCUBE
 
                 // Calculate approximate Q(s,a)
                 vector<double> qVals;
-                for (int a=0; a<numActions; i++) {
+                for (int a=0; a<numActions; a++) {
                     double Q_a = 0;
                     for (int i=0; i<numFeatures; i++)
                         if (phi[a*numFeatures+i])
@@ -208,8 +207,8 @@ namespace HCUBE
     }
 
     int AtariIntrinsicExperiment::selectAction(vector<double>& qVals) {
-        if (random.getRandomDouble() <= epsilon) {
-            return random.getRandomInt(numActions);
+        if (NEAT::Globals::getSingleton()->getRandom().getRandomDouble() <= epsilon) {
+            return NEAT::Globals::getSingleton()->getRandom().getRandomInt(numActions);
         } else {
             vector<int> max_inds;
             double max_val = -1e37;
@@ -219,11 +218,11 @@ namespace HCUBE
                 else if (qVals[i] > max_val) {
                     max_inds.clear();
                     max_inds.push_back(i);
-                    max_val = output;
+                    max_val = qVals[i];
                 }
             }
             int action_indx = NEAT::Globals::getSingleton()->getRandom().getRandomInt(max_inds.size());
-            return ale.legal_actions[max_inds[action_indx]];
+            return max_inds[action_indx]; //ale.legal_actions[max_inds[action_indx]];
         }
     }
 

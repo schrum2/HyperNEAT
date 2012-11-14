@@ -22,8 +22,6 @@ namespace HCUBE
         int numActions;
         int numObjClasses;
 
-        const Random& random;
-
     protected:
         // Hyper-parameters
         float gamma, alpha, epsilon, lambda;
