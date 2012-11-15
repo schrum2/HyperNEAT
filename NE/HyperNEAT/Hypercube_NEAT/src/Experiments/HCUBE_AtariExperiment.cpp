@@ -17,8 +17,8 @@ namespace HCUBE
     void AtariExperiment::initializeExperiment(string _rom_file) {
         rom_file = _rom_file;
 
-        substrate_width = 16;
-        substrate_height = 21;
+        substrate_width = 8;
+        substrate_height = 10;
 
         // Check that rom exists and is readable
         ifstream file(rom_file.c_str());
