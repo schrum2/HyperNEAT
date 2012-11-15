@@ -1,9 +1,10 @@
 #!/bin/bash
 
 for D in results/*; do
-    if [ ! -f $D/generation149.eval.xml.gz ]
+    if [ ! -f $D/generation149.xml.gz ]
     then
-        echo "{$D}: Gen 149 not yet complete!"
+        echo -n "[$D]: Not yet finished: "
+        ls $D/generation*
     else
         ls -l $D/fitness.* > /dev/null 2>&1
         if [ "$?" = "0" ]

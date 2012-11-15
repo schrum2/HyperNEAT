@@ -29,8 +29,10 @@ WORKERS=$4
 # Experiments Here
 for i in {1..1}
 do
-    /lusr/bin/python master.py -e atari_evaluate -p atari_generate -d data/AtariNoGeomExperiment.dat -n $POPSIZE -g $NUMGENS -G $ROMPATH -w $WORKERS -r $RESPATH -R $SEED
+    /usr/bin/python master.py -e atari_evaluate -p atari_generate -d data/AtariExperiment.dat -n $POPSIZE -g $NUMGENS -G $ROMPATH -w $WORKERS -r $RESPATH -R $SEED
 done
 
 echo "Experiments Finished!"
 date
+
+#echo "Atari experiments for $ROMPATH finished. Have a wonderful day!" | mail -s "[master.py - $ROMPATH] Experiment Finished!" mhauskn@cs.utexas.edu

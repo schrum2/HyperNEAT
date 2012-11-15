@@ -53,18 +53,18 @@ def startWorker(workerNum, executable, resultsDir, dataFile, numIndividuals, num
     condorSubmitPipe = open(condorFile,'w')
     condorSubmitPipe.write(confStr)
     condorSubmitPipe.close()
-    output = subprocess.Popen(["condor_submit","-verbose",condorFile], stdout=subprocess.PIPE).communicate()[0]
+    output = subprocess.Popen(["condor_submit","-verbose",condorFile],stdout=subprocess.PIPE).communicate()[0]
 
     # Get the process ID for this job so we can monitor it
     s = output.find('** Proc ')+8
     procID = output[s:output.find(':\n',s)]
 
     # Wait for this job to show up in the condor_q before returning
-    for i in range(60):
-        out = subprocess.Popen(["condor_q","mhauskn"], stdout=subprocess.PIPE).communicate()[0]
-        if out.find(procID) != -1:
+    for i in range(12):
+        out = subprocess.Popen(["condor_q","mhauskn"],stdout=subprocess.PIPE).communicate()[0]
+        if out.find('\n'+str(procID)) != -1:
             return procID
-        time.sleep(1)        
+        time.sleep(5)
 
     print 'Failed to start worker thread.'
     return -1
@@ -122,55 +122,75 @@ if currentGeneration < 0:
         gen0Path = os.path.join(resultsDir,"generation0.xml")
         subprocess.check_call(["./" + generateExec, "-I", dataFile, "-O", gen0Path, "-G", rom])
         currentGeneration = 0
+elif currentGeneration >= maxGeneration - 1:
+    sys.exit(0)
 
 print 'Starting on generation',currentGeneration
 
 # Start worker threads running
 print 'Starting Workers...'
 sys.stdout.flush()
-procIDs = [] # Keep track of the ids of the condor jobs
+
+workerNum = 0
+procIDs = {} # Maps pid --> worker num
 for i in range(numWorkers):
     pid = -1
     while pid < 0:
-        pid = startWorker(i, executable, resultsDir, dataFile, individualsPerGeneration, maxGeneration, seed, rom)
-    procIDs.append(pid)
+        pid = startWorker(workerNum, executable, resultsDir, dataFile, individualsPerGeneration, maxGeneration, seed, rom)
+    procIDs[pid] = workerNum
+    workerNum += 1
 
 # Main Loop
 while currentGeneration < maxGeneration:
     individualIds = range(individualsPerGeneration)
     while individualIds:
-        for individualId in individualIds:
+        for individualId in list(individualIds):
             fitnessFile = "fitness."+str(currentGeneration)+"."+str(individualId)
             fitnessPath = os.path.join(resultsDir,fitnessFile)
             if os.path.exists(fitnessPath):
                 individualIds.remove(individualId)
 
-        # Restart any missing workers
-        deadWorkerIndexes = []
-        out = subprocess.Popen(["condor_q","mhauskn"], stdout=subprocess.PIPE).communicate()[0]
-        for procID in procIDs:
-            if out.find(procID) == -1:
+        # Detect missing workers
+        out = subprocess.Popen(["condor_q","mhauskn"],stdout=subprocess.PIPE).communicate()[0]
+        for procID in list(procIDs):
+            if out and out.find('Failed to fetch ads') == -1 and out.find('\n'+str(procID)) == -1:
                 print 'Missing pid:',procID
                 sys.stdout.flush()
 
-                indx = procIDs.index(procID)
-                procIDs.remove(procID)
-                deadWorkerIndexes.append(indx)
+                indx = procIDs[procID]
+                del procIDs[procID]
 
                 # Read its error log and save to global error log
                 glog = open(os.path.join(resultsDir,'global.err'),'a')
-                llog = open(os.path.join(resultsDir,'worker'+str(indx)+'.err'),'r')
-                glog.write('Worker pid '+str(procID)+' died with the following error log:\n')
-                glog.write(llog.read())
+                if os.path.exists(os.path.join(resultsDir,'worker'+str(indx)+'.err')):
+                    llog = open(os.path.join(resultsDir,'worker'+str(indx)+'.err'),'r')
+                    glog.write('Worker number '+str(indx)+' pid '+str(procID)+' died with the following error log:\n')
+                    glog.write(llog.read())
+                    llog.close()
+                else:
+                    glog.write('Worker number '+str(indx)+' pid '+str(procID)+' dissapeared without leaving an error log.\n')
                 glog.close()
-                llog.close()
-                
-        for indx in deadWorkerIndexes:
+
+                # Remove associated worker files
+                if os.path.exists(os.path.join(resultsDir,'worker'+str(indx)+'.err')):
+                    os.remove(os.path.join(resultsDir,'worker'+str(indx)+'.err'))
+                if os.path.exists(os.path.join(resultsDir,'worker'+str(indx)+'.log')):
+                    os.remove(os.path.join(resultsDir,'worker'+str(indx)+'.log'))
+                if os.path.exists(os.path.join(resultsDir,'worker'+str(indx)+'.submit')):
+                    os.remove(os.path.join(resultsDir,'worker'+str(indx)+'.submit'))
+                if os.path.exists(os.path.join(resultsDir,'worker'+str(indx)+'.out')):
+                    os.remove(os.path.join(resultsDir,'worker'+str(indx)+'.out'))      
+
+        # Restart any missing workers
+        while len(procIDs) < numWorkers:
             pid = -1
             while pid < 0:
-                pid = startWorker(indx, executable, resultsDir, dataFile,
+                pid = startWorker(workerNum, executable, resultsDir, dataFile,
                                   individualsPerGeneration, maxGeneration, seed, rom)
-            procIDs.append(pid)
+            procIDs[pid] = workerNum
+            workerNum += 1
+            if workerNum == 1000:
+                subprocess.check_call(["echo","\"Please Check!\"","|","mail","-s","\"[master.py - "+resultsDir+"] Workers dying quickly\"","mhauskn@cs.utexas.edu"])
 
         # Wait for a little while 
         print 'Waiting for',len(individualIds),'job(s) to finish...'
