@@ -17,6 +17,11 @@ namespace HCUBE
     void AtariIntrinsicExperiment::initializeExperiment(string _rom_file) {
         rom_file = _rom_file;
 
+        gamma = .999;
+        alpha = .1;
+        epsilon = .1;
+        lambda = .3;
+
         substrate_width = 8;
         substrate_height = 10;
 
@@ -58,7 +63,7 @@ namespace HCUBE
         nameLookup[node] = string("0/0/2");
 
         // Initialize the SARSA(Lambda) vectors
-        numFeatures = substrate_width * substrate_height * numObjClasses;
+        numFeatures = substrate_width * substrate_height * (numObjClasses + 1);
         for (int i=0; i<numFeatures*numActions; i++) {
             w.push_back(0);
             e.push_back(0);
@@ -113,14 +118,14 @@ namespace HCUBE
 
     void AtariIntrinsicExperiment::runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual) {
         int numEpisodes = 50;
+        double totalScore = 0;
         for (int episode = 0; episode < numEpisodes; episode++) {
             ale.reset_game();
 
-            // Reset vectors
-            for (int i=0; i<numFeatures*numActions; i++) {
-                w[i] = 0;
+            // Reset eligibility vector
+            for (int i=0; i<numFeatures*numActions; i++)
                 e[i] = 0;
-            }
+            reward = 0;
         
             while (!ale.game_over()) {
                 for (int i=0; i<numFeatures; i++)
@@ -138,6 +143,12 @@ namespace HCUBE
 
                 // Propagate values through the ANN
                 substrate.update();
+
+                // cout << "Phi: ";
+                // for (int i=0; i<numFeatures; i++)
+                //     cout << phi[i] << " ";
+                // cout << endl;
+                // printLayerInfo();
 
                 // Calculate approximate Q(s,a)
                 vector<double> qVals;
@@ -177,12 +188,15 @@ namespace HCUBE
                 reward = substrate.getValue(nameLookup[Node(0,0,2)]);
                 oldQ = Q;
                 ale.act(action);
+
             }
             cout << "Game ended in " << ale.frame << " frames with score " << ale.game_score << endl;
+            totalScore += ale.game_score;
         }
- 
+
         // Give the reward to the agent
-        individual->reward(ale.game_score);
+        float avgScore = totalScore / float(numEpisodes);
+        individual->reward(avgScore);
     }
 
     void AtariIntrinsicExperiment::setSubstrateObjectValues(VisualProcessor& visProc) {
