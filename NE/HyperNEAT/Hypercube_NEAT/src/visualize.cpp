@@ -8,6 +8,7 @@
 #include "Experiments/HCUBE_AtariExperiment.h"
 #include "Experiments/HCUBE_AtariNoGeomExperiment.h"
 #include "Experiments/HCUBE_AtariFTNeatExperiment.h"
+#include "Experiments/HCUBE_AtariIntrinsicExperiment.h"
 #include "HCUBE_ExperimentRun.h"
 
 #ifndef HCUBE_NOGUI
@@ -64,6 +65,10 @@ int HyperNEAT_main(int argc,char **argv) {
         exp->initializeExperiment(rom_file.c_str());
     } else if (experimentType == 32) {
         boost::shared_ptr<HCUBE::AtariFTNeatExperiment> exp = boost::static_pointer_cast<HCUBE::AtariFTNeatExperiment>(experimentRun.getExperiment());
+        exp->setDisplayScreen(true);
+        exp->initializeExperiment(rom_file.c_str());
+    } else if (experimentType == 33) {
+        boost::shared_ptr<HCUBE::AtariIntrinsicExperiment> exp = boost::static_pointer_cast<HCUBE::AtariIntrinsicExperiment>(experimentRun.getExperiment());
         exp->setDisplayScreen(true);
         exp->initializeExperiment(rom_file.c_str());
     }

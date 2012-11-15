@@ -61,9 +61,10 @@ namespace HCUBE
         numFeatures = substrate_width * substrate_height * numObjClasses;
         for (int i=0; i<numFeatures*numActions; i++) {
             w.push_back(0);
-            phi.push_back(false);
             e.push_back(0);
         }
+        for (int i=0; i<numFeatures; i++)
+            phi.push_back(false);
     }
 
     NEAT::GeneticPopulation* AtariIntrinsicExperiment::createInitialPopulation(int populationSize) {
@@ -118,11 +119,13 @@ namespace HCUBE
             // Reset vectors
             for (int i=0; i<numFeatures*numActions; i++) {
                 w[i] = 0;
-                phi[i] = false;
                 e[i] = 0;
             }
         
             while (!ale.game_over()) {
+                for (int i=0; i<numFeatures; i++)
+                    phi[i] = false;
+
                 // Set value of all nodes to zero
                 substrate.reinitialize(); 
                 substrate.dummyActivation();
@@ -141,7 +144,7 @@ namespace HCUBE
                 for (int a=0; a<numActions; a++) {
                     double Q_a = 0;
                     for (int i=0; i<numFeatures; i++)
-                        if (phi[a*numFeatures+i])
+                        if (phi[i])
                             Q_a += w[a*numFeatures+i];
                     qVals.push_back(Q_a);
                 }
@@ -155,10 +158,10 @@ namespace HCUBE
                 delta = reward + (gamma * Q) - oldQ;
 
                 // Update the weights
-                for (int i=0; i<numFeatures; i++) {
-                    w[action_indx*numFeatures+i] += alpha * delta * e[action_indx*numFeatures+i];
+                for (int i=0; i<numFeatures*numActions; i++) {
+                    w[i] += alpha * delta * e[i];
                 }
-
+                
                 // Decay the eligibility traces
                 for (int i=0; i<numFeatures*numActions; i++) {
                     e[i] *= gamma * lambda;
@@ -166,11 +169,13 @@ namespace HCUBE
 
                 // Set the active features' eligibility traces to 1
                 for (int i=0; i<numFeatures; i++) {
-                    if (phi[numFeatures*action_indx + i])
+                    if (phi[i])
                         e[numFeatures*action_indx + i] = 1;
                 }
 
+                // Get the actual reward
                 reward = substrate.getValue(nameLookup[Node(0,0,2)]);
+                oldQ = Q;
                 ale.act(action);
             }
             cout << "Game ended in " << ale.frame << " frames with score " << ale.game_score << endl;
@@ -197,6 +202,8 @@ namespace HCUBE
             int adj_x = obj_centroid.x * substrate_width / visProc.screen_width;
             int adj_y = obj_centroid.y * substrate_height / visProc.screen_height;
             substrate.setValue(nameLookup[Node(substrate_width*substrateIndx+adj_x,adj_y,0)], assigned_value);
+            // Set the phi-feature to true
+            phi[(substrate_width*substrate_height*substrateIndx) + (substrate_width*adj_y) + adj_x] = true;
         }
     }
 

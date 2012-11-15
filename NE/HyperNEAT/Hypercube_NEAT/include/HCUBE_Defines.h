@@ -166,6 +166,7 @@ enum ExperimentType
     EXPERIMENT_ATARI=30,                                //30
     EXPERIMENT_ATARI_NO_GEOM=31,
     EXPERIMENT_ATARI_FT_NEAT=32,
+    EXPERIMENT_ATARI_INTRINSIC=33,
     EXPERIMENT_END
 };
 
