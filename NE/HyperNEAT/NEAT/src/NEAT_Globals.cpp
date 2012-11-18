@@ -262,7 +262,7 @@ namespace NEAT
         }
         else
         {
-            cout << "Seeing random generator with given seed: " << uint(randomSeed) << endl;
+            cout << "Seeding random generator with given seed: " << uint(randomSeed) << endl;
             random = Random(uint(randomSeed));
         }
     }

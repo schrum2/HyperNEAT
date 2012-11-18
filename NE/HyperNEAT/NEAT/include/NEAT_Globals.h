@@ -6,6 +6,9 @@
 #include "NEAT_Random.h"
 #include "tinyxmlplus.h"
 
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+
 /* #defines */
 #define LAST_GENERATION  (-1)
 
@@ -28,7 +31,54 @@ namespace NEAT
 {
     class Globals
     {
-    protected:
+        friend class boost::serialization::access;
+        template<class Archive>
+            void save(Archive & ar, const unsigned int version) const
+        {
+            ar & nodeCounter;
+            ar & linkCounter;
+            ar & speciesCounter;
+            ar & minPossibleFitness;
+            ar & linkGenesThisGeneration;
+
+            // Serialize the parameters
+            int numParams = parameters.size();
+            ar & numParams;
+            StackMap<string,double,4096>::const_iterator mapIterator = parameters.begin();
+            StackMap<string,double,4096>::const_iterator mapEnd = parameters.end();
+            for (;mapIterator!=mapEnd;mapIterator++) {
+                string name = mapIterator->first;
+                double value = mapIterator->second;
+                ar & name;
+                ar & value;
+            }
+        }
+        template<class Archive>
+            void load(Archive & ar, const unsigned int version)
+        {
+            ar & nodeCounter;
+            ar & linkCounter;
+            ar & speciesCounter;
+            ar & minPossibleFitness;
+            ar & linkGenesThisGeneration;
+
+            // De-serialize the parameters
+            int numParams;
+            ar & numParams;
+            for (int i=0; i<numParams; i++) {
+                string name;
+                double value;
+                ar & name;
+                ar & value;
+                addParameter(name, value);
+            }
+
+            cacheParameters();
+            initRandom();
+        }
+        BOOST_SERIALIZATION_SPLIT_MEMBER()
+            
+            protected:
         NEAT_DLL_EXPORT static Globals *singleton;
 
         int nodeCounter,linkCounter,speciesCounter;
@@ -37,7 +87,7 @@ namespace NEAT
 
         vector<shared_ptr<GeneticLinkGene> > linkGenesThisGeneration;
 
-		StackMap<string,double,4096> parameters;
+        StackMap<string,double,4096> parameters;
 
         Random random;
 

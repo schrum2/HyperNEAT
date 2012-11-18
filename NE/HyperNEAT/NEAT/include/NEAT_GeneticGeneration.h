@@ -9,6 +9,9 @@
 #include "NEAT_CoEvoExperiment.h"
 #endif
 
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+
 namespace NEAT
 {
 
@@ -17,6 +20,18 @@ namespace NEAT
      */
     class GeneticGeneration
     {
+        friend class boost::serialization::access;
+        template<class Archive>
+            void serialize(Archive & ar, const unsigned int version)
+        {
+            ar & individuals;
+            ar & generationNumber;
+            ar & sortedByFitness;
+            ar & userData;
+            ar & isCached;
+            ar & cachedAverageFitness;
+        }
+
     protected:
         vector<shared_ptr<GeneticIndividual> > individuals;
 
@@ -46,7 +61,7 @@ namespace NEAT
          * Constructor: Creates an empty generation
          * \param _generationNumber Is the number of this generation
          */
-        NEAT_DLL_EXPORT GeneticGeneration(int _generationNumber);
+        NEAT_DLL_EXPORT GeneticGeneration(int _generationNumber=0);
 
         NEAT_DLL_EXPORT GeneticGeneration(const GeneticGeneration &other);
 

@@ -374,7 +374,9 @@ namespace NEAT
         cout << "[HyperNEAT Core - Genetic Population] numParents: " << numParents << ", speciesSize: " << species.size() << endl;
 
         cout << "[HyperNEAT Core - Genetic Population] Bad parents thrown out\n";
-        double minFitness = Globals::getSingleton()->getParameterValue("MinPossibleFitness");
+        double minFitness = species[0]->getAdjustedFitness();
+        if (Globals::getSingleton()->hasParameterValue("MinPossibleFitness"))
+            minFitness = Globals::getSingleton()->getParameterValue("MinPossibleFitness");
         for (int a=0;a<(int)species.size();a++)
         {
             double adjustedFitness = species[a]->getAdjustedFitness();
@@ -511,6 +513,7 @@ namespace NEAT
             cout << "Population size changed!\n";
             throw CREATE_LOCATEDEXCEPTION_INFO("Population size changed!");
         }
+        cout << "Done Making Babies" << endl;
 
         //cout << "Making new generation\n";
         shared_ptr<GeneticGeneration> newGeneration(generations[onGeneration]->produceNextGeneration(babies,onGeneration+1));

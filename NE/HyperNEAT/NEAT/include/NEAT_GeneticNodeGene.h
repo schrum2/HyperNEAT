@@ -7,13 +7,25 @@
 
 #include "NEAT_Random.h"
 
+#include <boost/serialization/base_object.hpp>
+
 namespace NEAT
 {
     /**
      * GeneticNodeGene: This gene contains a link between two GeneticNodeGenes
      */
     class NEAT_DLL_EXPORT GeneticNodeGene : public GeneticGene
-    {
+    {    
+        friend class boost::serialization::access;
+        template<class Archive>
+            void serialize(Archive & ar, const unsigned int version)
+        {
+            ar & boost::serialization::base_object<GeneticGene>(*this);
+            ar & name;
+            ar & type;
+            ar & topologyFrozen;
+        }
+
     protected:
         string name,type;
 
@@ -24,6 +36,8 @@ namespace NEAT
 
         ActivationFunction activationFunction;
     public:
+        GeneticNodeGene() {};
+
         GeneticNodeGene(
             const string &_name,
             const string &_type,

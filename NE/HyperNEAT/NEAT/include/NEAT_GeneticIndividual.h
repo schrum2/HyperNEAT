@@ -8,16 +8,31 @@
 #include "NEAT_Network.h"
 #include "NEAT_ModularNetwork.h"
 #include "NEAT_FastNetwork.h"
+#include "NEAT_GeneticLinkGene.h"
 #ifdef EPLEX_INTERNAL
 #include "NEAT_VectorNetwork.h"
 #include "NEAT_FractalNetwork.h"
 #endif
+
+#include <boost/serialization/vector.hpp>
 
 namespace NEAT
 {
 
     class GeneticIndividual
     {
+        friend class boost::serialization::access;
+        template<class Archive>
+            void serialize(Archive & ar, const unsigned int version)
+        {
+            ar & nodes;
+            ar & links;
+            ar & fitness;
+            ar & speciesID;
+            ar & canReproduce;
+            ar & userData;
+        }
+
     protected:
         vector<GeneticNodeGene> nodes;
         vector<GeneticLinkGene> links;
@@ -31,6 +46,8 @@ namespace NEAT
         string userData;
 
     public:
+        NEAT_DLL_EXPORT GeneticIndividual() {};
+
         /**
          * Constructor: Creates an individual with the inputed nodes.
          * \param createTopology Creates a set of links for the new individual

@@ -11,6 +11,15 @@ namespace NEAT
      */
     class NEAT_DLL_EXPORT GeneticGene
     {
+        friend class boost::serialization::access;
+        template<class Archive>
+            void serialize(Archive & ar, const unsigned int version)
+        {
+            ar & ID;
+            ar & enabled;
+            ar & age;
+        }
+
     protected:
         int ID;
 

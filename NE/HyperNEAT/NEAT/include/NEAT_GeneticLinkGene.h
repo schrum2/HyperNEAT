@@ -5,6 +5,8 @@
 
 #include "tinyxmlplus.h"
 
+#include <boost/serialization/base_object.hpp>
+
 namespace NEAT
 {
     /**
@@ -12,6 +14,18 @@ namespace NEAT
      */
     class NEAT_DLL_EXPORT GeneticLinkGene : public GeneticGene
     {
+        friend class boost::serialization::access;
+        template<class Archive>
+            void serialize(Archive & ar, const unsigned int version)
+        {
+            // serialize base class information
+            ar & boost::serialization::base_object<GeneticGene>(*this);
+            ar & fromNodeID;
+            ar & toNodeID;
+            ar & weight;
+            ar & fixed;
+        }
+
     protected:
         int fromNodeID,toNodeID;
 
@@ -20,6 +34,8 @@ namespace NEAT
         bool fixed;
 
     public:
+        GeneticLinkGene() {};
+
         /**
          * Constructor: This creates a new GeneticLinkGene
          * \param _fromNodeID is the node to which the link is coming from

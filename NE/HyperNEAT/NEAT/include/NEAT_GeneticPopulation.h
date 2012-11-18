@@ -11,15 +11,27 @@
 #include "NEAT_CoEvoExperiment.h"
 #endif
 
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+
 namespace NEAT
 {
-
     /**
      * The Genetic Population class is responsible for holding and managing a population of individuals
      * over multiple generations.
      */
     class GeneticPopulation
     {
+        friend class boost::serialization::access;
+        template<class Archive>
+            void serialize(Archive & ar, const unsigned int version)
+        {
+            ar  & (*Globals::getSingleton());
+            // Only dump the latest generation
+            ar  & generations[generations.size()-1];
+            ar  & onGeneration;
+        }
+
         vector<shared_ptr<GeneticGeneration> > generations;
 
         vector<shared_ptr<GeneticSpecies> > species;
