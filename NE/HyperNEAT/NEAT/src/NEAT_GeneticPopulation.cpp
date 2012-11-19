@@ -612,4 +612,10 @@ namespace NEAT
             generations[a]->cleanup();
         }
     }
+
+    void GeneticPopulation::cleanupOld()
+    {
+        for (int a=0;a<onGeneration;a++)
+            generations[a]->cleanup();
+    }        
 }

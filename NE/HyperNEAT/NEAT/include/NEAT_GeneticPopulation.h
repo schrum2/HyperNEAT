@@ -6,6 +6,7 @@
 
 #include "NEAT_Globals.h"
 #include "NEAT_GeneticSpecies.h"
+#include "NEAT_GeneticGeneration.h"
 
 #ifdef EPLEX_INTERNAL
 #include "NEAT_CoEvoExperiment.h"
@@ -24,13 +25,21 @@ namespace NEAT
     {
         friend class boost::serialization::access;
         template<class Archive>
-            void serialize(Archive & ar, const unsigned int version)
+            void save(Archive & ar, const unsigned int version) const
         {
             ar  & (*Globals::getSingleton());
-            // Only dump the latest generation
-            ar  & generations[generations.size()-1];
             ar  & onGeneration;
+            ar  & generations;
         }
+        template<class Archive>
+            void load(Archive & ar, const unsigned int version)
+        {
+            ar  & (*Globals::getSingleton());
+            ar  & onGeneration;
+            ar  & generations;
+            adjustFitness();
+        }
+        BOOST_SERIALIZATION_SPLIT_MEMBER()
 
         vector<shared_ptr<GeneticGeneration> > generations;
 
@@ -98,6 +107,8 @@ namespace NEAT
 
         NEAT_DLL_EXPORT void cleanupOld(int generationSkip);
 
+        NEAT_DLL_EXPORT void cleanupOld();
+        
         inline int getGenerationCount()
         {
             return (int)generations.size();
