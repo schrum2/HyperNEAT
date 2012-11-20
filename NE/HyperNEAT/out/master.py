@@ -114,12 +114,12 @@ if not os.path.isdir(resultsDir):
 currentGeneration = -1
 for f in os.listdir(resultsDir):
     if f.startswith('generation') and 'eval' not in f:
-        genNumber = int(f[len('generation'):-len('.xml.gz')])
+        genNumber = int(f[len('generation'):-len('.ser.gz')])
         currentGeneration = max(currentGeneration, genNumber)
 
 # Create Generation 0 if it doesnt already exist
 if currentGeneration < 0:
-        gen0Path = os.path.join(resultsDir,"generation0.xml")
+        gen0Path = os.path.join(resultsDir,"generation0.ser.gz")
         subprocess.check_call(["./" + generateExec, "-I", dataFile, "-O", gen0Path, "-G", rom])
         currentGeneration = 0
 elif currentGeneration >= maxGeneration - 1:
@@ -198,9 +198,9 @@ while currentGeneration < maxGeneration:
         time.sleep(5)
 
     # Create next generation
-    currGenFile = os.path.join(resultsDir,"generation"+str(currentGeneration)+".xml.gz")
-    nextGenFile = os.path.join(resultsDir,"generation"+str(currentGeneration+1)+".xml")
-    evalGenFile = os.path.join(resultsDir,"generation"+str(currentGeneration)+".eval.xml")
+    currGenFile = os.path.join(resultsDir,"generation"+str(currentGeneration)+".ser.gz")
+    nextGenFile = os.path.join(resultsDir,"generation"+str(currentGeneration+1)+".ser.gz")
+    evalGenFile = os.path.join(resultsDir,"generation"+str(currentGeneration)+".eval.ser.gz")
     fitnessRoot = os.path.join(resultsDir,"fitness." + str(currentGeneration)+".")
     subprocess.check_call(["./" + generateExec, "-I", dataFile, "-O", nextGenFile, "-P", currGenFile,
                      "-F", fitnessRoot, "-E", evalGenFile, "-G", rom])
@@ -208,9 +208,9 @@ while currentGeneration < maxGeneration:
     # Delete current generation and eval files
     if currentGeneration < maxGeneration - 1:
         os.remove(currGenFile)
-        os.remove(evalGenFile+str('.gz'))
+        os.remove(evalGenFile)
     elif currentGeneration == maxGeneration - 1:
-        os.remove(nextGenFile+str('.gz'))
+        os.remove(nextGenFile)
 
     currentGeneration += 1
 

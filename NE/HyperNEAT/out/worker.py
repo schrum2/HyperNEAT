@@ -61,7 +61,7 @@ individualsPerGeneration = args.n
 currentGeneration = -1
 for f in os.listdir(resultsDir):
     if f.startswith('generation') and 'eval' not in f:
-        genNumber = int(f[len('generation'):-len('.xml.gz')])
+        genNumber = int(f[len('generation'):-len('.ser.gz')])
         currentGeneration = max(currentGeneration, genNumber)
 if currentGeneration < 0:
         sys.stderr.write('Did not find any generation files! Exiting.\n')
@@ -70,14 +70,14 @@ if currentGeneration < 0:
 
 while currentGeneration < maxGeneration:
     # If an eval file for this generation already exists, go to next gen
-    evalFile = "generation" + str(currentGeneration) + ".eval.xml.gz"
+    evalFile = "generation" + str(currentGeneration) + ".eval.ser.gz"
     evalPath = os.path.join(resultsDir,evalFile)
     if os.path.exists(evalPath):
         currentGeneration += 1
         continue
 
     # Wait until we see a generation file for the current generation
-    generationFile = "generation" + str(currentGeneration) + ".xml.gz"
+    generationFile = "generation" + str(currentGeneration) + ".ser.gz"
     generationPath = os.path.join(resultsDir,generationFile)
     start = time.time()
     while not os.path.exists(generationPath):
