@@ -40,31 +40,35 @@ int HyperNEAT_main(int argc,char **argv) {
     return retval;
   }
 
-  NEAT::Globals::init(commandLineParser.GetSafeArgument("-I",0,"input.dat"));
+  NEAT::Globals::init(commandLineParser.GetArgument("-I",0));
 
   // Has the user specified a random seed?
   if (commandLineParser.HasSwitch("-R")) {
-      NEAT::Globals::getSingleton()->seedRandom(stringTo<unsigned int>(commandLineParser.GetSafeArgument("-R",0,"0")));
+      uint seed = stringTo<unsigned int>(commandLineParser.GetArgument("-R",0));
+      NEAT::Globals::getSingleton()->setParameterValue("RandomSeed",double(seed));
   }
 
+  // Setup the experiment
   int experimentType = int(NEAT::Globals::getSingleton()->getParameterValue("ExperimentType") + 0.001);
   HCUBE::ExperimentRun experimentRun;
+  experimentRun.setupExperiment(experimentType, commandLineParser.GetArgument("-O",0));
 
   // Is this an experiment in progress? If so we should load the current experiment
   if (commandLineParser.HasSwitch("-P") &&
       commandLineParser.HasSwitch("-F") &&
       commandLineParser.HasSwitch("-E")) {
-      string populationFile = commandLineParser.GetSafeArgument("-P",0,"population.xml");
-      string fitnessFunctionPrefix = commandLineParser.GetSafeArgument("-F",0,"fitness.0.");
-      string evaluationFile = commandLineParser.GetSafeArgument("-E",0,"evaluation.xml");
+      string populationFile = commandLineParser.GetArgument("-P",0);
+      string fitnessFunctionPrefix = commandLineParser.GetArgument("-F",0);
+      string evaluationFile = commandLineParser.GetArgument("-E",0);
       cout << "[HyperNEAT core] Population for existing generation created from: " << populationFile << endl;
 
-      experimentRun.setupExperimentInProgress(populationFile,commandLineParser.GetSafeArgument("-O",0,"output.xml"));
+      // TODO Do we need this line?
+      //experimentRun.setupExperimentInProgress(populationFile,commandLineParser.GetSafeArgument("-O",0,"output.xml"));
       experimentRun.createPopulationFromCondorRun(populationFile, fitnessFunctionPrefix, evaluationFile);
   } else {
       cout << "[HyperNEAT core] Population for first generation created\n";
-      experimentRun.setupExperiment(experimentType, commandLineParser.GetSafeArgument("-O",0,"output.xml"));
-      string rom_file = commandLineParser.GetSafeArgument("-G",0,"../ale/roms/asterix.bin");
+      //experimentRun.setupExperiment(experimentType, commandLineParser.GetSafeArgument("-O",0,"output.xml"));
+      string rom_file = commandLineParser.GetArgument("-G",0);
       if (experimentType == 30) {
           boost::shared_ptr<HCUBE::AtariExperiment> exp = boost::static_pointer_cast<HCUBE::AtariExperiment>(experimentRun.getExperiment());
           exp->initializeExperiment(rom_file.c_str());
@@ -78,7 +82,6 @@ int HyperNEAT_main(int argc,char **argv) {
           boost::shared_ptr<HCUBE::AtariIntrinsicExperiment> exp = boost::static_pointer_cast<HCUBE::AtariIntrinsicExperiment>(experimentRun.getExperiment());
           exp->initializeExperiment(rom_file.c_str());
       }          
-
       experimentRun.createPopulation();
   }
   experimentRun.setCleanup(true);

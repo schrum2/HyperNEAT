@@ -37,9 +37,10 @@ int HyperNEAT_main(int argc,char **argv) {
       commandLineParser.HasSwitch("-G"))    // Rom file
     {
 
-    NEAT::Globals::init(commandLineParser.GetSafeArgument("-I",0,"input.dat"));
+    NEAT::Globals::init(commandLineParser.GetArgument("-I",0));
     if (commandLineParser.HasSwitch("-R")) {
-      NEAT::Globals::getSingleton()->seedRandom(stringTo<unsigned int>(commandLineParser.GetSafeArgument("-R",0,"0")));
+      uint seed = stringTo<unsigned int>(commandLineParser.GetArgument("-R",0));
+      NEAT::Globals::getSingleton()->setParameterValue("RandomSeed",double(seed));
     }
 
     int experimentType = int(NEAT::Globals::getSingleton()->getParameterValue("ExperimentType") + 0.001);
@@ -49,12 +50,12 @@ int HyperNEAT_main(int argc,char **argv) {
     experimentRun.setupExperiment(experimentType, "output.xml");
 
     cout << "[HyperNEAT core] Population Created\n";
-    string populationFile = commandLineParser.GetSafeArgument("-P",0,"population.xml");
+    string populationFile = commandLineParser.GetArgument("-P",0);
     experimentRun.createPopulation(populationFile);
-    unsigned int individualId = stringTo<unsigned int>(commandLineParser.GetSafeArgument("-N",0,"0"));
+    unsigned int individualId = stringTo<unsigned int>(commandLineParser.GetArgument("-N",0));
 
     cout << "[HyperNEAT core] Visualizing individual: " << individualId << endl;
-    string rom_file = commandLineParser.GetSafeArgument("-G",0,"../ale/roms/asterix.bin");
+    string rom_file = commandLineParser.GetArgument("-G",0);
     if (experimentType == 30) {
         boost::shared_ptr<HCUBE::AtariExperiment> exp = boost::static_pointer_cast<HCUBE::AtariExperiment>(experimentRun.getExperiment());
         exp->setDisplayScreen(true);
