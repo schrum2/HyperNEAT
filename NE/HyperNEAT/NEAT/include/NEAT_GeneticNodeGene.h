@@ -24,6 +24,7 @@ namespace NEAT
             ar & name;
             ar & type;
             ar & topologyFrozen;
+            ar & activationFunction;
         }
 
     protected:
