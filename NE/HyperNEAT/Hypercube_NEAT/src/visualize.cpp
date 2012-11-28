@@ -41,6 +41,7 @@ int HyperNEAT_main(int argc,char **argv) {
     if (commandLineParser.HasSwitch("-R")) {
       uint seed = stringTo<unsigned int>(commandLineParser.GetArgument("-R",0));
       NEAT::Globals::getSingleton()->setParameterValue("RandomSeed",double(seed));
+      NEAT::Globals::getSingleton()->initRandom();
     }
 
     int experimentType = int(NEAT::Globals::getSingleton()->getParameterValue("ExperimentType") + 0.001);
