@@ -124,7 +124,7 @@ namespace HCUBE
         for (int z=0; z<inputNodeIndexes.size(); z++) {
             for (int q=0; q<hiddenNodeIndexes.size(); q++) {
                 int fromNodeIndex = inputNodeIndexes[z];
-                int toNodeIndex   = inputNodeIndexes[q];
+                int toNodeIndex   = hiddenNodeIndexes[q];
                 links.push_back(GeneticLinkGene(genes[fromNodeIndex].getID(),genes[toNodeIndex].getID()));
             }
         }
@@ -162,6 +162,7 @@ namespace HCUBE
         runAtariEpisode(individual);
     }
 
+
     void AtariFTNeatExperiment::runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual) {
         // Reset the game
         ale.reset_game();
@@ -178,7 +179,8 @@ namespace HCUBE
             setSubstrateSelfValue(*visProc);
 
             // Propagate values through the ANN
-            substrate.update();
+            // This is necessary to fully propagate through the different layers
+            substrate.updateFixedIterations(2);
 
             //printLayerInfo();
 
@@ -232,7 +234,6 @@ namespace HCUBE
             }
         }
         int action_indx = NEAT::Globals::getSingleton()->getRandom().getRandomInt(max_inds.size());
-        //int action_indx = choice(&max_inds);
         return ale.legal_actions[max_inds[action_indx]];
     }
 
@@ -254,6 +255,21 @@ namespace HCUBE
             }
             printf("\n");
         }
+        printf("Processing Layer:\n");
+        for (int y=0; y<substrate_height; y++) {
+            for (int x=0; x<substrate_width; x++) {
+                float output = substrate.getValue(nameLookup[Node(x,y,1)]);
+                printf("%1.1f ",output);
+            }
+            printf("\n");
+        }
+        printf("\n");
+        printf("Output Layer:\n");
+        for (int i=0; i < numActions; i++) {
+            float output = substrate.getValue(nameLookup[Node(i,0,2)]);
+            printf("%1.1f ",output);
+        }
+        printf("\n");
         cin.get();
     }
 
