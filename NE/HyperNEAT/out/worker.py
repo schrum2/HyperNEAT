@@ -69,16 +69,10 @@ if currentGeneration < 0:
         sys.exit(0)
 
 while currentGeneration < maxGeneration:
-    # If an eval file for this generation already exists, go to next gen
-    evalFile = "generation" + str(currentGeneration) + ".eval.ser.gz"
-    evalPath = os.path.join(resultsDir,evalFile)
-    if os.path.exists(evalPath):
-        currentGeneration += 1
-        continue
-
     # Wait until we see a generation file for the current generation
     generationFile = "generation" + str(currentGeneration) + ".ser.gz"
     generationPath = os.path.join(resultsDir,generationFile)
+
     start = time.time()
     while not os.path.exists(generationPath):
         time.sleep(5)
@@ -92,7 +86,8 @@ while currentGeneration < maxGeneration:
     random.shuffle(individualIds)
     for individualId in individualIds:
         # Break out of this loop if the generation has ended
-        if os.path.exists(evalPath): 
+        nextGenPath = os.path.join(resultsDir,"generation" + str(currentGeneration+1) + ".ser.gz")
+        if os.path.exists(nextGenPath): 
             break
         fitnessFile = "fitness."+str(currentGeneration)+"."+str(individualId)
         fitnessPath = os.path.join(resultsDir,fitnessFile)

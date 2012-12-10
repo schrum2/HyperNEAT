@@ -120,9 +120,9 @@ for f in os.listdir(resultsDir):
 # Create Generation 0 if it doesnt already exist
 if currentGeneration < 0:
         gen0Path = os.path.join(resultsDir,"generation0.ser.gz")
-        subprocess.check_call(["./" + generateExec, "-I", dataFile, "-O", gen0Path, "-G", rom])
+        subprocess.check_call(["./" + generateExec, "-R", str(seed), "-I", dataFile, "-O", gen0Path, "-G", rom])
         currentGeneration = 0
-elif currentGeneration >= maxGeneration - 1:
+elif currentGeneration >= maxGeneration:
     sys.exit(0)
 
 print 'Starting on generation',currentGeneration
@@ -189,8 +189,11 @@ while currentGeneration < maxGeneration:
                                   individualsPerGeneration, maxGeneration, seed, rom)
             procIDs[pid] = workerNum
             workerNum += 1
-            if workerNum == 1000:
-                subprocess.check_call(["echo","\"Please Check!\"","|","mail","-s","\"[master.py - "+resultsDir+"] Workers dying quickly\"","mhauskn@cs.utexas.edu"])
+            if workerNum >= 1000:
+                subprocess.check_call(["echo","\"When will the violence end?!\"","|","mail","-s","\"[master.py - "+resultsDir+"] 1000 workers dead\"","mhauskn@cs.utexas.edu"],shell=True)
+                print 'Over 1k dead workers. When will the violence end?'
+                sys.stdout.flush()
+                sys.exit(0)
 
         # Wait for a little while 
         print 'Waiting for',len(individualIds),'job(s) to finish...'
@@ -200,17 +203,17 @@ while currentGeneration < maxGeneration:
     # Create next generation
     currGenFile = os.path.join(resultsDir,"generation"+str(currentGeneration)+".ser.gz")
     nextGenFile = os.path.join(resultsDir,"generation"+str(currentGeneration+1)+".ser.gz")
-    evalGenFile = os.path.join(resultsDir,"generation"+str(currentGeneration)+".eval.ser.gz")
+    tmpNextGen  = nextGenFile + ".tmp"
     fitnessRoot = os.path.join(resultsDir,"fitness." + str(currentGeneration)+".")
-    subprocess.check_call(["./" + generateExec, "-I", dataFile, "-O", nextGenFile, "-P", currGenFile,
-                     "-F", fitnessRoot, "-E", evalGenFile, "-G", rom])
+    subprocess.check_call(["./" + generateExec, "-I", dataFile, "-R", str(seed), "-O", tmpNextGen, "-P", currGenFile,
+                     "-F", fitnessRoot, "-G", rom])
 
-    # Delete current generation and eval files
-    if currentGeneration < maxGeneration - 1:
-        os.remove(currGenFile)
-        os.remove(evalGenFile)
-    elif currentGeneration == maxGeneration - 1:
-        os.remove(nextGenFile)
+    # Move the temp next gen file to the actual one. This is necessary to keep workers from trying to read the
+    # next gen file as it was being written.
+    subprocess.check_call(["mv", tmpNextGen, nextGenFile])
+
+    # Delete current generation file
+    os.remove(currGenFile)
 
     currentGeneration += 1
 

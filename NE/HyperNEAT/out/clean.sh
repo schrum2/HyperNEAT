@@ -1,7 +1,7 @@
 #!/bin/bash
 
 for D in results/*; do
-    if [ ! -f $D/generation149.xml.gz ]
+    if [ ! -f $D/generation150.ser.gz ]
     then
         echo -n "[$D]: Not yet finished: "
         ls $D/generation*
