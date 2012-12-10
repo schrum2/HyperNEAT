@@ -246,13 +246,10 @@ namespace HCUBE
         population->adjustFitness();
 
         // Save the eval file
-        //population->dumpBest(evaluationFile, true, true);
-        std::ofstream ofs(evaluationFile.c_str(),std::ios::out|std::ios::binary|std::ios::trunc);
-        boost::iostreams::filtering_streambuf<boost::iostreams::output> out;
-        out.push(boost::iostreams::gzip_compressor());
-        out.push(ofs);
-        boost::archive::binary_oarchive oa(out);
-        oa << *population;
+        if (!iequals(evaluationFile,"")) {
+            //population->dumpBest(evaluationFile, true, true);
+            savePopulationBoost(evaluationFile);
+        }
 
         shared_ptr<NEAT::GeneticGeneration> generation = population->getGeneration();
         generation->printGenerationalStatistics();
@@ -285,15 +282,28 @@ namespace HCUBE
 #endif
             // Load the population
             //population = shared_ptr<NEAT::GeneticPopulation>(new NEAT::GeneticPopulation(populationString));
-            population = shared_ptr<NEAT::GeneticPopulation>(new NEAT::GeneticPopulation());
-            std::ifstream ifs(populationString.c_str(), std::ios::in|std::ios::binary);
-            assert(ifs.good());
-            boost::iostreams::filtering_streambuf<boost::iostreams::input> in;
-            in.push(boost::iostreams::gzip_decompressor());
-            in.push(ifs);
-            boost::archive::binary_iarchive ia(in);
-            ia >> (*population);
+            loadPopulationBoost(populationString);
         }
+    }
+
+    void ExperimentRun::loadPopulationBoost(string filename) {
+        population = shared_ptr<NEAT::GeneticPopulation>(new NEAT::GeneticPopulation());
+        std::ifstream ifs(filename.c_str(), std::ios::in|std::ios::binary);
+        assert(ifs.good());
+        boost::iostreams::filtering_streambuf<boost::iostreams::input> in;
+        in.push(boost::iostreams::gzip_decompressor());
+        in.push(ifs);
+        boost::archive::binary_iarchive ia(in);
+        ia >> (*population);
+    }
+
+    void ExperimentRun::savePopulationBoost(string filename) {
+        std::ofstream ofs(filename.c_str(),std::ios::out|std::ios::binary|std::ios::trunc);
+        boost::iostreams::filtering_streambuf<boost::iostreams::output> out;
+        out.push(boost::iostreams::gzip_compressor());
+        out.push(ofs);
+        boost::archive::binary_oarchive oa(out);
+        oa << *population;
     }
 
     void ExperimentRun::setupExperimentInProgress(
@@ -353,13 +363,16 @@ namespace HCUBE
 
         // Save the population
         //population->dumpBest(outputFileName, true, true);
-        std::ofstream ofs(outputFileName.c_str(),std::ios::out|std::ios::binary|std::ios::trunc);
-        boost::iostreams::filtering_streambuf<boost::iostreams::output> out;
-        out.push(boost::iostreams::gzip_compressor());
-        out.push(ofs);
-        boost::archive::binary_oarchive oa(out);
-        oa << *population;
+        savePopulationBoost(outputFileName);
+
+        // Try to load the population to make sure it saved correctly
+        try {
+            loadPopulationBoost(outputFileName);
+        } catch (const std::exception &ex) {
+            throw CREATE_LOCATEDEXCEPTION_INFO(string("FAILED TO LOAD NEWLY SAVED POPULATION. EXCEPTION: ")+string(ex.what()));
+        }
     }
+
 
     void ExperimentRun::start()
     {

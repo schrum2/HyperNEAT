@@ -157,6 +157,10 @@ namespace HCUBE
             return populationMutex;
         }
 
+        // Saves and loads the population using boost serialization
+        void loadPopulationBoost(string filename);
+        void savePopulationBoost(string filename);
+
     protected:
         /**
         * This class cannot be copied

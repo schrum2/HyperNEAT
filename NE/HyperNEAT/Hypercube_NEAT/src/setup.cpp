@@ -31,7 +31,7 @@ int HyperNEAT_main(int argc,char **argv) {
       !commandLineParser.HasSwitch("-O") ||
       !commandLineParser.HasSwitch("-G")) {
     cout << "[HyperNEAT core] Syntax for passing command-line options to HyperNEAT (do not actually type '(' or ')' ):\n";
-    cout << "[HyperNEAT core] ./atari_generate [-R (seed)] -I (datafile) -O (outputfile) -G (ROMFile) [-P (populationfile) -F (fitnessprefix) -E (evaluationFile)]\n";
+    cout << "[HyperNEAT core] ./atari_generate [-R (seed)] -I (datafile) -O (outputfile) -G (ROMFile) [-P (populationfile) -F (fitnessprefix) [-E (evaluationFile)] ]\n";
     cout << "[HyperNEAT core] \t(datafile) experiment data file - typically data/AtariExperiment.dat\n";
     cout << "                 \t(outputfile) the next generation file containging all the individual in xml.gz format(also refers to initial file produced for generation 0) - typically generationXX.xml\n";
     cout << "                 \t(populationfile) the current generation file (required when outputfile is > generation0) - typically generationXX(-1).xml.gz\n";
@@ -56,11 +56,10 @@ int HyperNEAT_main(int argc,char **argv) {
 
   // Is this an experiment in progress? If so we should load the current experiment
   if (commandLineParser.HasSwitch("-P") &&
-      commandLineParser.HasSwitch("-F") &&
-      commandLineParser.HasSwitch("-E")) {
+      commandLineParser.HasSwitch("-F")) {
       string populationFile = commandLineParser.GetArgument("-P",0);
       string fitnessFunctionPrefix = commandLineParser.GetArgument("-F",0);
-      string evaluationFile = commandLineParser.GetArgument("-E",0);
+      string evaluationFile = commandLineParser.GetSafeArgument("-E",0,"");
       cout << "[HyperNEAT core] Population for existing generation created from: " << populationFile << endl;
 
       // TODO Do we need this line?
