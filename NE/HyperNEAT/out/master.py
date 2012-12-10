@@ -190,7 +190,8 @@ while currentGeneration < maxGeneration:
             procIDs[pid] = workerNum
             workerNum += 1
             if workerNum >= 1000:
-                subprocess.check_call(["echo","\"When will the violence end?!\"","|","mail","-s","\"[master.py - "+resultsDir+"] 1000 workers dead\"","mhauskn@cs.utexas.edu"],shell=True)
+                readBody = subprocess.Popen(["echo", 'I tire of this cruel world. When will the violence end?'], stdout=subprocess.PIPE)
+                subprocess.check_call(["mail", "-s", '[master.py - '+resultsDir+'] 1000 workers dead', 'mhauskn@cs.utexas.edu'], stdin=readBody.stdout, stdout=subprocess.PIPE)
                 print 'Over 1k dead workers. When will the violence end?'
                 sys.stdout.flush()
                 sys.exit(0)
