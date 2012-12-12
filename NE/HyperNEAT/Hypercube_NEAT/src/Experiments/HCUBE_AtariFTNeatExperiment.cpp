@@ -1,8 +1,10 @@
 #include "HCUBE_Defines.h"
 
 #include "Experiments/HCUBE_AtariFTNeatExperiment.h"
+#include "Experiments/HCUBE_AtariExperiment.h"
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
+
 
 using namespace NEAT;
 
@@ -150,6 +152,81 @@ namespace HCUBE
 
         cout << "Finished creating population\n";
         return population;
+    }
+
+    NEAT::GeneticPopulation* AtariFTNeatExperiment::createInitialPopulation(shared_ptr<NEAT::GeneticPopulation> CPPN_pop, shared_ptr<Experiment> experiment) {
+        // This is a potentially unsafe cast
+        shared_ptr<HCUBE::AtariExperiment> HyperNEAT_experiment = boost::static_pointer_cast<HCUBE::AtariExperiment>(experiment);
+        shared_ptr<GeneticGeneration> HyperNEAT_lastGeneration = CPPN_pop->getGeneration();
+        // Initialize FT-NEAT population
+        GeneticPopulation* FTNEAT_population = createInitialPopulation(HyperNEAT_lastGeneration->getIndividualCount()); 
+        shared_ptr<GeneticGeneration> FTNEAT_lastGeneration = FTNEAT_population->getGeneration();
+		
+        //shared_ptr<GeneticIndividual> bestIndividual = CPPN_pop->getBestIndividualOfGeneration(-1);
+        // TODO: copy best individual into P-NEAT
+		
+        for (int i = 0; i<HyperNEAT_lastGeneration->getIndividualCount(); ++i) {
+            // copy all link values from HyperNEAT indivdual to FT-NEAT individual
+            shared_ptr<GeneticIndividual> HyperNEAT_individual = HyperNEAT_lastGeneration->getIndividual(i);
+            // Do we need this line?
+            shared_ptr<GeneticIndividual> FTNEAT_individual = FTNEAT_lastGeneration->getIndividual(i);
+            FTNEAT_individual->setFitness(HyperNEAT_individual->getFitness());
+            // FTNEAT_individaul->setParent1Fitness(HyperNEAT_individual->getParent1Fitness());
+            // FTNEAT_individaul->setDirectionChanges(HyperNEAT_individual->getDirectionChanges());
+			
+            NEAT::LayeredSubstrate<float> HyperNEAT_substrate = HyperNEAT_experiment->populateAndReturnSubstrate(HyperNEAT_individual);
+            NEAT::FastLayeredNetwork<float>* HyperNEAT_network = HyperNEAT_substrate.getNetwork();
+
+            // [Links] Input --> Processing 
+            for (int i=0; i<=numObjClasses; ++i) {
+                for (int y=0; y<substrate_height; y++) {
+                    for (int x=0; x<substrate_width; x++) {
+                        int xmod = substrate_width*i+x; 
+                        Node fromNode(xmod, y, 0);
+                        string sourceString(toString(xmod) + string("/") + toString(y) + string("/") + toString("0"));
+                        GeneticNodeGene* sourceNode = FTNEAT_individual->getNode(sourceString);
+                        // Processing Layer
+                        for (int toY=0; toY<substrate_height; toY++) {
+                            for (int toX=0; toX<substrate_width; toX++) {
+                                Node toNode(toX, toY, 1);
+                                string targetString(toString(x) + string("/") + toString(y) + string("/") + toString("1"));
+                                GeneticNodeGene* targetNode = FTNEAT_individual->getNode(targetString);
+
+                                float linkWeight = HyperNEAT_network->getLink(fromNode,toNode);
+
+                                GeneticLinkGene* FTNEAT_link;
+                                FTNEAT_link = FTNEAT_individual->getLink(sourceNode->getID(), targetNode->getID());
+                                FTNEAT_link->setWeight(linkWeight);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // [Links] Processing --> Output
+            for (int y=0; y<substrate_height; y++) {
+                for (int x=0; x<substrate_width; x++) {
+                    Node fromNode(x, y, 1);
+                    string sourceString(toString(x) + string("/") + toString(y) + string("/") + toString("1"));
+                    GeneticNodeGene* sourceNode = FTNEAT_individual->getNode(sourceString);
+
+                    // Output Layer
+                    for (int i=0; i<numActions; i++) {
+                        Node toNode(i, 0, 2);
+
+                        string targetString(toString(i) + string("/") + toString("0") + string("/") + toString("2"));
+                        GeneticNodeGene* targetNode = FTNEAT_individual->getNode(targetString);
+
+                        float linkWeight = HyperNEAT_network->getLink(fromNode,toNode);
+
+                        GeneticLinkGene* FTNEAT_link;
+                        FTNEAT_link = FTNEAT_individual->getLink(sourceNode->getID(), targetNode->getID());
+                        FTNEAT_link->setWeight(linkWeight);
+                    }
+                }
+            }
+        }
+        return FTNEAT_population;
     }
 
     void AtariFTNeatExperiment::processGroup(shared_ptr<NEAT::GeneticGeneration> generation)

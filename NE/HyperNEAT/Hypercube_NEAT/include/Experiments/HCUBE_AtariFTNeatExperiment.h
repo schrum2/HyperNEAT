@@ -32,6 +32,11 @@ namespace HCUBE
         virtual ~AtariFTNeatExperiment() {};
 
         virtual NEAT::GeneticPopulation* createInitialPopulation(int populationSize);
+
+        /** This method creates the FT Neat networks from HyperNEAT networks **/
+        virtual NEAT::GeneticPopulation* createInitialPopulation(
+            shared_ptr<NEAT::GeneticPopulation> CPPN_pop, shared_ptr<Experiment> HyperNEAT_experiment);        
+        
         virtual void processGroup(shared_ptr<NEAT::GeneticGeneration> generation);
         void runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual);
 
