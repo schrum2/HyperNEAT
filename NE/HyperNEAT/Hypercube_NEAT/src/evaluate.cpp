@@ -35,7 +35,7 @@ int HyperNEAT_main(int argc,char **argv) {
 
         globals = Globals::init(commandLineParser.GetArgument("-I",0));
         if (commandLineParser.HasSwitch("-R")) {
-            uint seed = stringTo<unsigned int>(commandLineParser.GetArgument("-R",0));
+            unsigned int seed = stringTo<unsigned int>(commandLineParser.GetArgument("-R",0));
             globals->setParameterValue("RandomSeed",double(seed));
             globals->initRandom();
         }
