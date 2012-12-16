@@ -14,84 +14,80 @@
 #ifndef HCUBE_NOGUI
 namespace HCUBE
 {
-  IMPLEMENT_APP_NO_MAIN(MainApp)
+    IMPLEMENT_APP_NO_MAIN(MainApp)
 }
 #endif
 
-#define EPOCHS_PER_PRINT (100000)
+using namespace boost;
+using namespace HCUBE;
+using namespace NEAT;
 
 int HyperNEAT_main(int argc,char **argv) {
+    CommandLineParser commandLineParser(argc,argv);
 
-  int retval = 0;
- 
-  CommandLineParser commandLineParser(argc,argv);
+    // Quit if we don't have I/O/G
+    if (!commandLineParser.HasSwitch("-I") ||
+        !commandLineParser.HasSwitch("-O") ||
+        !commandLineParser.HasSwitch("-G")) {
+        cout << "./atari_generate [-R (seed)] -I (datafile) -O (outputfile) -G (ROMFile) [-P (populationfile) -F (fitnessprefix) [-E (evaluationFile)] ]\n";
+        cout << "\t(datafile) experiment data file - typically data/AtariExperiment.dat\n";
+        cout << "\t(outputfile) the next generation file to be created - typically generationXX.xml\n";
+        cout << "\t(populationfile) the current generation file (required when outputfile is > generation0) - typically generationXX(-1).xml.gz\n";
+        cout << "\t(fitnessprefix) used to locate the fitness files for individuals in the current generation (required for generation > 0) - typically fitness.XX.\n";
+        cout << "\t(evaluationfile) populationfile + fitness + speciation (output only - not required for next cycle) - typicall generationXX(-1).eval.xml\n";
+        return 0;
+    }
 
-  // Quit if we don't have I/O/G
-  if (!commandLineParser.HasSwitch("-I") ||
-      !commandLineParser.HasSwitch("-O") ||
-      !commandLineParser.HasSwitch("-G")) {
-    cout << "[HyperNEAT core] Syntax for passing command-line options to HyperNEAT (do not actually type '(' or ')' ):\n";
-    cout << "[HyperNEAT core] ./atari_generate [-R (seed)] -I (datafile) -O (outputfile) -G (ROMFile) [-P (populationfile) -F (fitnessprefix) [-E (evaluationFile)] ]\n";
-    cout << "[HyperNEAT core] \t(datafile) experiment data file - typically data/AtariExperiment.dat\n";
-    cout << "                 \t(outputfile) the next generation file containging all the individual in xml.gz format(also refers to initial file produced for generation 0) - typically generationXX.xml\n";
-    cout << "                 \t(populationfile) the current generation file (required when outputfile is > generation0) - typically generationXX(-1).xml.gz\n";
-    cout << "                 \t(fitnessprefix) used to locate the fitness files for individuals in the current generation (required for generation > 0) - typically fitness.XX.\n";
-    cout << "                 \t(evaluationfile) populationfile + fitness + speciation (output only - not required for next cycle) - typicall generationXX(-1).eval.xml\n";
-    return retval;
-  }
+    Globals *globals = Globals::init(commandLineParser.GetArgument("-I",0));
 
-  NEAT::Globals::init(commandLineParser.GetArgument("-I",0));
+    if (commandLineParser.HasSwitch("-R")) {
+        uint seed = stringTo<unsigned int>(commandLineParser.GetArgument("-R",0));
+        globals->setParameterValue("RandomSeed",double(seed));
+        globals->initRandom();
+    }
 
-  // Has the user specified a random seed?
-  if (commandLineParser.HasSwitch("-R")) {
-      uint seed = stringTo<unsigned int>(commandLineParser.GetArgument("-R",0));
-      NEAT::Globals::getSingleton()->setParameterValue("RandomSeed",double(seed));
-      NEAT::Globals::getSingleton()->initRandom();
-  }
+    // Setup the experiment
+    int experimentType = int(globals->getParameterValue("ExperimentType") + 0.001);
+    HCUBE::ExperimentRun experimentRun;
+    experimentRun.setupExperiment(experimentType, commandLineParser.GetArgument("-O",0));
 
-  // Setup the experiment
-  int experimentType = int(NEAT::Globals::getSingleton()->getParameterValue("ExperimentType") + 0.001);
-  HCUBE::ExperimentRun experimentRun;
-  experimentRun.setupExperiment(experimentType, commandLineParser.GetArgument("-O",0));
+    string rom_file = commandLineParser.GetArgument("-G",0);
 
-  // Is this an experiment in progress? If so we should load the current experiment
-  if (commandLineParser.HasSwitch("-P") &&
-      commandLineParser.HasSwitch("-F")) {
-      string populationFile = commandLineParser.GetArgument("-P",0);
-      string fitnessFunctionPrefix = commandLineParser.GetArgument("-F",0);
-      string evaluationFile = commandLineParser.GetSafeArgument("-E",0,"");
-      cout << "[HyperNEAT core] Population for existing generation created from: " << populationFile << endl;
+    // Is this an experiment in progress? If so we should load the current experiment
+    if (commandLineParser.HasSwitch("-P") &&
+        commandLineParser.HasSwitch("-F")) {
+        string populationFile = commandLineParser.GetArgument("-P",0);
+        string fitnessFunctionPrefix = commandLineParser.GetArgument("-F",0);
+        string evaluationFile = commandLineParser.GetSafeArgument("-E",0,"");
+        cout << "[HyperNEAT core] Population for existing generation created from: " << populationFile << endl;
+        experimentRun.createPopulationFromCondorRun(populationFile, fitnessFunctionPrefix, evaluationFile, rom_file);
+    } else {
+        cout << "[HyperNEAT core] Population for first generation created" << endl;
+        shared_ptr<Experiment> e = experimentRun.getExperiment();        
+        if (experimentType == 30) {
+            shared_ptr<AtariExperiment> exp = static_pointer_cast<AtariExperiment>(e);
+            exp->initializeExperiment(rom_file.c_str());
+        } else if (experimentType == 31) {
+            shared_ptr<AtariNoGeomExperiment> exp = static_pointer_cast<AtariNoGeomExperiment>(e);
+            exp->initializeExperiment(rom_file.c_str());
+        } else if (experimentType == 32) {
+            shared_ptr<AtariFTNeatExperiment> exp = static_pointer_cast<AtariFTNeatExperiment>(e);
+            exp->initializeExperiment(rom_file.c_str());
+        } else if (experimentType == 33) {
+            // This is the Hybrid experiment but always starts as HyperNEAT
+            shared_ptr<AtariExperiment> exp = static_pointer_cast<AtariExperiment>(e);
+            exp->initializeExperiment(rom_file.c_str());
+        } else if (experimentType == 34) {
+            shared_ptr<AtariIntrinsicExperiment> exp = static_pointer_cast<AtariIntrinsicExperiment>(e);
+            exp->initializeExperiment(rom_file.c_str());
+        }          
+        experimentRun.createPopulation();
+    }
+    experimentRun.startCondor();
 
-      // TODO Do we need this line?
-      //experimentRun.setupExperimentInProgress(populationFile,commandLineParser.GetSafeArgument("-O",0,"output.xml"));
-      experimentRun.createPopulationFromCondorRun(populationFile, fitnessFunctionPrefix, evaluationFile);
-  } else {
-      cout << "[HyperNEAT core] Population for first generation created\n";
-      //experimentRun.setupExperiment(experimentType, commandLineParser.GetSafeArgument("-O",0,"output.xml"));
-      string rom_file = commandLineParser.GetArgument("-G",0);
-      if (experimentType == 30) {
-          boost::shared_ptr<HCUBE::AtariExperiment> exp = boost::static_pointer_cast<HCUBE::AtariExperiment>(experimentRun.getExperiment());
-          exp->initializeExperiment(rom_file.c_str());
-      } else if (experimentType == 31) {
-          boost::shared_ptr<HCUBE::AtariNoGeomExperiment> exp = boost::static_pointer_cast<HCUBE::AtariNoGeomExperiment>(experimentRun.getExperiment());
-          exp->initializeExperiment(rom_file.c_str());
-      } else if (experimentType == 32) {
-          boost::shared_ptr<HCUBE::AtariFTNeatExperiment> exp = boost::static_pointer_cast<HCUBE::AtariFTNeatExperiment>(experimentRun.getExperiment());
-          exp->initializeExperiment(rom_file.c_str());
-      } else if (experimentType == 33) {
-          boost::shared_ptr<HCUBE::AtariIntrinsicExperiment> exp = boost::static_pointer_cast<HCUBE::AtariIntrinsicExperiment>(experimentRun.getExperiment());
-          exp->initializeExperiment(rom_file.c_str());
-      }          
-      experimentRun.createPopulation();
-  }
-  experimentRun.setCleanup(true);
-  experimentRun.startCondor();
-
-  NEAT::Globals::deinit();
-  
-  return retval;
+    NEAT::Globals::deinit();
 }
 
 int main(int argc,char **argv) {
-  HyperNEAT_main(argc,argv);
+    HyperNEAT_main(argc,argv);
 }

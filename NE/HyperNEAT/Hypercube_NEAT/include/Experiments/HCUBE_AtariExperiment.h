@@ -78,7 +78,7 @@ namespace HCUBE
     virtual void addGenerationData(shared_ptr<NEAT::GeneticGeneration> generation,shared_ptr<NEAT::GeneticIndividual> individual) {}
 
     // This is used for conversion to a FT-NEAT network
-    NEAT::LayeredSubstrate<float> populateAndReturnSubstrate(shared_ptr<NEAT::GeneticIndividual> individual);
+    NEAT::LayeredSubstrate<float>* populateAndReturnSubstrate(shared_ptr<NEAT::GeneticIndividual> individual);
 
 #ifndef HCUBE_NOGUI
     virtual void createIndividualImage(wxDC &drawContext,shared_ptr<NEAT::GeneticIndividual> individual) {}

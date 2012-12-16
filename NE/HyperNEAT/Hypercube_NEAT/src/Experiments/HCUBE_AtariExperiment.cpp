@@ -145,9 +145,9 @@ namespace HCUBE
         substrate->populateSubstrate(individual);
     }
 
-    NEAT::LayeredSubstrate<float> AtariExperiment::populateAndReturnSubstrate(shared_ptr<NEAT::GeneticIndividual> individual) {
+    NEAT::LayeredSubstrate<float>* AtariExperiment::populateAndReturnSubstrate(shared_ptr<NEAT::GeneticIndividual> individual) {
         populateSubstrate(individual);
-        return substrates[0];
+        return &substrates[0];
     }
 
     void AtariExperiment::processGroup(shared_ptr<NEAT::GeneticGeneration> generation)

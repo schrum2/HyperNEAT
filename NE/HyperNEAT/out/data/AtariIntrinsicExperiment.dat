@@ -32,4 +32,4 @@ AddBiasToHiddenNodes 0.0
 SignedActivation 1.0
 ExtraActivationUpdates 9.0
 OnlyGaussianHiddenNodes 0.0
-ExperimentType 33.0
+ExperimentType 34.0

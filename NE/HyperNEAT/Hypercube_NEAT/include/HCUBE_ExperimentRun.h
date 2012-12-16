@@ -54,6 +54,18 @@ namespace HCUBE
             return experiments[0];
         }
 
+        inline void setActiveExperiment(int experimentNum)
+        {
+            if (experimentNum < 0 || experimentNum >= experiments.size())
+            {
+                throw CREATE_LOCATEDEXCEPTION_INFO("Requested a switch to an invalid experiment!");
+            }
+            
+            shared_ptr<Experiment> tmp = experiments[0];
+            experiments[0] = experiments[experimentNum];
+            experiments[experimentNum] = tmp;
+        }
+
         inline const void setFrame(MainFrame *_frame)
         {
             frame=_frame;
@@ -125,8 +137,10 @@ namespace HCUBE
         * This function creates a population.  This is typically called after setupExperiment
         * to create the initial population for the run.
         */
-        void createPopulationFromCondorRun(string populationFile, string fitnessFunctionPrefix, string evaluationFile);
+        void createPopulationFromCondorRun(string populationFile, string fitnessFunctionPrefix,
+                                           string evaluationFile, string rom_file);
         void createPopulation(string populationString="");
+        void convertPopulation(string rom_file);
 
         /**
         * This function calls the preprocess function for the experiment on every individual

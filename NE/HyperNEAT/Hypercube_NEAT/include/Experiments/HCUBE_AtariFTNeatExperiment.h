@@ -4,6 +4,7 @@
 #include "HCUBE_Experiment.h"
 #include "ale_interface.hpp"
 #include "common/visual_processor.h"
+#include "Experiments/HCUBE_AtariExperiment.h"
 
 namespace HCUBE
 {
@@ -23,7 +24,7 @@ namespace HCUBE
         int numObjClasses;
 
     public:
-        NEAT::FastNetwork<double> substrate;
+        NEAT::FastNetwork<float> substrate;
         map<Node,string> nameLookup; // Name lookup table
 
         void initializeExperiment(string rom_file);
@@ -33,9 +34,11 @@ namespace HCUBE
 
         virtual NEAT::GeneticPopulation* createInitialPopulation(int populationSize);
 
-        /** This method creates the FT Neat networks from HyperNEAT networks **/
-        virtual NEAT::GeneticPopulation* createInitialPopulation(
-            shared_ptr<NEAT::GeneticPopulation> CPPN_pop, shared_ptr<Experiment> HyperNEAT_experiment);        
+        // This method converts HyperNEAT individuals into FT-NEAT individuals
+        // It is used during the switch-over point in Hybrid
+        virtual NEAT::GeneticPopulation* convertPopulation(
+            shared_ptr<NEAT::GeneticPopulation> CPPN_pop,
+            shared_ptr<AtariExperiment> HyperNEAT_experiment);
         
         virtual void processGroup(shared_ptr<NEAT::GeneticGeneration> generation);
         void runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual);

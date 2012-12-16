@@ -127,6 +127,10 @@ namespace HCUBE
             case EXPERIMENT_ATARI_FT_NEAT:
                 experiments.push_back(shared_ptr<Experiment>(new AtariFTNeatExperiment("",a)));
                 break;
+            case EXPERIMENT_ATARI_HYBRID:
+                experiments.push_back(shared_ptr<Experiment>(new AtariExperiment("HYBRID",a)));
+                experiments.push_back(shared_ptr<Experiment>(new AtariFTNeatExperiment("HYBRID",a)));
+                break;
             case EXPERIMENT_ATARI_INTRINSIC:
                 experiments.push_back(shared_ptr<Experiment>(new AtariIntrinsicExperiment("",a)));
                 break;
@@ -218,8 +222,21 @@ namespace HCUBE
 
     void ExperimentRun::createPopulationFromCondorRun(string populationFile,
                                                       string fitnessFunctionPrefix,
-                                                      string evaluationFile) {
+                                                      string evaluationFile,
+                                                      string rom_file) {
         createPopulation(populationFile);
+
+        // Check if we are running and hybrid experiment and it is time to switch over
+        if (experiments[0]->getExperimentName() == "HYBRID" &&
+            (!NEAT::Globals::getSingleton()->hasParameterValue("HybridConversionFinished") ||
+             NEAT::Globals::getSingleton()->getParameterValue("HybridConversionFinished") != 1.0)) {
+            int swapGen = int(NEAT::Globals::getSingleton()->getParameterValue("SwapGeneration")+0.001);
+            int generation = (population->getGenerationCount()-1);
+            if (generation == swapGen) {
+                cout << "Generation " << generation << " - Hybrid switch happening now!" << endl;
+                convertPopulation(rom_file);
+            }
+        }
 
         // Iterate all individuals to set fitness values
         vector<shared_ptr<NEAT::GeneticIndividual> >::iterator tmpIterator =
@@ -284,6 +301,40 @@ namespace HCUBE
             //population = shared_ptr<NEAT::GeneticPopulation>(new NEAT::GeneticPopulation(populationString));
             loadPopulationBoost(populationString);
         }
+    }
+
+    void ExperimentRun::convertPopulation(string rom_file) {
+        cout << "Converting Population: HyperNEAT --> FT-NEAT" << endl;
+        shared_ptr<AtariExperiment> hyperNEAT_experiment    =
+            boost::static_pointer_cast<HCUBE::AtariExperiment>(experiments[0]);
+        shared_ptr<AtariFTNeatExperiment> ftNEAT_experiment =
+            boost::static_pointer_cast<HCUBE::AtariFTNeatExperiment>(experiments[1]);
+        // Both experiments must be initialized to have correct ANN topology
+        hyperNEAT_experiment->initializeExperiment(rom_file.c_str());
+        ftNEAT_experiment->initializeExperiment(rom_file.c_str());
+        population = shared_ptr<NEAT::GeneticPopulation>(
+            ftNEAT_experiment->convertPopulation(population, hyperNEAT_experiment));
+
+        cout << "Conversion Finished. Zeroing out probability of topology changes." << endl;
+        NEAT::Globals::getSingleton()->setParameterValue("MutateAddNodeProbability",0.0);
+        NEAT::Globals::getSingleton()->setParameterValue("MutateAddLinkProbability",0.0);
+        NEAT::Globals::getSingleton()->setParameterValue("MutateDemolishLinkProbability",0.0);
+
+        if (NEAT::Globals::getSingleton()->hasParameterValue("Hybrid-FT-MutateOnlyProbability")) {
+            double newValue = NEAT::Globals::getSingleton()->getParameterValue("Hybrid-FT-MutateOnlyProbability");
+            NEAT::Globals::getSingleton()->setParameterValue("MutateOnlyProbability",newValue);            
+            cout << "MutateOnlyProbability switched to FT-Neat value of " <<
+                NEAT::Globals::getSingleton()->getParameterValue("MutateOnlyProbability") << endl;
+        }
+
+        if (NEAT::Globals::getSingleton()->hasParameterValue("Hybrid-FT-MutateLinkProbability")) {
+            double newValue = NEAT::Globals::getSingleton()->getParameterValue("Hybrid-FT-MutateLinkProbability");
+            NEAT::Globals::getSingleton()->setParameterValue("MutateLinkProbability",newValue);            
+            cout << "MutateLinkProbability switched to FT-Neat value of " <<
+                NEAT::Globals::getSingleton()->getParameterValue("MutateLinkProbability") << endl;
+        }
+
+        NEAT::Globals::getSingleton()->addParameter("HybridConversionFinished",1.0);
     }
 
     void ExperimentRun::loadPopulationBoost(string filename) {
