@@ -113,7 +113,7 @@ if not os.path.isdir(resultsDir):
 # Find the generation to start on by incrementally searching for eval files
 currentGeneration = -1
 for f in os.listdir(resultsDir):
-    if f.startswith('generation') and 'eval' not in f:
+    if f.startswith('generation') and 'tmp' not in f:
         genNumber = int(f[len('generation'):-len('.ser.gz')])
         currentGeneration = max(currentGeneration, genNumber)
 
@@ -132,6 +132,8 @@ print 'Starting Workers...'
 sys.stdout.flush()
 
 workerNum = 0
+deadWorkers = 0
+deadWorkerLimit = 500
 procIDs = {} # Maps pid --> worker num
 for i in range(numWorkers):
     pid = -1
@@ -162,13 +164,13 @@ while currentGeneration < maxGeneration:
 
                 # Read its error log and save to global error log
                 glog = open(os.path.join(resultsDir,'global.err'),'a')
-                if os.path.exists(os.path.join(resultsDir,'worker'+str(indx)+'.err')):
-                    llog = open(os.path.join(resultsDir,'worker'+str(indx)+'.err'),'r')
+                errFile = os.path.join(resultsDir,'worker'+str(indx)+'.err')
+                if os.path.exists(errFile) and os.path.getsize(errFile) > 0:
+                    deadWorkers += 1
+                    llog = open(errFile,'r')
                     glog.write('Worker number '+str(indx)+' pid '+str(procID)+' died with the following error log:\n')
                     glog.write(llog.read())
                     llog.close()
-                else:
-                    glog.write('Worker number '+str(indx)+' pid '+str(procID)+' dissapeared without leaving an error log.\n')
                 glog.close()
 
                 # Remove associated worker files
@@ -181,6 +183,14 @@ while currentGeneration < maxGeneration:
                 if os.path.exists(os.path.join(resultsDir,'worker'+str(indx)+'.out')):
                     os.remove(os.path.join(resultsDir,'worker'+str(indx)+'.out'))      
 
+        # Stop the master if too many workers have died
+        if deadWorkers >= deadWorkerLimit:
+            readBody = subprocess.Popen(["echo", resultsDir], stdout=subprocess.PIPE)
+            subprocess.check_call(["mail", "-s", '[master.py - '+resultsDir+'] too many workers dead', 'mhauskn@cs.utexas.edu'], stdin=readBody.stdout, stdout=subprocess.PIPE)
+            print 'Over',deadWorkerLimit,'dead workers. When will the violence end?'
+            sys.stdout.flush()
+            sys.exit(0)
+
         # Restart any missing workers
         while len(procIDs) < numWorkers:
             pid = -1
@@ -189,12 +199,6 @@ while currentGeneration < maxGeneration:
                                   individualsPerGeneration, maxGeneration, seed, rom)
             procIDs[pid] = workerNum
             workerNum += 1
-            if workerNum >= 1000:
-                readBody = subprocess.Popen(["echo", 'I tire of this cruel world. When will the violence end?'], stdout=subprocess.PIPE)
-                subprocess.check_call(["mail", "-s", '[master.py - '+resultsDir+'] 1000 workers dead', 'mhauskn@cs.utexas.edu'], stdin=readBody.stdout, stdout=subprocess.PIPE)
-                print 'Over 1k dead workers. When will the violence end?'
-                sys.stdout.flush()
-                sys.exit(0)
 
         # Wait for a little while 
         print 'Waiting for',len(individualIds),'job(s) to finish...'

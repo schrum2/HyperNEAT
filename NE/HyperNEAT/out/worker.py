@@ -60,7 +60,7 @@ individualsPerGeneration = args.n
 # Detect the current generation
 currentGeneration = -1
 for f in os.listdir(resultsDir):
-    if f.startswith('generation') and 'eval' not in f:
+    if f.startswith('generation') and 'tmp' not in f:
         genNumber = int(f[len('generation'):-len('.ser.gz')])
         currentGeneration = max(currentGeneration, genNumber)
 if currentGeneration < 0:
