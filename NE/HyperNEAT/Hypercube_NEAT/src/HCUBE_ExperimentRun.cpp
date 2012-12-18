@@ -237,8 +237,8 @@ namespace HCUBE
             if (generation == swapGen) {
                 cout << "Generation " << generation << " - Hybrid switch happening now!" << endl;
                 convertPopulation(rom_file);
+                allowGenerationProduction = false;
             }
-            allowGenerationProduction = false;
         }
 
         // Iterate all individuals to set fitness values
