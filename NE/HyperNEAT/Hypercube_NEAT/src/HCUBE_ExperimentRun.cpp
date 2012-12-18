@@ -226,6 +226,8 @@ namespace HCUBE
                                                       string rom_file) {
         createPopulation(populationFile);
 
+        allowGenerationProduction = true;
+
         // Check if we are running and hybrid experiment and it is time to switch over
         if (experiments[0]->getExperimentName() == "HYBRID" &&
             (!NEAT::Globals::getSingleton()->hasParameterValue("HybridConversionFinished") ||
@@ -236,6 +238,7 @@ namespace HCUBE
                 cout << "Generation " << generation << " - Hybrid switch happening now!" << endl;
                 convertPopulation(rom_file);
             }
+            allowGenerationProduction = false;
         }
 
         // Iterate all individuals to set fitness values
@@ -275,8 +278,6 @@ namespace HCUBE
         for (int a=0;a<population->getIndividualCount();a++) {
             experiments[0]->addGenerationData(generation,population->getIndividual(a));
         }
-
-        allowGenerationProduction = true;
     }
 
     void ExperimentRun::createPopulation(string populationString)

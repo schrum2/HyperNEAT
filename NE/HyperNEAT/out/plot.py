@@ -31,6 +31,8 @@ for i in xrange(1,len(sys.argv)):
     plt.plot(x2,[avgFit[i] + stdDev[i] for i in x2],':',color=c)
     plt.plot(x2,[avgFit[i] - stdDev[i] for i in x2],':',color=c)
 
+plt.axvline(75)
+
 plt.xlabel('Generation')
 plt.ylabel('Fitness')
 plt.show()

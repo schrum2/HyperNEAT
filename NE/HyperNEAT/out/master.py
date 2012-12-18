@@ -218,7 +218,8 @@ while currentGeneration < maxGeneration:
     subprocess.check_call(["mv", tmpNextGen, nextGenFile])
 
     # Delete current generation file
-    os.remove(currGenFile)
+    if currentGeneration < 70 or currentGeneration > 80:
+        os.remove(currGenFile)
 
     currentGeneration += 1
 
