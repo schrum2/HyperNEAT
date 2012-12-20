@@ -38,9 +38,14 @@ namespace HCUBE
         // It is used during the switch-over point in Hybrid
         virtual NEAT::GeneticPopulation* convertPopulation(
             shared_ptr<NEAT::GeneticPopulation> CPPN_pop,
-            shared_ptr<AtariExperiment> HyperNEAT_experiment);
+            shared_ptr<HCUBE::AtariExperiment> HyperNEAT_experiment);
+
+        // Sets the weights of the FTNEAT_individual from the HyperNEAT_individual
+        void convertIndividual(shared_ptr<NEAT::GeneticIndividual> FTNEAT_individual,
+                               NEAT::LayeredSubstrate<float>* HyperNEAT_substrate);
         
         virtual void processGroup(shared_ptr<NEAT::GeneticGeneration> generation);
+        virtual void evaluateIndividual(shared_ptr<NEAT::GeneticIndividual> individual);
         void runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual);
 
         // Locates the object of each class on screen and populates their values to the

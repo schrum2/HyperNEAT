@@ -75,8 +75,43 @@ int HyperNEAT_main(int argc,char **argv) {
                 shared_ptr<AtariFTNeatExperiment> exp = static_pointer_cast<AtariFTNeatExperiment>(e);
                 exp->initializeExperiment(rom_file.c_str());
             } else {
-                shared_ptr<AtariExperiment> exp = static_pointer_cast<AtariExperiment>(e);
-                exp->initializeExperiment(rom_file.c_str());
+                // This is a nasty-hack like short circuit of the
+                // normal evaluation procedure. It is used for
+                // HyperNEAT evaluation in Hybrid experiments. The
+                // crux of this method is to convert the hyperneat
+                // indvidual to be evaluated into a FT-individual and
+                // then perform the eval using FT methods. This should
+                // ensure that when the swap is done, fitness does not
+                // drop off as a result of using different types of
+                // networks to evaluate individuals.
+
+                // This is the early generational case before the swap has happened
+                shared_ptr<AtariExperiment> atariExp = static_pointer_cast<AtariExperiment>(e);
+                // Initialize both experiments
+                atariExp->initializeExperiment(rom_file.c_str());
+                experimentRun.setActiveExperiment(1);
+                e = experimentRun.getExperiment();
+                shared_ptr<AtariFTNeatExperiment> ftExp = static_pointer_cast<AtariFTNeatExperiment>(e);
+                ftExp->initializeExperiment(rom_file.c_str());
+
+                // Get the individual to evaluate
+                shared_ptr<NEAT::GeneticPopulation> population = experimentRun.getPopulation();
+                shared_ptr<NEAT::GeneticGeneration> generation = population->getGeneration();
+                shared_ptr<NEAT::GeneticIndividual> HyperNEAT_individual = generation->getIndividual(individualId);
+                NEAT::LayeredSubstrate<float>* HyperNEAT_substrate = atariExp->populateAndReturnSubstrate(HyperNEAT_individual);
+                GeneticPopulation* FTNEAT_population = ftExp->createInitialPopulation(1);
+                shared_ptr<GeneticIndividual> FTNEAT_individual = FTNEAT_population->getGeneration()->getIndividual(0);
+                ftExp->convertIndividual(FTNEAT_individual, HyperNEAT_substrate);
+                ftExp->evaluateIndividual(FTNEAT_individual);
+                float fitness = FTNEAT_individual->getFitness();
+                string individualFitnessFile = commandLineParser.GetArgument("-F",0);
+                cout << "[HyperNEAT core] Fitness found to be " << fitness << ". Writing to: " <<
+                    individualFitnessFile << endl;
+                ofstream fout(individualFitnessFile.c_str());
+                fout << fitness << endl;
+                fout.close();
+                cout << "[HyperNEAT core] Individual evaluation fin." << endl;
+                exit(0);
             }
         }  else if (experimentType == 34) {
             shared_ptr<AtariIntrinsicExperiment> exp = static_pointer_cast<AtariIntrinsicExperiment>(e);
