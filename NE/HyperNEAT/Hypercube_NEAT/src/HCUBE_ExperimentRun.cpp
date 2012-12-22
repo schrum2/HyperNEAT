@@ -306,6 +306,11 @@ namespace HCUBE
 
     void ExperimentRun::convertPopulation(string rom_file) {
         cout << "Converting Population: HyperNEAT --> FT-NEAT" << endl;
+
+        NEAT::Globals::getSingleton()->setParameterValue("MutateAddNodeProbability",0.0);
+        NEAT::Globals::getSingleton()->setParameterValue("MutateAddLinkProbability",0.0);
+        NEAT::Globals::getSingleton()->setParameterValue("MutateDemolishLinkProbability",0.0);
+
         shared_ptr<AtariExperiment> hyperNEAT_experiment    =
             boost::static_pointer_cast<HCUBE::AtariExperiment>(experiments[0]);
         shared_ptr<AtariFTNeatExperiment> ftNEAT_experiment =
@@ -317,9 +322,6 @@ namespace HCUBE
             ftNEAT_experiment->convertPopulation(population, hyperNEAT_experiment));
 
         cout << "Conversion Finished. Zeroing out probability of topology changes." << endl;
-        NEAT::Globals::getSingleton()->setParameterValue("MutateAddNodeProbability",0.0);
-        NEAT::Globals::getSingleton()->setParameterValue("MutateAddLinkProbability",0.0);
-        NEAT::Globals::getSingleton()->setParameterValue("MutateDemolishLinkProbability",0.0);
 
         if (NEAT::Globals::getSingleton()->hasParameterValue("Hybrid-FT-MutateOnlyProbability")) {
             double newValue = NEAT::Globals::getSingleton()->getParameterValue("Hybrid-FT-MutateOnlyProbability");

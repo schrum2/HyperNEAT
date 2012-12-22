@@ -29,7 +29,7 @@ WORKERS=$4
 # Experiments Here
 for i in {1..1}
 do
-    /usr/bin/python master.py -e atari_evaluate -p atari_generate -d data/AtariFTNeatExperiment.dat -n $POPSIZE -g $NUMGENS -G $ROMPATH -w $WORKERS -r $RESPATH -R $SEED
+    /usr/bin/python master.py -e atari_evaluate -p atari_generate -d data/AtariHybridExperiment.dat -n $POPSIZE -g $NUMGENS -G $ROMPATH -w $WORKERS -r $RESPATH -R $SEED
 done
 
 echo "Experiments Finished!"

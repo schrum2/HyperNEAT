@@ -5,8 +5,6 @@
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
 
-#define DEBUG_CONVERSION (0)
-
 using namespace NEAT;
 
 namespace HCUBE
@@ -176,17 +174,15 @@ namespace HCUBE
                 HyperNEAT_experiment->populateAndReturnSubstrate(HyperNEAT_individual);
             convertIndividual(FTNEAT_individual, HyperNEAT_substrate);
 
-#ifdef DEBUG_CONVERSION           
-            cout << "Running HyperNEAT evaulation: " << endl;
-            NEAT::Globals::getSingleton()->initRandom();
-            HyperNEAT_experiment->populateSubstrate(HyperNEAT_individual);
-            HyperNEAT_experiment->runAtariEpisode(HyperNEAT_individual);
-            cout << "Running FT-NEAT evaluation: " << endl;
-            NEAT::Globals::getSingleton()->initRandom();
-            substrate = FTNEAT_individual->spawnFastPhenotypeStack<float>();
-            runAtariEpisode(FTNEAT_individual);
-            cout << "Done with individual" << endl;
-#endif
+            // cout << "Running HyperNEAT evaulation: " << endl;
+            // NEAT::Globals::getSingleton()->initRandom();
+            // HyperNEAT_experiment->populateSubstrate(HyperNEAT_individual);
+            // HyperNEAT_experiment->runAtariEpisode(HyperNEAT_individual);
+            // cout << "Running FT-NEAT evaluation: " << endl;
+            // NEAT::Globals::getSingleton()->initRandom();
+            // substrate = FTNEAT_individual->spawnFastPhenotypeStack<float>();
+            // runAtariEpisode(FTNEAT_individual);
+            // cout << "Done with individual" << endl;
         }
         return FTNEAT_population;
     }
