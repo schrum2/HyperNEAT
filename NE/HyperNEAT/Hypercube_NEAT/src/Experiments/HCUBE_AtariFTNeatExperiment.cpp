@@ -170,8 +170,8 @@ namespace HCUBE
             shared_ptr<GeneticIndividual> HyperNEAT_individual = HyperNEAT_lastGeneration->getIndividual(individual);
             shared_ptr<GeneticIndividual> FTNEAT_individual    = FTNEAT_lastGeneration->getIndividual(individual);
             FTNEAT_individual->setFitness(HyperNEAT_individual->getFitness());
-            NEAT::LayeredSubstrate<float>* HyperNEAT_substrate =
-                HyperNEAT_experiment->populateAndReturnSubstrate(HyperNEAT_individual);
+            HyperNEAT_experiment->substrate.populateSubstrate(HyperNEAT_individual);
+            NEAT::LayeredSubstrate<float>* HyperNEAT_substrate = &HyperNEAT_experiment->substrate;
             convertIndividual(FTNEAT_individual, HyperNEAT_substrate);
 
             // cout << "Running HyperNEAT evaulation: " << endl;

@@ -9,16 +9,18 @@ using namespace NEAT;
 namespace HCUBE
 {
     AtariExperiment::AtariExperiment(string _experimentName,int _threadID):
-        Experiment(_experimentName,_threadID), visProc(NULL), rom_file(""),
-        numActions(0), numObjClasses(0), display_active(false), currentSubstrateIndex(0)
+        Experiment(_experimentName,_threadID), substrate_width(8), substrate_height(10), visProc(NULL),
+        rom_file(""), numActions(0), numObjClasses(0), display_active(false)
     {
     }
 
-    void AtariExperiment::initializeExperiment(string _rom_file) {
-        rom_file = _rom_file;
+    void AtariExperiment::initializeExperiment(string rom_file) {
+        initializeALE(rom_file);
+        initializeTopology();
+    }
 
-        substrate_width = 8;
-        substrate_height = 10;
+    void AtariExperiment::initializeALE(string rom_file) {
+        this->rom_file = rom_file;
 
         // Check that rom exists and is readable
         ifstream file(rom_file.c_str());
@@ -41,7 +43,9 @@ namespace HCUBE
           cerr << "No object classes found. Make sure there is an images directory containg class images." << endl;
           exit(-1);
         }
+    }
 
+    void AtariExperiment::initializeTopology() {
         // Clear old layerinfo if present
         layerInfo.layerNames.clear();
         layerInfo.layerSizes.clear();
@@ -88,8 +92,7 @@ namespace HCUBE
         layerInfo.useOldOutputNames = false;
         layerInfo.layerValidSizes = layerInfo.layerSizes;
 
-        for (int a=0; a<2; a++)
-            substrates[a].setLayerInfo(layerInfo);
+        substrate.setLayerInfo(layerInfo);
     }
 
     NEAT::GeneticPopulation* AtariExperiment::createInitialPopulation(int populationSize) {
@@ -127,46 +130,16 @@ namespace HCUBE
         return population;
     }
 
-    void AtariExperiment::populateSubstrate(shared_ptr<NEAT::GeneticIndividual> individual,
-        int substrateNum) {
-        
-        NEAT::LayeredSubstrate<float>* substrate;
-        if (substrateNum>=2)
-            throw CREATE_LOCATEDEXCEPTION_INFO("ERROR: INVALID SUBSTRATE INDEX!");
-
-        //Don't bother remaking the same substrate
-        if (substrateIndividuals[substrateNum]==individual)
-            return;
-
-        substrateIndividuals[substrateNum]=individual;
-
-        substrate = &substrates[substrateNum];
-
-        substrate->populateSubstrate(individual);
-    }
-
-    NEAT::LayeredSubstrate<float>* AtariExperiment::populateAndReturnSubstrate(shared_ptr<NEAT::GeneticIndividual> individual) {
-        populateSubstrate(individual);
-        return &substrates[0];
-    }
-
     void AtariExperiment::processGroup(shared_ptr<NEAT::GeneticGeneration> generation)
     {
         shared_ptr<NEAT::GeneticIndividual> individual = group.front();
         individual->setFitness(0);
-
-        // Print the individual. This is rarely useful...
-        //individual->print();
-
-        populateSubstrate(individual);
-
-        runAtariEpisode(individual);
+        substrate.populateSubstrate(individual);
+        float score = runAtariEpisode(&substrate);
+        individual->reward(score);
     }
 
-    void AtariExperiment::runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual) {
-        NEAT::LayeredSubstrate<float>* substrate = &substrates[currentSubstrateIndex];
-
-        // Reset the game
+    float AtariExperiment::runAtariEpisode(NEAT::LayeredSubstrate<float>* substrate) {
         ale.reset_game();
         
         while (!ale.game_over()) {
@@ -192,8 +165,7 @@ namespace HCUBE
         }
         cout << "Game ended in " << ale.frame << " frames with score " << ale.game_score << endl;
  
-        // Give the reward to the agent
-        individual->reward(ale.game_score);
+        return ale.game_score;
     }
 
     void AtariExperiment::setSubstrateObjectValues(VisualProcessor& visProc,
@@ -269,7 +241,6 @@ namespace HCUBE
             }
         }
         int action_indx = NEAT::Globals::getSingleton()->getRandom().getRandomInt(max_inds.size());
-        //int action_indx = choice(&max_inds);
         return ale.legal_actions[max_inds[action_indx]];
     }
 
@@ -277,20 +248,5 @@ namespace HCUBE
                                     double sigma_x, double sigma_y)
     {
         return A * exp(-1.0 * ((x-mu_x) * (x-mu_x) / 2.0 * sigma_x * sigma_x + (y-mu_y) * (y-mu_y) / 2.0 * sigma_y * sigma_y));
-    }
-
-    void AtariExperiment::preprocessIndividual(shared_ptr<NEAT::GeneticGeneration> generation,
-                                               shared_ptr<NEAT::GeneticIndividual> individual) {
-        if (individual->getNode("X1") == NULL) {
-            printf("Got blank individual\n");
-        }
-    }
-
-    void AtariExperiment::processIndividualPostHoc(shared_ptr<NEAT::GeneticIndividual> individual) {}
-
-    Experiment* AtariExperiment::clone()
-    {
-        AtariExperiment* experiment = new AtariExperiment(*this);
-        return experiment;
     }
 }
