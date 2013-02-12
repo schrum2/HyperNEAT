@@ -11,9 +11,7 @@ namespace HCUBE
     {
     protected:
         int substrate_width, substrate_height;
-        IntMatrix screen_matrix;
-        IntVect ram_content;
-    
+
         ALEInterface ale;
         VisualProcessor* visProc;
         string rom_file;
@@ -58,8 +56,7 @@ namespace HCUBE
                                     NEAT::LayeredSubstrate<float>* substrate, int substrateIndx);
     
         // Selects an action based on the output layer of the network
-        virtual Action selectAction(VisualProcessor& visProc,
-                            NEAT::LayeredSubstrate<float>* substrate);
+        virtual Action selectAction(NEAT::LayeredSubstrate<float>* substrate, int outputLayerIndx);
 
         // Creates a gaussian blur around an object
         static double gauss2D(double x, double y, double A,

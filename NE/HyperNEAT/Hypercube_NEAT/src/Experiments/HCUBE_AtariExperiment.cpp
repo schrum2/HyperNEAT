@@ -160,7 +160,7 @@ namespace HCUBE
             //printLayerInfo(substrate);
 
             // Choose which action to take
-            Action action = selectAction(*visProc, substrate);
+            Action action = selectAction(substrate, numObjClasses+2);
             ale.act(action);
         }
         cout << "Game ended in " << ale.frame << " frames with score " << ale.game_score << endl;
@@ -226,12 +226,11 @@ namespace HCUBE
         paintSubstrate(visProc, visProc.manual_self, substrate, numObjClasses);
     }
 
-    Action AtariExperiment::selectAction(VisualProcessor& visProc,
-                                  NEAT::LayeredSubstrate<float>* substrate) {
+    Action AtariExperiment::selectAction(NEAT::LayeredSubstrate<float>* substrate, int outputLayerIndx) {
         vector<int> max_inds;
         float max_val = -1e37;
         for (int i=0; i < numActions; i++) {
-            float output = substrate->getValue(Node(i,0,numObjClasses+2));
+            float output = substrate->getValue(Node(i,0,outputLayerIndx));
             if (output == max_val)
                 max_inds.push_back(i);
             else if (output > max_val) {
