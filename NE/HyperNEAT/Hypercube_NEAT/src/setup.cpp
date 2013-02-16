@@ -64,7 +64,7 @@ int HyperNEAT_main(int argc,char **argv) {
     } else {
         cout << "[HyperNEAT core] Population for first generation created" << endl;
         shared_ptr<Experiment> e = experimentRun.getExperiment();        
-        if (experimentType == 30) {
+        if (experimentType == 30 || experimentType == 35) {
             shared_ptr<AtariExperiment> exp = static_pointer_cast<AtariExperiment>(e);
             exp->initializeExperiment(rom_file.c_str());
         } else if (experimentType == 31) {
