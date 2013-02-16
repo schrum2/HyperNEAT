@@ -8,19 +8,101 @@ using namespace NEAT;
 
 namespace HCUBE
 {
+    SarsaLambda::SarsaLambda(int numFeatures, int numActions,
+                             float gamma, float alpha, float epsilon, float lambda):
+        numFeatures(numFeatures), numActions(numActions), gamma(gamma), alpha(alpha), epsilon(epsilon), lambda(lambda)
+    {
+        // Initialize the SARSA(Lambda) vectors
+        for (int i=0; i<numFeatures*numActions; i++) {
+            w.push_back(0);
+            e.push_back(0);
+        }
+    }
+
+    void SarsaLambda::reset() {
+        // Reset eligibility vector
+        for (int i=0; i<numFeatures*numActions; i++)
+            e[i] = 0;
+        reward = 0;
+    }
+
+    int SarsaLambda::act(std::vector<bool>& currState, double lastActionReward) {
+        assert(currState.size() == numFeatures);
+
+        vector<double> qVals;
+        for (int a=0; a<numActions; a++) {
+            double Q_a = 0;
+            for (int i=0; i<numFeatures; i++)
+                if (currState[i])
+                    Q_a += w[a*numFeatures+i];
+            qVals.push_back(Q_a);
+        }
+
+        int action = selectAction(qVals);
+        double Q = qVals[action];
+
+        // Compute bellman error 
+        double delta = lastActionReward + (gamma * Q) - oldQ;
+
+        // Update the weights
+        for (int i=0; i<numFeatures*numActions; i++) {
+            w[i] += alpha * delta * e[i];
+        }
+                
+        // Decay the eligibility traces
+        for (int i=0; i<numFeatures*numActions; i++) {
+            e[i] *= gamma * lambda;
+        }
+
+        // Set the active features' eligibility traces to 1
+        for (int i=0; i<numFeatures; i++) {
+            if (currState[i])
+                e[numFeatures*action + i] = 1;
+        }
+
+        oldQ = Q;
+        return action;
+    }
+
+    int SarsaLambda::selectAction(vector<double>& qVals) {
+        if (double(rand())/RAND_MAX < epsilon) {
+            return rand() % numActions;
+        } else {
+            vector<int> max_inds;
+            double max_val = -1e37;
+            for (int i=0; i < numActions; i++) {
+                if (qVals[i] == max_val)
+                    max_inds.push_back(i);
+                else if (qVals[i] > max_val) {
+                    max_inds.clear();
+                    max_inds.push_back(i);
+                    max_val = qVals[i];
+                }
+            }
+            return max_inds[rand() % max_inds.size()];
+        }
+    }
+
+    void SarsaLambda::printinfo() {
+        printf("Gamma %f alpha %f epsilon %f lambda %f\n",gamma,alpha,epsilon,lambda);
+        cout << "Weight Vec: ";
+        for (int i=0; i<numFeatures*numActions; i++) {
+            printf("%1.2f ",w[i]);
+            if (i%numFeatures == 0)
+                printf("\n");
+        }
+        cout << endl;
+    }
+
+
     AtariIntrinsicExperiment::AtariIntrinsicExperiment(string _experimentName,int _threadID):
         Experiment(_experimentName,_threadID), visProc(NULL), rom_file(""),
-        numActions(0), numObjClasses(0), display_active(false)
+        numActions(0), numObjClasses(0), display_active(false), agent(NULL)
     {
     }
 
     void AtariIntrinsicExperiment::initializeExperiment(string _rom_file) {
         rom_file = _rom_file;
-
-        gamma = .999;
-        alpha = .1;
-        epsilon = .1;
-        lambda = .3;
 
         substrate_width = 8;
         substrate_height = 10;
@@ -38,6 +120,13 @@ namespace HCUBE
             exit(-1);
         }
         numActions = ale.legal_actions.size();
+        numFeatures = substrate_width * substrate_height * (numObjClasses + 1);
+
+        for (int i=0; i<numFeatures; i++)
+            phi.push_back(0);
+
+        if (agent) delete agent;
+        agent = new SarsaLambda(numFeatures, numActions);
 
         // Load the visual processing framework
         visProc = ale.visProc;
@@ -61,15 +150,6 @@ namespace HCUBE
         // Single output node computes the reward
         Node node(0,0,2);
         nameLookup[node] = string("0/0/2");
-
-        // Initialize the SARSA(Lambda) vectors
-        numFeatures = substrate_width * substrate_height * (numObjClasses + 1);
-        for (int i=0; i<numFeatures*numActions; i++) {
-            w.push_back(0);
-            e.push_back(0);
-        }
-        for (int i=0; i<numFeatures; i++)
-            phi.push_back(false);
     }
 
     NEAT::GeneticPopulation* AtariIntrinsicExperiment::createInitialPopulation(int populationSize) {
@@ -117,15 +197,13 @@ namespace HCUBE
     }
 
     void AtariIntrinsicExperiment::runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual) {
-        int numEpisodes = 50;
+        agent->printinfo();
+        int numEpisodes = 10000;
         double totalScore = 0;
         for (int episode = 0; episode < numEpisodes; episode++) {
+            double reward = 0;
             ale.reset_game();
-
-            // Reset eligibility vector
-            for (int i=0; i<numFeatures*numActions; i++)
-                e[i] = 0;
-            reward = 0;
+            agent->reset();
         
             while (!ale.game_over()) {
                 for (int i=0; i<numFeatures; i++)
@@ -150,47 +228,11 @@ namespace HCUBE
                 // cout << endl;
                 // printLayerInfo();
 
-                // Calculate approximate Q(s,a)
-                vector<double> qVals;
-                for (int a=0; a<numActions; a++) {
-                    double Q_a = 0;
-                    for (int i=0; i<numFeatures; i++)
-                        if (phi[i])
-                            Q_a += w[a*numFeatures+i];
-                    qVals.push_back(Q_a);
-                }
-
-                // Select action
-                int action_indx = selectAction(qVals);
-                Action action = ale.legal_actions[action_indx];                
-                double Q = qVals[action_indx];
-
-                // Compute bellman error 
-                delta = reward + (gamma * Q) - oldQ;
-
-                // Update the weights
-                for (int i=0; i<numFeatures*numActions; i++) {
-                    w[i] += alpha * delta * e[i];
-                }
-                
-                // Decay the eligibility traces
-                for (int i=0; i<numFeatures*numActions; i++) {
-                    e[i] *= gamma * lambda;
-                }
-
-                // Set the active features' eligibility traces to 1
-                for (int i=0; i<numFeatures; i++) {
-                    if (phi[i])
-                        e[numFeatures*action_indx + i] = 1;
-                }
-
-                // Get the actual reward
-                reward = substrate.getValue(nameLookup[Node(0,0,2)]);
-                oldQ = Q;
-                ale.act(action);
-
+                int action_indx = agent->act(phi, reward);
+                Action action = ale.legal_actions[action_indx];
+                reward = ale.act(action);
             }
-            cout << "Game ended in " << ale.frame << " frames with score " << ale.game_score << endl;
+            cout << "Episode " << episode << " ended in " << ale.frame << " frames with score " << ale.game_score << endl;
             totalScore += ale.game_score;
         }
 
@@ -228,23 +270,28 @@ namespace HCUBE
     }
 
     int AtariIntrinsicExperiment::selectAction(vector<double>& qVals) {
-        if (NEAT::Globals::getSingleton()->getRandom().getRandomDouble() <= epsilon) {
-            return NEAT::Globals::getSingleton()->getRandom().getRandomInt(numActions);
-        } else {
-            vector<int> max_inds;
-            double max_val = -1e37;
-            for (int i=0; i < numActions; i++) {
-                if (qVals[i] == max_val)
-                    max_inds.push_back(i);
-                else if (qVals[i] > max_val) {
-                    max_inds.clear();
-                    max_inds.push_back(i);
-                    max_val = qVals[i];
-                }
-            }
-            int action_indx = NEAT::Globals::getSingleton()->getRandom().getRandomInt(max_inds.size());
-            return max_inds[action_indx]; //ale.legal_actions[max_inds[action_indx]];
-        }
+        // if (NEAT::Globals::getSingleton()->getRandom().getRandomDouble() <= epsilon) {
+        //     cout << "Selecting Random Action" << endl;
+        //     return NEAT::Globals::getSingleton()->getRandom().getRandomInt(numActions);
+        // } else {
+        //     cout << "Q-Vals: ";
+        //     vector<int> max_inds;
+        //     double max_val = -1e37;
+        //     for (int i=0; i < numActions; i++) {
+        //         cout << qVals[i] << " ";
+        //         if (qVals[i] == max_val)
+        //             max_inds.push_back(i);
+        //         else if (qVals[i] > max_val) {
+        //             max_inds.clear();
+        //             max_inds.push_back(i);
+        //             max_val = qVals[i];
+        //         }
+        //     }
+        //     cout << endl;
+        //     int max_indx = NEAT::Globals::getSingleton()->getRandom().getRandomInt(max_inds.size());
+        //     int action_indx = max_inds[max_indx]; //ale.legal_actions[max_inds[action_indx]];
+        //     return action_indx;
+        // }
     }
 
     double AtariIntrinsicExperiment::gauss2D(double x, double y, double A, double mu_x, double mu_y,
@@ -265,7 +312,6 @@ namespace HCUBE
             }
             printf("\n");
         }
-        cin.get();
     }
 
     Experiment* AtariIntrinsicExperiment::clone()

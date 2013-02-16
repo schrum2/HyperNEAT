@@ -1,7 +1,7 @@
 #!/bin/bash
-if [ $# -lt 4 ]
+if [ $# -lt 5 ]
 then
-    echo "Usage: $0 rom_path results_path seed num_workers"
+    echo "Usage: $0 rom_path results_path seed num_workers data_path"
     exit 0
 fi
 
@@ -25,11 +25,12 @@ ROMPATH=$1
 RESPATH=$2
 SEED=$3
 WORKERS=$4
+DATAPATH=$5
 
 # Experiments Here
 for i in {1..1}
 do
-    /usr/bin/python master.py -e atari_evaluate -p atari_generate -d data/AtariHybridExperiment.dat -n $POPSIZE -g $NUMGENS -G $ROMPATH -w $WORKERS -r $RESPATH -R $SEED
+    /usr/bin/python master.py -e atari_evaluate -p atari_generate -d $DATAPATH -n $POPSIZE -g $NUMGENS -G $ROMPATH -w $WORKERS -r $RESPATH -R $SEED
 done
 
 echo "Experiments Finished!"

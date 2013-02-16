@@ -7,6 +7,27 @@
 
 namespace HCUBE
 {
+    class SarsaLambda {
+    public:
+        //SarsaLambda() {};
+        SarsaLambda(int numFeatures, int numActions, 
+                    float gamma=.999, float alpha=.1, float epsilon=.1, float lambda=.3);
+        ~SarsaLambda() {};
+        void reset();
+        int act(std::vector<bool>& currState, double lastActionReward);
+        void printinfo();
+
+    public:
+        float gamma, alpha, epsilon, lambda; // Hyper-parameters
+        int numFeatures, numActions;
+        std::vector<float> w; // Weight vector
+        std::vector<float> e; // Eligibility vector
+        double oldQ, reward;
+
+        int selectAction(std::vector<double>& qVals);
+    };
+
+
     class AtariIntrinsicExperiment : public Experiment
     {
     protected:
@@ -19,28 +40,11 @@ namespace HCUBE
         string rom_file;
         bool display_active;
 
-        int numActions;
+        int numActions, numFeatures;
         int numObjClasses;
 
-    protected:
-        // Hyper-parameters
-        float gamma, alpha, epsilon, lambda;
-
-        int numFeatures;
-
-        // Weight vector
-        vector<float> w;
-        
-        // Feature vector
-        vector<bool> phi;
-
-        // Eligibility vector
-        vector<float> e;
-
-        // Bellman Error
-        double delta;
-
-        double oldQ, reward;
+        SarsaLambda *agent;
+        std::vector<bool> phi;
 
     public:
         NEAT::FastNetwork<double> substrate;
@@ -49,7 +53,7 @@ namespace HCUBE
         void initializeExperiment(string rom_file);
 
         AtariIntrinsicExperiment(string _experimentName,int _threadID);
-        virtual ~AtariIntrinsicExperiment() {};
+        virtual ~AtariIntrinsicExperiment() { if (agent) delete agent; };
 
         virtual NEAT::GeneticPopulation* createInitialPopulation(int populationSize);
         virtual void processGroup(shared_ptr<NEAT::GeneticGeneration> generation);
