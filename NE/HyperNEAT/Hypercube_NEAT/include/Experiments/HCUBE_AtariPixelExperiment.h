@@ -1,0 +1,31 @@
+#ifndef HCUBE_ATARIPIXELEXPERIMENT_H_INCLUDED
+#define HCUBE_ATARIPIXELEXPERIMENT_H_INCLUDED
+
+#include "HCUBE_Experiment.h"
+#include "HCUBE_AtariExperiment.h"
+#include "ale_interface.hpp"
+#include "common/visual_processor.h"
+
+namespace HCUBE
+{
+    class AtariPixelExperiment : public AtariExperiment
+    {
+    public: 
+        AtariPixelExperiment(string _experimentName, int _threadID);
+        virtual ~AtariPixelExperiment() {};
+
+        virtual void initializeALE(string rom_name);
+        virtual void initializeTopology();
+
+        virtual NEAT::GeneticPopulation* createInitialPopulation(int populationSize);
+        virtual void setSubstrateValues(NEAT::LayeredSubstrate<float>* substrate);
+
+    protected:
+        // The number of different colors in the color representation
+        const static int numColors = 8;
+
+        static uInt32 eightBitPallete[256];
+    };
+}
+
+#endif // HCUBE_ATARIPIXELEXPERIMENT_H_INCLUDED

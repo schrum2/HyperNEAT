@@ -43,6 +43,9 @@ namespace HCUBE
         // Prints the activations at each layer of the substrate
         virtual void printLayerInfo(NEAT::LayeredSubstrate<float>* substrate);
 
+        // Sets the activations on the input layer of the substrates
+        virtual void setSubstrateValues(NEAT::LayeredSubstrate<float>* substrate);
+
         // Locates the object of each class on screen and populates their values to the
         // corresponding substrate layers
         virtual void setSubstrateObjectValues(VisualProcessor& visProc,

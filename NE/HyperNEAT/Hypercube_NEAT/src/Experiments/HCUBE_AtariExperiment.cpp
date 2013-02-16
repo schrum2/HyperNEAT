@@ -134,7 +134,11 @@ namespace HCUBE
     {
         shared_ptr<NEAT::GeneticIndividual> individual = group.front();
         individual->setFitness(0);
+        clock_t start = clock();
         substrate.populateSubstrate(individual);
+        clock_t end = clock();
+        cout << "Populated Substrate Size (" << substrate_width << "x" << substrate_height <<") in "
+             << float(end-start)/CLOCKS_PER_SEC << " seconds." << endl;
         float score = runAtariEpisode(&substrate);
         individual->reward(score);
     }
@@ -147,11 +151,7 @@ namespace HCUBE
             substrate->getNetwork()->reinitialize(); 
             substrate->getNetwork()->dummyActivation();
 
-            // Set substrate value for all objects (of a certain size)
-            setSubstrateObjectValues(*visProc, substrate);
-
-            // Set substrate value for self
-            setSubstrateSelfValue(*visProc, substrate);
+            setSubstrateValues(substrate);
 
             // Propagate values through the ANN
             substrate->getNetwork()->update();
@@ -166,6 +166,14 @@ namespace HCUBE
         cout << "Game ended in " << ale.frame << " frames with score " << ale.game_score << endl;
  
         return ale.game_score;
+    }
+
+    void AtariExperiment::setSubstrateValues(NEAT::LayeredSubstrate<float>* substrate) {
+        // Set substrate value for all objects (of a certain size)
+        setSubstrateObjectValues(*visProc, substrate);
+
+        // Set substrate value for self
+        setSubstrateSelfValue(*visProc, substrate);
     }
 
     void AtariExperiment::setSubstrateObjectValues(VisualProcessor& visProc,
@@ -210,6 +218,10 @@ namespace HCUBE
                 for (int x=0; x<layerSize.x; ++x) {
                     float val = substrate->getValue(Node(x,y,i));
                     printf("%1.1f ",val);
+                    // if (val >= .5)
+                    //     printf("O");
+                    // else
+                    //     printf(" ");
                 }
                 printf("\n");
             }
