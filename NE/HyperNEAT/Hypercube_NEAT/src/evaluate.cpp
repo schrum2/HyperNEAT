@@ -99,7 +99,8 @@ int HyperNEAT_main(int argc,char **argv) {
                 shared_ptr<NEAT::GeneticPopulation> population = experimentRun.getPopulation();
                 shared_ptr<NEAT::GeneticGeneration> generation = population->getGeneration();
                 shared_ptr<NEAT::GeneticIndividual> HyperNEAT_individual = generation->getIndividual(individualId);
-                NEAT::LayeredSubstrate<float>* HyperNEAT_substrate = atariExp->populateAndReturnSubstrate(HyperNEAT_individual);
+                atariExp->substrate.populateSubstrate(HyperNEAT_individual);
+                NEAT::LayeredSubstrate<float>* HyperNEAT_substrate = &atariExp->substrate;
                 GeneticPopulation* FTNEAT_population = ftExp->createInitialPopulation(1);
                 shared_ptr<GeneticIndividual> FTNEAT_individual = FTNEAT_population->getGeneration()->getIndividual(0);
                 ftExp->convertIndividual(FTNEAT_individual, HyperNEAT_substrate);
