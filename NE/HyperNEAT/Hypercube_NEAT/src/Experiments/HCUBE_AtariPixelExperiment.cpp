@@ -95,6 +95,7 @@ namespace HCUBE
         layerInfo.layerValidSizes = layerInfo.layerSizes;
 
         substrate.setLayerInfo(layerInfo);
+        outputLayerIndx = numColors + 1;
     }
 
     NEAT::GeneticPopulation* AtariPixelExperiment::createInitialPopulation(int populationSize) {

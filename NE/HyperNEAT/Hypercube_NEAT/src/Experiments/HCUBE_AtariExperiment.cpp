@@ -10,7 +10,7 @@ namespace HCUBE
 {
     AtariExperiment::AtariExperiment(string _experimentName,int _threadID):
         Experiment(_experimentName,_threadID), substrate_width(8), substrate_height(10), visProc(NULL),
-        rom_file(""), numActions(0), numObjClasses(0), display_active(false)
+        rom_file(""), numActions(0), numObjClasses(0), display_active(false), outputLayerIndx(-1)
     {
     }
 
@@ -93,6 +93,7 @@ namespace HCUBE
         layerInfo.layerValidSizes = layerInfo.layerSizes;
 
         substrate.setLayerInfo(layerInfo);
+        outputLayerIndx = numObjClasses + 2;
     }
 
     NEAT::GeneticPopulation* AtariExperiment::createInitialPopulation(int populationSize) {
@@ -160,7 +161,7 @@ namespace HCUBE
             //printLayerInfo(substrate);
 
             // Choose which action to take
-            Action action = selectAction(substrate, numObjClasses+2);
+            Action action = selectAction(substrate, outputLayerIndx);
             ale.act(action);
         }
         cout << "Game ended in " << ale.frame << " frames with score " << ale.game_score << endl;

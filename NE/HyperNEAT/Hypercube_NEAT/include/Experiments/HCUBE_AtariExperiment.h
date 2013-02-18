@@ -20,6 +20,8 @@ namespace HCUBE
         int numActions;
         int numObjClasses;
 
+        int outputLayerIndx; // The index of the substrate layer at which the output nodes are located
+
     public: // TODO: Make this protected 
         NEAT::LayeredSubstrate<float> substrate;
 
