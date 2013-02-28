@@ -1,14 +1,17 @@
 #!/bin/bash
 # Starts games running sequentially from the specified rom
 
-if [ $# -lt 1 ]
+if [ $# -lt 4 ]
 then
-    echo "Usage: $0 rom_name"
+    echo "Usage: $0 rom_name seed workers data_path"
     exit
 fi
 
 let FOUND_ROM=0
 let STARTED=0
+SEED=$2
+WORKERS=$3
+DATAPATH=$4
 for D in results/*; do
     rom=${D##*/}
 
@@ -30,7 +33,7 @@ for D in results/*; do
         echo "Starting $rom..."
         let STARTED=$STARTED+1
 
-        quickRun.sh $rom
+        quickRun.sh $rom $SEED $WORKERS $DATAPATH
 
         sleep 3
 
