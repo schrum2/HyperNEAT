@@ -15,11 +15,11 @@ namespace HCUBE
     }
 
     void AtariExperiment::initializeExperiment(string rom_file) {
-        initializeALE(rom_file);
+        initializeALE(rom_file, true);
         initializeTopology();
     }
 
-    void AtariExperiment::initializeALE(string rom_file) {
+    void AtariExperiment::initializeALE(string rom_file, bool processScreen) {
         this->rom_file = rom_file;
 
         // Check that rom exists and is readable
@@ -30,18 +30,20 @@ namespace HCUBE
         }
 
         // Initialize Atari Stuff
-        if (!ale.loadROM(rom_file.c_str(), display_active, true)) {
+        if (!ale.loadROM(rom_file.c_str(), display_active, processScreen)) {
             cerr << "Ale had problem loading rom..." << endl;
             exit(-1);
         }
         numActions = ale.legal_actions.size();
 
-        // Load the visual processing framework
-        visProc = ale.visProc;
-        numObjClasses = visProc->manual_obj_classes.size();
-        if (numObjClasses <= 0) {
-          cerr << "No object classes found. Make sure there is an images directory containg class images." << endl;
-          exit(-1);
+        if (processScreen) {
+            // Load the visual processing framework
+            visProc = ale.visProc;
+            numObjClasses = visProc->manual_obj_classes.size();
+            if (numObjClasses <= 0) {
+                cerr << "No object classes found. Make sure there is an images directory containg class images." << endl;
+                exit(-1);
+            }
         }
     }
 

@@ -21,9 +21,9 @@ namespace HCUBE
     public: 
         AtariNoiseExperiment(string _experimentName, int _threadID);
 
-        void initializeALE(string rom_name);
-        void initializeTopology();
-        NEAT::GeneticPopulation* createInitialPopulation(int populationSize);
+        virtual void initializeExperiment(string rom_name);
+        virtual void initializeTopology();
+        virtual NEAT::GeneticPopulation* createInitialPopulation(int populationSize);
 
         // Sets the substrate values to pure static
         virtual void setSubstrateValues(NEAT::LayeredSubstrate<float>* substrate);

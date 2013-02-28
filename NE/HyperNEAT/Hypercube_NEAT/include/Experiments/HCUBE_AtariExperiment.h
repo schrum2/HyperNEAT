@@ -31,8 +31,8 @@ namespace HCUBE
 
         // Initializes ale and toplogy
         virtual void initializeExperiment(string rom_file);
-        // Sets up the ALE interface and loads the rom
-        virtual void initializeALE(string rom_file);
+        // Sets up the ALE interface and loads the rom. ProcessScreen enables/disables object detection.
+        virtual void initializeALE(string rom_file, bool processScreen);
         // Creates the layers and layerinfo
         virtual void initializeTopology();
 

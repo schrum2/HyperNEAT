@@ -11,11 +11,14 @@ namespace HCUBE
         AtariExperiment(_experimentName,_threadID)
     {}
 
-    void AtariNoiseExperiment::initializeALE(string rom_name) {
-        AtariExperiment::initializeALE(rom_name);
+    void AtariNoiseExperiment::initializeExperiment(string rom_file) {
+        initializeALE(rom_file, false); // No screen processing necessary
+
         // Set the dimensions of our substrate to be that of the screen
         substrate_width = ale.screen_width / 10;
         substrate_height = ale.screen_height / 10;
+
+        initializeTopology();
     }
 
     void AtariNoiseExperiment::initializeTopology() {

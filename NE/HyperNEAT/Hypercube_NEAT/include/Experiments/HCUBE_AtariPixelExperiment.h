@@ -14,7 +14,7 @@ namespace HCUBE
         AtariPixelExperiment(string _experimentName, int _threadID);
         virtual ~AtariPixelExperiment() {};
 
-        virtual void initializeALE(string rom_name);
+        virtual void initializeExperiment(string rom_name);
         virtual void initializeTopology();
 
         virtual NEAT::GeneticPopulation* createInitialPopulation(int populationSize);
