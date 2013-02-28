@@ -369,6 +369,7 @@ ADD_LIBRARY(
         src/Experiments/HCUBE_AtariFTNeatExperiment.cpp
         src/Experiments/HCUBE_AtariIntrinsicExperiment.cpp
         src/Experiments/HCUBE_AtariPixelExperiment.cpp
+        src/Experiments/HCUBE_AtariNoiseExperiment.cpp        
 	src/Experiments/HCUBE_XorExperiment.cpp
 	src/Experiments/HCUBE_XorCoExperiment.cpp
 	src/Experiments/HCUBE_CheckersCommon.cpp
@@ -424,6 +425,7 @@ ADD_LIBRARY(
         include/Experiments/HCUBE_AtariFTNeatExperiment.h
         include/Experiments/HCUBE_AtariIntrinsicExperiment.h
         include/Experiments/HCUBE_AtariPixelExperiment.h
+        include/Experiments/HCUBE_AtariNoiseExperiment.h        
 	include/Experiments/HCUBE_XorExperiment.h
 	include/Experiments/HCUBE_XorCoExperiment.h
 	include/Experiments/HCUBE_Experiment.h
