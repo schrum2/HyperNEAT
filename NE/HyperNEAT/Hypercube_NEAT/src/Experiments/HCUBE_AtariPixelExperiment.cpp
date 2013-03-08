@@ -135,16 +135,34 @@ namespace HCUBE
     }
 
     void AtariPixelExperiment::setSubstrateValues(NEAT::LayeredSubstrate<float>* substrate) {
-        for (int y=0; y<ale.screen_height; y++) {
-            for (int x=0; x<ale.screen_width; x++) {
-                int substrate_y = min(int((y / float(ale.screen_height)) * substrate_width), substrate_height-1);
-                int substrate_x = min(int((x / float(ale.screen_width)) * substrate_width), substrate_width-1);
-                uInt32 eightBitVal = eightBitPallete[ale.screen_matrix[y][x]];
-                assert(eightBitVal < numColors);
-                assert(substrate_x < substrate_width);
-                assert(substrate_y < substrate_height);
-                substrate->setValue((Node(substrate_x, substrate_y, eightBitVal)), 1.0);
+        int scaleX = ale.screen_width / substrate_width;
+        int scaleY = ale.screen_height / substrate_height;
+
+        // Set each substrate value depending on the proportion of that color
+        for (int subY=0; subY<substrate_height; subY++) {
+            for (int subX=0; subX<substrate_width; subX++) {
+                for (int c=0; c<numColors; c++)
+                    substrate->setValue((Node(subX, subY, c)), 0.0);
+                for (int y=0; y<scaleY; y++) {
+                    for (int x=0; x<scaleX; x++) {
+                        uInt32 eightBitVal = eightBitPallete[ale.screen_matrix[subY * scaleY + y][subX * scaleX + x]];
+                        float val = substrate->getValue(Node(subX, subY, eightBitVal));
+                        substrate->setValue((Node(subX, subY, eightBitVal)), val + 1 / float(scaleX*scaleY));
+                    }
+                }
             }
         }
+        // Set each substrate value based on the presence or absence of each color
+        // for (int y=0; y<ale.screen_height; y++) {
+        //     for (int x=0; x<ale.screen_width; x++) {
+        //         int substrate_y = min(int((y / float(ale.screen_height)) * substrate_width), substrate_height-1);
+        //         int substrate_x = min(int((x / float(ale.screen_width)) * substrate_width), substrate_width-1);
+        //         uInt32 eightBitVal = eightBitPallete[ale.screen_matrix[y][x]];
+        //         assert(eightBitVal < numColors);
+        //         assert(substrate_x < substrate_width);
+        //         assert(substrate_y < substrate_height);
+        //         substrate->setValue((Node(substrate_x, substrate_y, eightBitVal)), 1.0);
+        //     }
+        // }
     }
 }
