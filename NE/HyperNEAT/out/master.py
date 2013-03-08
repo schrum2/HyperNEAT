@@ -40,9 +40,9 @@ def startWorker(workerNum, executable, resultsDir, dataFile, numIndividuals, num
     Error = " + cErrFile +"\n\
     Log = " + cLogFile + "\n\
     universe = vanilla\n\
-    Executable = " + "/usr/bin/python2.6" + "\n\
+    Executable = " + "/lusr/bin/python" + "\n\
     Arguments = worker.py -e "+ executable + " -r " + resultsDir + " -d " + dataFile + " -n " + str(numIndividuals) + " -g " + str(numGenerations) + " -R " + str(seed) + " -G " + rom + "\n\
-    Requirements = LUCID && (Arch == \"x86_64\" || Arch==\"INTEL\")\n\
+    Requirements = Lucid && Arch == \"x86_64\"\n\
     +Group=\"GRAD\"\n\
     +Project=\"AI_ROBOTICS\"\n\
     +ProjectDescription=\"HyperNEAT Atari Game Playing.\"\n\
