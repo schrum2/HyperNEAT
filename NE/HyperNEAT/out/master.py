@@ -62,10 +62,10 @@ def startWorker(workerNum, executable, resultsDir, dataFile, numIndividuals, num
 
     # Wait for this job to show up in the condor_q before returning
     for i in range(12):
+        time.sleep(10)
         out = subprocess.Popen(["condor_q","mhauskn"],stdout=subprocess.PIPE).communicate()[0]
         if out.find('\n'+str(procID)) != -1:
             return procID
-        time.sleep(5)
 
     print 'Failed to start worker thread.'
     return -1
@@ -204,7 +204,7 @@ while currentGeneration < maxGeneration:
         # Wait for a little while 
         print 'Waiting for',len(individualIds),'job(s) to finish...'
         sys.stdout.flush()
-        time.sleep(5)
+        time.sleep(10)
 
     # Create next generation
     currGenFile = os.path.join(resultsDir,"generation"+str(currentGeneration)+".ser.gz")
