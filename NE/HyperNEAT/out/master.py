@@ -43,7 +43,7 @@ def startWorker(workerNum, executable, resultsDir, dataFile, numIndividuals, num
     getenv = true\n\
     Executable = " + "/lusr/bin/python" + "\n\
     Arguments = worker.py -e "+ executable + " -r " + resultsDir + " -d " + dataFile + " -n " + str(numIndividuals) + " -g " + str(numGenerations) + " -R " + str(seed) + " -G " + rom + "\n\
-    Requirements = Lucid && Arch == \"x86_64\"\n\
+    Requirements = Arch == \"x86_64\"\n\
     +Group=\"GRAD\"\n\
     +Project=\"AI_ROBOTICS\"\n\
     +ProjectDescription=\"HyperNEAT Atari Game Playing.\"\n\

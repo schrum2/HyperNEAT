@@ -2,19 +2,21 @@
 
 if [ $# -lt 1 ]
 then
-    echo "Usage: $0 results_path"
+    echo "Usage: $0 [-f] results_path"
     exit
 fi
+
+FORCECLEAN=false
+CLEANDIR=$1
 
 if [ "$1" == "-f" ]
 then
-    echo "Force Cleaning $2"
-    rm $2/worker* $2/global.err
-    exit
+    FORCECLEAN=true
+    CLEANDIR=$2
 fi
 
-for D in $1/*; do
-    if [ ! -f $D/generation150.ser.gz ]
+for D in $CLEANDIR/*; do
+    if [[ ! -f $D/generation150.ser.gz && $FORCECLEAN == false ]]
     then
         echo -n "[$D]: Not yet finished: "
         ls $D/generation*
