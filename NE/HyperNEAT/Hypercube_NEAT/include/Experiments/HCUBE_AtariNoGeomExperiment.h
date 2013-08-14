@@ -27,6 +27,8 @@ namespace HCUBE
         map<Node,string> nameLookup; // Name lookup table
 
         void initializeExperiment(string rom_file);
+        void initializeALE(string rom_file, bool processScreen);
+        void initializeTopology();
 
         AtariNoGeomExperiment(string _experimentName,int _threadID);
         virtual ~AtariNoGeomExperiment() {};
