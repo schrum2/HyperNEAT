@@ -2,21 +2,16 @@
 
 if [ $# -lt 1 ]
 then
-    echo "Usage: $0 [-f] results_path"
+    echo "Usage: $0 results_path dest"
+    echo "$0 moves completed games to the destination path"
     exit
 fi
 
-FORCECLEAN=false
-CLEANDIR=$1
+RESDIR=$1
+DEST=$2
 
-if [ "$1" == "-f" ]
-then
-    FORCECLEAN=true
-    CLEANDIR=$2
-fi
-
-for D in $CLEANDIR/*; do
-    if [[ ! -f $D/generation150.ser.gz && $FORCECLEAN == false ]]
+for D in $RESDIR/*; do
+    if [ ! -f $D/generation150.ser.gz ]
     then
         echo -n "[$D]: Not yet finished: "
         ls $D/generation*
@@ -44,6 +39,8 @@ for D in $CLEANDIR/*; do
             rm -f $D/*.tmp
             echo "{$D} Cleaning tmp files..."
         fi
+        echo "Moving ${D} to $DEST/${D}"
+        mv ${D} $DEST
     fi
 done
 
