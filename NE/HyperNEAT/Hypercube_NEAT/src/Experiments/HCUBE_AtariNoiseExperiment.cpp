@@ -1,3 +1,6 @@
+/**
+   This is HyperNEAT run with the Noise representation
+ **/
 #include "HCUBE_Defines.h"
 #include "NEAT_Random.h"
 

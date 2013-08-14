@@ -1,3 +1,6 @@
+/**
+   This is HyperNEAT run with the raw pixel state representation.
+ **/
 #include "HCUBE_Defines.h"
 
 #include "Experiments/HCUBE_AtariPixelExperiment.h"

@@ -1,3 +1,6 @@
+/**
+   This is NEAT run with the object representation
+ **/
 #include "HCUBE_Defines.h"
 
 #include "Experiments/HCUBE_AtariNoGeomExperiment.h"
