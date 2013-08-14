@@ -278,11 +278,7 @@ namespace HCUBE
             substrate.reinitialize(); 
             substrate.dummyActivation();
 
-            // Set substrate value for all objects (of a certain size)
-            setSubstrateObjectValues(*visProc);
-
-            // Set substrate value for self
-            setSubstrateSelfValue(*visProc);
+            setSubstrateValues();
 
             // Propagate values through the ANN
             // This is necessary to fully propagate through the different layers
@@ -298,6 +294,14 @@ namespace HCUBE
  
         // Give the reward to the agent
         individual->reward(ale.game_score);
+    }
+
+    void AtariFTNeatExperiment::setSubstrateValues() {
+        // Set substrate value for all objects (of a certain size)
+        setSubstrateObjectValues(*visProc);
+
+        // Set substrate value for self
+        setSubstrateSelfValue(*visProc);
     }
 
     void AtariFTNeatExperiment::setSubstrateObjectValues(VisualProcessor& visProc) {

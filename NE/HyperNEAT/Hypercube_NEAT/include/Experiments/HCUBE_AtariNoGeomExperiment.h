@@ -37,6 +37,9 @@ namespace HCUBE
         virtual void processGroup(shared_ptr<NEAT::GeneticGeneration> generation);
         void runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual);
 
+        // Sets the activations on the input layer of the substrates
+        virtual void setSubstrateValues();
+
         // Locates the object of each class on screen and populates their values to the
         // corresponding substrate layers
         void setSubstrateObjectValues(VisualProcessor& visProc);
