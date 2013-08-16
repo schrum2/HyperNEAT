@@ -9,6 +9,7 @@
 #include "Experiments/HCUBE_AtariExperiment.h"
 #include "Experiments/HCUBE_AtariNoGeomExperiment.h"
 #include "Experiments/HCUBE_AtariFTNeatExperiment.h"
+#include "Experiments/HCUBE_AtariFTNeatPixelExperiment.h"
 #include "Experiments/HCUBE_AtariIntrinsicExperiment.h"
 
 #ifndef HCUBE_NOGUI
@@ -59,10 +60,10 @@ int HyperNEAT_main(int argc,char **argv) {
         if (experimentType == 30 || experimentType == 35 || experimentType == 36) {
             shared_ptr<AtariExperiment> exp = static_pointer_cast<AtariExperiment>(e);
             exp->initializeExperiment(rom_file.c_str());
-        } else if (experimentType == 31) {
+        } else if (experimentType == 31 || experimentType == 39 || experimentType == 40) {
             shared_ptr<AtariNoGeomExperiment> exp = static_pointer_cast<AtariNoGeomExperiment>(e);
             exp->initializeExperiment(rom_file.c_str());
-        } else if (experimentType == 32) {
+        } else if (experimentType == 32 || experimentType == 37 || experimentType == 38) {
             shared_ptr<AtariFTNeatExperiment> exp = static_pointer_cast<AtariFTNeatExperiment>(e);
             exp->initializeExperiment(rom_file.c_str());
         } else if (experimentType == 33) {

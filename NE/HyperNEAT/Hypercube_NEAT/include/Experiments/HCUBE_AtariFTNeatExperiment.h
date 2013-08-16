@@ -27,7 +27,7 @@ namespace HCUBE
         NEAT::FastNetwork<float> substrate;
         map<Node,string> nameLookup; // Name lookup table
 
-        void initializeExperiment(string rom_file);
+        virtual void initializeExperiment(string rom_file);
 
         // Sets up the ALE interface and loads the rom. ProcessScreen enables/disables object detection
         virtual void initializeALE(string rom_file, bool processScreen);

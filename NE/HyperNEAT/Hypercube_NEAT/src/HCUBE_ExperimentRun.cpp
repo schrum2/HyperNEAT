@@ -8,6 +8,7 @@
 #include "Experiments/HCUBE_AtariExperiment.h"
 #include "Experiments/HCUBE_AtariNoGeomExperiment.h"
 #include "Experiments/HCUBE_AtariFTNeatExperiment.h"
+#include "Experiments/HCUBE_AtariFTNeatPixelExperiment.h"
 #include "Experiments/HCUBE_AtariIntrinsicExperiment.h"
 #include "Experiments/HCUBE_AtariPixelExperiment.h"
 #include "Experiments/HCUBE_AtariNoiseExperiment.h"
@@ -141,6 +142,9 @@ namespace HCUBE
                 break;
             case EXPERIMENT_ATARI_NOISE:
                 experiments.push_back(shared_ptr<Experiment>(new AtariNoiseExperiment("",a)));
+                break;
+            case EXPERIMENT_ATARI_FT_NEAT_PIXEL:
+                experiments.push_back(shared_ptr<Experiment>(new AtariFTNeatPixelExperiment("",a)));
                 break;
 #ifdef EPLEX_INTERNAL
             case EXPERIMENT_COXOR:
