@@ -33,7 +33,7 @@ namespace HCUBE
         }
 
         // Initialize Atari Stuff
-        if (!ale.loadROM(rom_file.c_str(), display_active, true)) {
+        if (!ale.loadROM(rom_file.c_str(), display_active, processScreen)) {
             cerr << "Ale had problem loading rom..." << endl;
             exit(-1);
         }
