@@ -27,7 +27,12 @@ namespace HCUBE
         NEAT::FastNetwork<float> substrate;
         map<Node,string> nameLookup; // Name lookup table
 
-        void initializeExperiment(string rom_file);
+        virtual void initializeExperiment(string rom_file);
+
+        // Sets up the ALE interface and loads the rom. ProcessScreen enables/disables object detection
+        virtual void initializeALE(string rom_file, bool processScreen);
+        // Creates the layers and layerinfo
+        virtual void initializeTopology();
 
         AtariFTNeatExperiment(string _experimentName,int _threadID);
         virtual ~AtariFTNeatExperiment() {};
@@ -47,6 +52,9 @@ namespace HCUBE
         virtual void processGroup(shared_ptr<NEAT::GeneticGeneration> generation);
         virtual void evaluateIndividual(shared_ptr<NEAT::GeneticIndividual> individual);
         void runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual);
+
+        // Sets the activations on the input layer of the substrates
+        virtual void setSubstrateValues();
 
         // Locates the object of each class on screen and populates their values to the
         // corresponding substrate layers

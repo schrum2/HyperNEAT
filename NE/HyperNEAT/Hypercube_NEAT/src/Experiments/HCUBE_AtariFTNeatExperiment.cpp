@@ -1,3 +1,6 @@
+/**
+   This is FT-NEAT run with the object representation
+ **/
 #include "HCUBE_Defines.h"
 
 #include "Experiments/HCUBE_AtariFTNeatExperiment.h"
@@ -16,6 +19,11 @@ namespace HCUBE
     }
 
     void AtariFTNeatExperiment::initializeExperiment(string _rom_file) {
+        initializeALE(_rom_file, true);
+        initializeTopology();
+    }
+
+    void AtariFTNeatExperiment::initializeALE(string _rom_file, bool processScreen) {
         rom_file = _rom_file;
 
         substrate_width = 8;
@@ -29,20 +37,24 @@ namespace HCUBE
         }
 
         // Initialize Atari Stuff
-        if (!ale.loadROM(rom_file.c_str(), display_active, true)) {
+        if (!ale.loadROM(rom_file.c_str(), display_active, processScreen)) {
             cerr << "Ale had problem loading rom..." << endl;
             exit(-1);
         }
         numActions = ale.legal_actions.size();
 
-        // Load the visual processing framework
-        visProc = ale.visProc;
-        numObjClasses = visProc->manual_obj_classes.size();
-        if (numObjClasses <= 0) {
-            cerr << "No object classes found. Make sure there is an images directory containg class images." << endl;
-            exit(-1);
+        if (processScreen) {
+            // Load the visual processing framework
+            visProc = ale.visProc;
+            numObjClasses = visProc->manual_obj_classes.size();
+            if (numObjClasses <= 0) {
+                cerr << "No object classes found. Make sure there is an images directory containg class images." << endl;
+                exit(-1);
+            }
         }
+    }
 
+    void AtariFTNeatExperiment::initializeTopology() {
         // One input layer for each object class, plus an extra one for the self object
         for (int i=0; i<=numObjClasses; ++i) {
             for (int y=0; y<substrate_height; y++) {
@@ -266,11 +278,7 @@ namespace HCUBE
             substrate.reinitialize(); 
             substrate.dummyActivation();
 
-            // Set substrate value for all objects (of a certain size)
-            setSubstrateObjectValues(*visProc);
-
-            // Set substrate value for self
-            setSubstrateSelfValue(*visProc);
+            setSubstrateValues();
 
             // Propagate values through the ANN
             // This is necessary to fully propagate through the different layers
@@ -286,6 +294,14 @@ namespace HCUBE
  
         // Give the reward to the agent
         individual->reward(ale.game_score);
+    }
+
+    void AtariFTNeatExperiment::setSubstrateValues() {
+        // Set substrate value for all objects (of a certain size)
+        setSubstrateObjectValues(*visProc);
+
+        // Set substrate value for self
+        setSubstrateSelfValue(*visProc);
     }
 
     void AtariFTNeatExperiment::setSubstrateObjectValues(VisualProcessor& visProc) {

@@ -7,7 +7,11 @@
 #include "Experiments/HCUBE_XorExperiment.h"
 #include "Experiments/HCUBE_AtariExperiment.h"
 #include "Experiments/HCUBE_AtariNoGeomExperiment.h"
+#include "Experiments/HCUBE_AtariNoGeomPixelExperiment.h"
+#include "Experiments/HCUBE_AtariNoGeomNoiseExperiment.h"
 #include "Experiments/HCUBE_AtariFTNeatExperiment.h"
+#include "Experiments/HCUBE_AtariFTNeatPixelExperiment.h"
+#include "Experiments/HCUBE_AtariFTNeatNoiseExperiment.h"
 #include "Experiments/HCUBE_AtariIntrinsicExperiment.h"
 #include "Experiments/HCUBE_AtariPixelExperiment.h"
 #include "Experiments/HCUBE_AtariNoiseExperiment.h"
@@ -141,6 +145,18 @@ namespace HCUBE
                 break;
             case EXPERIMENT_ATARI_NOISE:
                 experiments.push_back(shared_ptr<Experiment>(new AtariNoiseExperiment("",a)));
+                break;
+            case EXPERIMENT_ATARI_FT_NEAT_PIXEL:
+                experiments.push_back(shared_ptr<Experiment>(new AtariFTNeatPixelExperiment("",a)));
+                break;
+            case EXPERIMENT_ATARI_FT_NEAT_NOISE:
+                experiments.push_back(shared_ptr<Experiment>(new AtariFTNeatNoiseExperiment("",a)));
+                break;
+            case EXPERIMENT_ATARI_NO_GEOM_PIXEL:
+                experiments.push_back(shared_ptr<Experiment>(new AtariNoGeomPixelExperiment("",a)));
+                break;
+            case EXPERIMENT_ATARI_NO_GEOM_NOISE:
+                experiments.push_back(shared_ptr<Experiment>(new AtariNoGeomNoiseExperiment("",a)));
                 break;
 #ifdef EPLEX_INTERNAL
             case EXPERIMENT_COXOR:

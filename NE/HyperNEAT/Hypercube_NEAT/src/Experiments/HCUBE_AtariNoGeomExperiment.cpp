@@ -1,3 +1,6 @@
+/**
+   This is NEAT run with the object representation
+ **/
 #include "HCUBE_Defines.h"
 
 #include "Experiments/HCUBE_AtariNoGeomExperiment.h"
@@ -15,10 +18,12 @@ namespace HCUBE
     }
 
     void AtariNoGeomExperiment::initializeExperiment(string _rom_file) {
-        rom_file = _rom_file;
+        initializeALE(rom_file, true);
+        initializeTopology();
+    }
 
-        substrate_width = 8;
-        substrate_height = 10;
+    void AtariNoGeomExperiment::initializeALE(string _rom_file, bool processScreen) {
+        rom_file = _rom_file;
 
         // Check that rom exists and is readable
         ifstream file(rom_file.c_str());
@@ -35,12 +40,19 @@ namespace HCUBE
         numActions = ale.legal_actions.size();
 
         // Load the visual processing framework
-        visProc = ale.visProc;
-        numObjClasses = visProc->manual_obj_classes.size();
-        if (numObjClasses <= 0) {
-            cerr << "No object classes found. Make sure there is an images directory containg class images." << endl;
-            exit(-1);
+        if (processScreen) {
+            visProc = ale.visProc;
+            numObjClasses = visProc->manual_obj_classes.size();
+            if (numObjClasses <= 0) {
+                cerr << "No object classes found. Make sure there is an images directory containg class images." << endl;
+                exit(-1);
+            }
         }
+    }
+
+    void AtariNoGeomExperiment::initializeTopology() {
+        substrate_width = 8;
+        substrate_height = 10;
 
         // One input layer for each object class, plus an extra one for the self object
         for (int i=0; i<=numObjClasses; ++i) {
@@ -116,11 +128,7 @@ namespace HCUBE
             substrate.reinitialize(); 
             substrate.dummyActivation();
 
-            // Set substrate value for all objects (of a certain size)
-            setSubstrateObjectValues(*visProc);
-
-            // Set substrate value for self
-            setSubstrateSelfValue(*visProc);
+            setSubstrateValues();
 
             // Propagate values through the ANN
             substrate.update();
@@ -136,6 +144,16 @@ namespace HCUBE
         // Give the reward to the agent
         individual->reward(ale.game_score);
     }
+
+
+    void AtariNoGeomExperiment::setSubstrateValues() {
+        // Set substrate value for all objects (of a certain size)
+        setSubstrateObjectValues(*visProc);
+
+        // Set substrate value for self
+        setSubstrateSelfValue(*visProc);
+    }
+
 
     void AtariNoGeomExperiment::setSubstrateObjectValues(VisualProcessor& visProc) {
         for (int i=0; i<visProc.manual_obj_classes.size(); i++) {

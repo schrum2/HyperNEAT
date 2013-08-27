@@ -26,7 +26,9 @@ namespace HCUBE
         NEAT::FastNetwork<double> substrate;
         map<Node,string> nameLookup; // Name lookup table
 
-        void initializeExperiment(string rom_file);
+        virtual void initializeExperiment(string rom_file);
+        virtual void initializeALE(string rom_file, bool processScreen);
+        virtual void initializeTopology();
 
         AtariNoGeomExperiment(string _experimentName,int _threadID);
         virtual ~AtariNoGeomExperiment() {};
@@ -35,21 +37,24 @@ namespace HCUBE
         virtual void processGroup(shared_ptr<NEAT::GeneticGeneration> generation);
         void runAtariEpisode(shared_ptr<NEAT::GeneticIndividual> individual);
 
+        // Sets the activations on the input layer of the substrates
+        virtual void setSubstrateValues();
+
         // Locates the object of each class on screen and populates their values to the
         // corresponding substrate layers
-        void setSubstrateObjectValues(VisualProcessor& visProc);
+        virtual void setSubstrateObjectValues(VisualProcessor& visProc);
         
         // Identifies the self agent on the relevant layer of substrate
-        void setSubstrateSelfValue(VisualProcessor& visProc);
+        virtual void setSubstrateSelfValue(VisualProcessor& visProc);
 
         // Takes the centroids of the objects locations and paints them onto the substrate
-        void paintSubstrate(VisualProcessor& visProc, Prototype& proto, int substrateIndx);
+        virtual void paintSubstrate(VisualProcessor& visProc, Prototype& proto, int substrateIndx);
     
         // Selects an action based on the output layer of the network
-        Action selectAction(VisualProcessor& visProc);
+        virtual Action selectAction(VisualProcessor& visProc);
 
         // Prints a visual representation of each input layer
-        void printLayerInfo();
+        virtual void printLayerInfo();
 
         double gauss2D(double x, double y, double A, double mu_x, double mu_y, double sigma_x,
                        double sigma_y);
