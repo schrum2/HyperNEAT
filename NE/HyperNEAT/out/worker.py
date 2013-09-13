@@ -56,6 +56,7 @@ dataFile                 = args.d
 maxGeneration            = args.g
 resultsDir               = args.r
 individualsPerGeneration = args.n
+timeout_secs = 1
 
 # Detect the current generation
 currentGeneration = util.getCurrentGen(resultsDir)
@@ -72,8 +73,8 @@ while currentGeneration < maxGeneration:
     start = time.time()
     while not os.path.exists(generationPath):
         time.sleep(5)
-        if time.time() - start >= 600:
-            sys.stderr.write('Reached 10min timeout waiting for new generation... quitting\n')
+        if time.time() - start >= timeout_secs:
+            sys.stderr.write('Reached timeout waiting for new generation... quitting\n')
             sys.stderr.flush()
             sys.exit(0)
 

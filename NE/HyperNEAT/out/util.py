@@ -13,7 +13,7 @@ def getCurrentGen(resultsDir):
     # Detect the current generation
     currentGeneration = -1
     for f in os.listdir(resultsDir):
-        if f.startswith('generation') and 'tmp' not in f:
+        if f.startswith('generation') and 'tmp' not in f and 'bak' not in f:
             genNumber = int(f[len('generation'):-len('.ser.gz')])
             currentGeneration = max(currentGeneration, genNumber)
     return currentGeneration

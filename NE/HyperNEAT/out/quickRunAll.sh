@@ -41,16 +41,16 @@ for D in roms/*; do
         sleep 3
 
         # Wait until a generation file is present before going on to next ROM
-        while true; do
-            ls -l $RESULTSPATH/$rom/generation* > /dev/null 2>&1
-            if [ "$?" = "0" ]
-            then
-                break
-            else
-                echo "Waiting for $D to create generational file!"
-                sleep 2
-            fi
-        done
+        # while true; do
+        #     ls -l $RESULTSPATH/$rom/generation* > /dev/null 2>&1
+        #     if [ "$?" = "0" ]
+        #     then
+        #         break
+        #     else
+        #         echo "Waiting for $D to create generational file!"
+        #         sleep 2
+        #     fi
+        # done
         echo "$STARTED rom(s) started."
     fi
 done

@@ -22,8 +22,7 @@
 #  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
 # The generator is in charge of generating new populations at each generation
 
-import argparse, os, random, time, sys, util
-
+import argparse, os, random, time, sys, util, subprocess
 
 parser = argparse.ArgumentParser(description='Creates new generations when required.')
 parser.add_argument('-e', metavar='atari_generate', required=True,
@@ -50,16 +49,29 @@ maxGeneration            = args.g
 resultsDir               = args.r
 individualsPerGeneration = args.n
 
+# TODO: Check if there exists a .bak file
+
 currentGeneration = util.getCurrentGen(resultsDir)
 
 # Generate the first generation if not present
 if currentGeneration < 0:
-        subprocess.check_call(["./" + generateExec,
-                               "-R", str(seed),
-                               "-I", dataFile,
-                               "-O", os.path.join(resultsDir,"generation0.ser.gz"),
-                               "-G", rom])
         currentGeneration = 0
+        os.system("echo Starting Generation Production... >> " + os.path.join(resultsDir,"nohup.out"))
+        os.system("date >> " + os.path.join(resultsDir,"nohup.out"))
+
+        cmd = "./" + executable + \
+        " -R " + str(seed) + \
+        " -I " + dataFile + \
+        " -O " + os.path.join(resultsDir,"generation0.ser.gz") + \
+        " -G " + rom + " >> " + os.path.join(resultsDir,"nohup.out")
+        os.system(cmd)
+        # subprocess.check_call(["./" + executable,
+        #                        "-R", str(seed),
+        #                        "-I", dataFile,
+        #                        "-O", os.path.join(resultsDir,"generation0.ser.gz"),
+        #                        "-G", rom])
+        os.system("date >> " + os.path.join(resultsDir,"nohup.out"))
+        os.system("echo Generation Production Done. >> " + os.path.join(resultsDir,"nohup.out"))
 
 while currentGeneration < maxGeneration:
     print 'Starting Generation', currentGeneration
@@ -77,15 +89,34 @@ while currentGeneration < maxGeneration:
     # Create next generation
     currGenFile = os.path.join(resultsDir,"generation"+str(currentGeneration)+".ser.gz")
     nextGenFile = os.path.join(resultsDir,"generation"+str(currentGeneration+1)+".ser.gz")
+    tmpCurrGen  = currGenFile + ".bak"
     tmpNextGen  = nextGenFile + ".tmp"
+
+    # Current gen gets moved to tmp file
+    subprocess.check_call(["mv", currGenFile, tmpCurrGen])
+
+    os.system("echo Starting Generation Production... >> " + os.path.join(resultsDir,"nohup.out"))
+    os.system("date >> " + os.path.join(resultsDir,"nohup.out"))
+    # Create the actual next generation. This may take a while...
     fitnessRoot = os.path.join(resultsDir,"fitness." + str(currentGeneration)+".")
-    subprocess.check_call(["./" + executable,
-                           "-I", dataFile,
-                           "-R", str(seed),
-                           "-O", tmpNextGen,
-                           "-P", currGenFile,
-                           "-F", fitnessRoot,
-                           "-G", rom])
+    cmd = "./" + executable + \
+    " -I " + dataFile + \
+    " -R " + str(seed) + \
+    " -O " + tmpNextGen + \
+    " -P " + tmpCurrGen + \
+    " -F " + fitnessRoot + \
+    " -G " + rom + " >> " + os.path.join(resultsDir,"nohup.out")
+    os.system(cmd)
+    os.system("date >> " + os.path.join(resultsDir,"nohup.out"))
+    os.system("echo Generation Production Done. >> " + os.path.join(resultsDir,"nohup.out"))
+
+    # subprocess.check_call(["./" + executable,
+    #                        "-I", dataFile,
+    #                        "-R", str(seed),
+    #                        "-O", tmpNextGen,
+    #                        "-P", tmpCurrGen,
+    #                        "-F", fitnessRoot,
+    #                        "-G", rom])
 
     # Move the temp next gen file to the actual one.
     # This is necessary to keep workers from trying to read the
@@ -93,6 +124,6 @@ while currentGeneration < maxGeneration:
     subprocess.check_call(["mv", tmpNextGen, nextGenFile])
 
     # Delete current generation file
-    os.remove(currGenFile)
+    os.remove(tmpCurrGen)
 
     currentGeneration += 1
