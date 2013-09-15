@@ -15,6 +15,7 @@
 #include "Experiments/HCUBE_AtariIntrinsicExperiment.h"
 #include "Experiments/HCUBE_AtariPixelExperiment.h"
 #include "Experiments/HCUBE_AtariNoiseExperiment.h"
+#include "Experiments/HCUBE_AtariCMAExperiment.h"
 #ifdef EPLEX_INTERNAL
 #include "Experiments/HCUBE_XorCoExperiment.h"
 #include "Experiments/HCUBE_SimpleImageExperiment.h"
@@ -157,6 +158,9 @@ namespace HCUBE
                 break;
             case EXPERIMENT_ATARI_NO_GEOM_NOISE:
                 experiments.push_back(shared_ptr<Experiment>(new AtariNoGeomNoiseExperiment("",a)));
+                break;
+            case EXPERIMENT_ATARI_CMA:
+                experiments.push_back(shared_ptr<Experiment>(new AtariCMAExperiment("",a)));
                 break;
 #ifdef EPLEX_INTERNAL
             case EXPERIMENT_COXOR:

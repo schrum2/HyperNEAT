@@ -22,7 +22,7 @@
 #  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
 # The generator is in charge of generating new populations at each generation
 
-import argparse, os, random, time, sys, util, subprocess
+import argparse, os, random, time, sys, util, subprocess, atexit
 
 parser = argparse.ArgumentParser(description='Creates new generations when required.')
 parser.add_argument('-e', metavar='atari_generate', required=True,
@@ -50,6 +50,9 @@ resultsDir               = args.r
 individualsPerGeneration = args.n
 
 # TODO: Check if there exists a .bak file
+for f in os.listdir(resultsDir):
+    if f.startswith('generation') and (f.endswith('.bak') or f.endswith('.tmp')):
+        subprocess.check_call(["mv", f, f[0:-4]])
 
 currentGeneration = util.getCurrentGen(resultsDir)
 

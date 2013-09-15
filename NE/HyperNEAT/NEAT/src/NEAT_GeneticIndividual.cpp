@@ -12,6 +12,10 @@
 #include "NEAT_Random.h"
 #include "NEAT_Globals.h"
 
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
+
+
 #define DEBUG_GENETIC_INDIVIDUAL (0)
 
 #define CROSSOVER_PICKS_INDIVIDUAL_GENES (1)
@@ -772,6 +776,30 @@ namespace NEAT
                 linksElementPtr->LinkEndChild(linkElementPtr);
             }
         }
+    }
+
+    void GeneticIndividual::dumpLinksCMAES(ostream &ostr)
+    {
+        for (int a=0;a<(int)links.size();a++)
+        {
+            ostr << "From" << links[a].getFromNodeID() << "To" <<
+                links[a].getToNodeID() << " 0 1" << endl;
+        }
+    }
+
+    void GeneticIndividual::readLinksCMAES(istream& stream)
+    {
+        int a=0;
+        for(std::string line; getline(stream, line);)
+        {
+            vector<string> strs;
+            boost::split(strs,line,boost::is_any_of("\t"));
+
+            float weight = boost::lexical_cast<float>(strs[1]);
+            links[a].setWeight(weight);
+            a++;
+        }
+        assert(a == links.size());
     }
 
     void GeneticIndividual::dump(ostream &ostr)

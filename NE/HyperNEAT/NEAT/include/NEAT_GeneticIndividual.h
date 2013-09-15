@@ -128,6 +128,10 @@ namespace NEAT
 
         NEAT_DLL_EXPORT bool linkExists(int fromNode,int toNode) const;
 
+        // Reads and writes parameters for CMA-ES
+        NEAT_DLL_EXPORT void dumpLinksCMAES(ostream &ostr);
+        NEAT_DLL_EXPORT void readLinksCMAES(istream &stream);        
+
         NEAT_DLL_EXPORT void dump(TiXmlElement *root,bool dumpGenes=true);
 
         NEAT_DLL_EXPORT void dump(ostream &ostr);

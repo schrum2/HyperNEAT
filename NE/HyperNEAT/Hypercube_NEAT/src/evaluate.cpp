@@ -11,6 +11,7 @@
 #include "Experiments/HCUBE_AtariFTNeatExperiment.h"
 #include "Experiments/HCUBE_AtariFTNeatPixelExperiment.h"
 #include "Experiments/HCUBE_AtariIntrinsicExperiment.h"
+#include "Experiments/HCUBE_AtariCMAExperiment.h"
 
 #ifndef HCUBE_NOGUI
 namespace HCUBE
@@ -116,9 +117,20 @@ int HyperNEAT_main(int argc,char **argv) {
                 cout << "[HyperNEAT core] Individual evaluation fin." << endl;
                 exit(0);
             }
-        }  else if (experimentType == 34) {
+        } else if (experimentType == 34) {
             shared_ptr<AtariIntrinsicExperiment> exp = static_pointer_cast<AtariIntrinsicExperiment>(e);
             exp->initializeExperiment(rom_file.c_str());
+        } else if (experimentType == 41) {
+            shared_ptr<AtariCMAExperiment> exp = static_pointer_cast<AtariCMAExperiment>(e);
+            exp->initializeExperiment(rom_file.c_str());
+            exp->individualToEvaluate = individualId;
+
+            assert(commandLineParser.HasSwitch("-g"));
+            unsigned int generationNum = stringTo<unsigned int>(commandLineParser.GetArgument("-g",0));
+            cout << "Using generation number " << generationNum << endl;
+            exp->generationNumber = generationNum;
+
+            exp->setResultsPath(populationFile);
         }
 
         float fitness = experimentRun.evaluateIndividual(individualId);
@@ -133,7 +145,7 @@ int HyperNEAT_main(int argc,char **argv) {
         cout << "[HyperNEAT core] Individual evaluation fin." << endl;
 
     } else {
-        cout << "./atari_evaluate [-R (seed)] -I (datafile) -P (populationfile) -N (individualId) "
+        cout << "./atari_evaluate [-R (seed) -g (generationNum)] -I (datafile) -P (populationfile) -N (individualId) "
             "-F (fitnessFile) -G (romFile)\n";
         cout << "\t\t(datafile) HyperNEAT experiment data file - typically data/AtariExperiment.dat\n";
         cout << "\t\t(populationfile) current population file containing all the individuals - "

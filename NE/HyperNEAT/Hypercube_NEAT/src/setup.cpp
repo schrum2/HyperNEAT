@@ -10,6 +10,7 @@
 #include "Experiments/HCUBE_AtariFTNeatExperiment.h"
 #include "Experiments/HCUBE_AtariFTNeatPixelExperiment.h"
 #include "Experiments/HCUBE_AtariIntrinsicExperiment.h"
+#include "Experiments/HCUBE_AtariCMAExperiment.h"
 #include "HCUBE_ExperimentRun.h"
 
 #ifndef HCUBE_NOGUI
@@ -50,7 +51,8 @@ int HyperNEAT_main(int argc,char **argv) {
     // Setup the experiment
     int experimentType = int(globals->getParameterValue("ExperimentType") + 0.001);
     HCUBE::ExperimentRun experimentRun;
-    experimentRun.setupExperiment(experimentType, commandLineParser.GetArgument("-O",0));
+    string out_file = commandLineParser.GetArgument("-O",0);
+    experimentRun.setupExperiment(experimentType, out_file);
 
     string rom_file = commandLineParser.GetArgument("-G",0);
 
@@ -80,6 +82,10 @@ int HyperNEAT_main(int argc,char **argv) {
             exp->initializeExperiment(rom_file.c_str());
         } else if (experimentType == 34) {
             shared_ptr<AtariIntrinsicExperiment> exp = static_pointer_cast<AtariIntrinsicExperiment>(e);
+            exp->initializeExperiment(rom_file.c_str());
+        } else if (experimentType == 41) {
+            shared_ptr<AtariCMAExperiment> exp = static_pointer_cast<AtariCMAExperiment>(e);
+            exp->setResultsPath(out_file);
             exp->initializeExperiment(rom_file.c_str());
         }
         experimentRun.createPopulation();
