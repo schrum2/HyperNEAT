@@ -29,81 +29,7 @@
 #                 ^~"~---~~~~~~`
 # The master is in charge of monitoring all the condor jobs
 # to make sure the generator and workers continue onwards
-
 import argparse, os, subprocess, time, sys, util
-
-# Submits a condor job which starts a worker running
-def startWorker(workerNum, executable, resultsDir, dataFile, numIndividuals, numGenerations, seed, rom):
-    cOutFile = os.path.join(resultsDir,"worker" + str(workerNum) + ".out")
-    cErrFile = os.path.join(resultsDir,"worker" + str(workerNum) + ".err")
-    cLogFile = os.path.join(resultsDir,"worker" + str(workerNum) + ".log")
-    confStr = "\
-    Output = " + cOutFile +"\n\
-    Error = " + cErrFile +"\n\
-    Log = " + cLogFile + "\n\
-    universe = vanilla\n\
-    getenv = true\n\
-    Executable = " + "/lusr/bin/python" + "\n\
-    Arguments = worker.py -e "+ executable + " -r " + resultsDir + " -d " + dataFile + " -n " + str(numIndividuals) + " -g " + str(numGenerations) + " -R " + str(seed) + " -G " + rom + "\n\
-    Requirements = Arch == \"x86_64\" && InMastodon\n\
-    +Group=\"GRAD\"\n\
-    +Project=\"AI_ROBOTICS\"\n\
-    +ProjectDescription=\"HyperNEAT Atari Game Playing Worker.\"\n\
-    Queue\n"
-
-    # Submit the condor job
-    condorFile = os.path.join(resultsDir,"worker" + str(workerNum) + ".submit")
-    condorSubmitPipe = open(condorFile,'w')
-    condorSubmitPipe.write(confStr)
-    condorSubmitPipe.close()
-    procID = util.submitCondorJob(condorFile)
-
-    # Wait for this job to show up in the condor_q before returning
-    for i in range(12):
-        time.sleep(10)
-        if util.getPIDStatus(procID, util.condor_q()) != None:
-            return procID
-
-    print 'Failed to start worker.'
-    return -1
-
-
-# Submits a condor job which starts the generator running
-def startGenerator(generatorNum, executable, resultsDir, dataFile,
-                   numIndividuals, numGenerations, seed, rom):
-    cOutFile = os.path.join(resultsDir,"generator" + str(generatorNum) + ".out")
-    cErrFile = os.path.join(resultsDir,"generator" + str(generatorNum) + ".err")
-    cLogFile = os.path.join(resultsDir,"generator" + str(generatorNum) + ".log")
-    confStr = "\
-    Output = " + cOutFile +"\n\
-    Error = " + cErrFile +"\n\
-    Log = " + cLogFile + "\n\
-    universe = vanilla\n\
-    getenv = true\n\
-    Executable = " + "/lusr/bin/python" + "\n\
-    Arguments = generator.py -e "+ executable + " -r " + resultsDir + " -d " + dataFile + " -n " + str(numIndividuals) + " -g " + str(numGenerations) + " -R " + str(seed) + " -G " + rom + "\n\
-    Requirements = Arch == \"x86_64\" && InMastodon\n\
-    +Group=\"GRAD\"\n\
-    +Project=\"AI_ROBOTICS\"\n\
-    +ProjectDescription=\"HyperNEAT Atari Game Playing Generator.\"\n\
-    Queue\n"
-
-    # Submit the condor job
-    condorFile = os.path.join(resultsDir,"generator" + str(generatorNum) + ".submit")
-    condorSubmitPipe = open(condorFile,'w')
-    condorSubmitPipe.write(confStr)
-    condorSubmitPipe.close()
-    procID = util.submitCondorJob(condorFile)
-
-    # Wait for this job to show up in the condor_q before returning
-    for i in range(12):
-        if util.getPIDStatus(procID, util.condor_q()) != None:
-            return procID
-        time.sleep(10)
-
-    print 'Failed to start generator.'
-    return -1
-
 
 parser = argparse.ArgumentParser(description='Creates condor worker jobs who execute atari games.')
 parser.add_argument('-e', metavar='atari_evaulate', required=True,
@@ -135,6 +61,7 @@ maxGeneration            = args.g
 resultsDir               = args.r
 individualsPerGeneration = args.n
 numWorkers               = args.w
+doingCMAES = dataFile.endswith('AtariCMAExperiment.dat')
 
 if not os.path.exists(rom):
     print 'Rom not found. Exiting.'
@@ -149,38 +76,38 @@ genNum = 0
 deadWorkers = 0
 deadWorkerLimit = 999999999
 procIDs = {} # Maps pid --> worker num
-genPID = startGenerator(genNum, generateExec, resultsDir, dataFile, individualsPerGeneration,
+genPID = util.startGenerator(genNum, generateExec, resultsDir, dataFile, individualsPerGeneration,
                         maxGeneration, seed, rom)
 genNum += 1
 
 # Main Loop
-while util.getCurrentGen(resultsDir) < maxGeneration:
+while util.getCurrentGen(resultsDir,doingCMAES) < maxGeneration:
     time.sleep(10)
 
     out = util.condor_q()
-    if not out or out.find('Failed to fetch ads') >= 0:
+    if not out:
         continue
+
+    # print 'condor_q output',out
+    # sys.stdout.flush()
         
     # Check if generator is alive & active
     genStatus = util.getPIDStatus(genPID, out) 
     if genStatus == None: # Missing generator
         print 'Missing Generator. pid:',genPID
         sys.exit(0)
-        # genPID = startGenerator(genNum,generateExec, resultsDir, dataFile, individualsPerGeneration,
-        #                 maxGeneration, seed, rom)
-        # genNum += 1
     elif genStatus != 'R': # Generator alive but not running
         continue
 
     # Don't start workers if generation is being produced
-    if util.getCurrentGen(resultsDir) < 0:
+    if util.getCurrentGen(resultsDir,doingCMAES) < 0:
         continue
 
     # Detect missing workers
     for procID in list(procIDs):
         if out.find('\n'+str(procID)) == -1:
-            print 'Missing pid:',procID
-            sys.stdout.flush()
+            # print 'Missing pid:',procID
+            # sys.stdout.flush()
 
             indx = procIDs[procID]
             del procIDs[procID]
@@ -214,14 +141,16 @@ while util.getCurrentGen(resultsDir) < maxGeneration:
             sys.stdout.flush()
             sys.exit(0)
 
-    # Restart any missing workers
-    while len(procIDs) < numWorkers:
-        pid = -1
-        while pid < 0:
-            pid = startWorker(workerNum, executable, resultsDir, dataFile,
-                              individualsPerGeneration, maxGeneration, seed, rom)
-        procIDs[pid] = workerNum
-        workerNum += 1
+    # Start a worker
+    if len(procIDs) < numWorkers:
+        pid = util.startWorker(workerNum, executable, resultsDir, dataFile,
+                          individualsPerGeneration, maxGeneration, seed, rom)
+        if pid > 0:
+            # print 'Started worker',workerNum,'pid:',pid
+            # sys.stdout.flush()
+            procIDs[pid] = workerNum
+            workerNum += 1
+
 
 
 

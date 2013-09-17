@@ -52,7 +52,8 @@ individualsPerGeneration = args.n
 # TODO: Check if there exists a .bak file
 for f in os.listdir(resultsDir):
     if f.startswith('generation') and (f.endswith('.bak') or f.endswith('.tmp')):
-        subprocess.check_call(["mv", f, f[0:-4]])
+        j = os.path.join(resultsDir,f)
+        subprocess.check_call(["mv", j, j[0:-4]])
 
 currentGeneration = util.getCurrentGen(resultsDir)
 
