@@ -99,6 +99,9 @@ while util.getCurrentGen(resultsDir,doingCMAES) < maxGeneration:
     elif genStatus != 'R': # Generator alive but not running
         continue
 
+    # Write file to tell generator that master is still alive
+    open(os.path.join(resultsDir,'master_alive'),'w').close()
+
     # Don't start workers if generation is being produced
     if util.getCurrentGen(resultsDir,doingCMAES) < 0:
         continue

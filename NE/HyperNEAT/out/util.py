@@ -30,10 +30,14 @@ def getCurrentCMAESGen(resultsDir):
     return currentGeneration
 
 def getPIDStatus(pid, condor_q):
+    if not condor_q:
+        return None
+
     # Returns the status of a given pid in the condor_q output
     for line in condor_q.split('\n'):
-        if line.startswith(str(pid)):
-            return line.split()[5]
+        line = line.split()
+        if len(line) >= 6 and line[0] == str(pid):
+            return line[5]
     return None
 
 # Gets the output of the condor_q command
@@ -109,7 +113,7 @@ def startNormalWorker(workerNum, executable, resultsDir, dataFile, numIndividual
         if getPIDStatus(procID, condor_q()) != None:
             return procID
 
-    print 'Failed to start worker.'
+    print 'Failed to start normal worker.'
     return -1
 
 
@@ -146,7 +150,8 @@ def startNormalGenerator(generatorNum, executable, resultsDir, dataFile,
             return procID
         time.sleep(10)
 
-    print 'Failed to start generator.'
+    print 'Failed to start normal generator.'
+    print 'Cannot find pid', procID, ' in the condor_q:', condor_q()
     return -1
 
 def startCMAESGenerator(generatorNum, executable, resultsDir, dataFile,
@@ -157,36 +162,35 @@ def startCMAESGenerator(generatorNum, executable, resultsDir, dataFile,
     inputFile = os.path.join(resultsDir,"FTNeatCMA_Input.txt")
 
     
-    paramsGen = getCurrentCMAESGen(resultsDir)
-    if paramsGen >= 0:
-        confStr = "\
-        Output = " + cOutFile +"\n\
-        Error = " + cErrFile +"\n\
-        Log = " + cLogFile + "\n\
-        universe = vanilla\n\
-        getenv = true\n\
-        Executable = " + "/usr/bin/java" + "\n\
-        Arguments = -Xmx16192m -cp /u/mhauskn/projects/frameworks/cma/java cma.CMAMain " + resultsDir + " " + str(numGenerations) + " -c " + str(paramsGen) + "\n\
-        Requirements = Arch == \"x86_64\" && InMastodon\n\
-        +Group=\"GRAD\"\n\
-        +Project=\"AI_ROBOTICS\"\n\
-        +ProjectDescription=\"HyperNEAT Atari Game Playing Generator.\"\n\
-        Queue\n"
-    else:
-        confStr = "\
-        Output = " + cOutFile +"\n\
-        Error = " + cErrFile +"\n\
-        Log = " + cLogFile + "\n\
-        universe = vanilla\n\
-        getenv = true\n\
-        Executable = " + "/usr/bin/java" + "\n\
-        Arguments = -Xmx16192m -cp /u/mhauskn/projects/frameworks/cma/java cma.CMAMain " + resultsDir + " " + str(numGenerations) + " " + str(numIndividuals) + " " + inputFile + "\n\
-        Requirements = Arch == \"x86_64\" && InMastodon\n\
-        +Group=\"GRAD\"\n\
-        +Project=\"AI_ROBOTICS\"\n\
-        +ProjectDescription=\"HyperNEAT Atari Game Playing Generator.\"\n\
-        Queue\n"
-        
+    # paramsGen = getCurrentCMAESGen(resultsDir)
+    # if paramsGen >= 0:
+    #     confStr = "\
+    #     Output = " + cOutFile +"\n\
+    #     Error = " + cErrFile +"\n\
+    #     Log = " + cLogFile + "\n\
+    #     universe = vanilla\n\
+    #     getenv = true\n\
+    #     Executable = " + "/usr/bin/java" + "\n\
+    #     Arguments = -Xmx16192m -cp /u/mhauskn/projects/frameworks/cma/java cma.CMAMain " + resultsDir + " " + str(numGenerations) + " -c " + str(paramsGen) + "\n\
+    #     Requirements = Arch == \"x86_64\" && InMastodon\n\
+    #     +Group=\"GRAD\"\n\
+    #     +Project=\"AI_ROBOTICS\"\n\
+    #     +ProjectDescription=\"HyperNEAT Atari Game Playing Generator.\"\n\
+    #     Queue\n"
+    # else:
+    confStr = "\
+    Output = " + cOutFile +"\n\
+    Error = " + cErrFile +"\n\
+    Log = " + cLogFile + "\n\
+    universe = vanilla\n\
+    getenv = true\n\
+    Executable = " + "/usr/bin/java" + "\n\
+    Arguments = -Xmx16192m -cp /u/mhauskn/projects/frameworks/cma/java cma.CMAMain " + resultsDir + " " + str(numGenerations) + " " + str(numIndividuals) + " " + inputFile + "\n\
+    Requirements = Arch == \"x86_64\"\n\
+    +Group=\"GRAD\"\n\
+    +Project=\"AI_ROBOTICS\"\n\
+    +ProjectDescription=\"HyperNEAT Atari Game Playing Generator.\"\n\
+    Queue\n"
 
     # Submit the condor job
     condorFile = os.path.join(resultsDir,"generator" + str(generatorNum) + ".submit")
@@ -201,7 +205,7 @@ def startCMAESGenerator(generatorNum, executable, resultsDir, dataFile,
             return procID
         time.sleep(10)
 
-    print 'Failed to start generator.'
+    print 'Failed to start CMAES generator.'
     return -1
 
 def startCMAESWorker(workerNum, executable, resultsDir, dataFile, numIndividuals, numGenerations, seed, rom):
@@ -216,7 +220,7 @@ def startCMAESWorker(workerNum, executable, resultsDir, dataFile, numIndividuals
     getenv = true\n\
     Executable = " + "/lusr/bin/python" + "\n\
     Arguments = CMAESWorker.py -e "+ executable + " -r " + resultsDir + " -d " + dataFile + " -n " + str(numIndividuals) + " -g " + str(numGenerations) + " -R " + str(seed) + " -G " + rom + "\n\
-    Requirements = Arch == \"x86_64\" && InMastodon\n\
+    Requirements = Arch == \"x86_64\"\n\
     +Group=\"GRAD\"\n\
     +Project=\"AI_ROBOTICS\"\n\
     +ProjectDescription=\"HyperNEAT Atari Game Playing Worker.\"\n\
@@ -235,5 +239,5 @@ def startCMAESWorker(workerNum, executable, resultsDir, dataFile, numIndividuals
         if getPIDStatus(procID, condor_q()) != None:
             return procID
 
-    print 'Failed to start worker.'
+    print 'Failed to start CMAES worker.'
     return -1

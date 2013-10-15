@@ -23,8 +23,8 @@ namespace HCUBE
     void AtariCMAExperiment::initializeALE(string _rom_file, bool processScreen) {
         rom_file = _rom_file;
 
-        substrate_width = 8;
-        substrate_height = 10;
+        substrate_width = 4;
+        substrate_height = 5;
 
         // Check that rom exists and is readable
         ifstream file(rom_file.c_str());

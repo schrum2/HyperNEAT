@@ -49,7 +49,7 @@ maxGeneration            = args.g
 resultsDir               = args.r
 individualsPerGeneration = args.n
 
-# TODO: Check if there exists a .bak file
+# TODO: Check if there exists a .bak file. If so convert to a normal generational file
 for f in os.listdir(resultsDir):
     if f.startswith('generation') and (f.endswith('.bak') or f.endswith('.tmp')):
         j = os.path.join(resultsDir,f)
@@ -69,13 +69,11 @@ if currentGeneration < 0:
         " -O " + os.path.join(resultsDir,"generation0.ser.gz") + \
         " -G " + rom + " >> " + os.path.join(resultsDir,"nohup.out")
         os.system(cmd)
-        # subprocess.check_call(["./" + executable,
-        #                        "-R", str(seed),
-        #                        "-I", dataFile,
-        #                        "-O", os.path.join(resultsDir,"generation0.ser.gz"),
-        #                        "-G", rom])
         os.system("date >> " + os.path.join(resultsDir,"nohup.out"))
         os.system("echo Generation Production Done. >> " + os.path.join(resultsDir,"nohup.out"))
+
+lastHeardFromMaster = time.time()
+timeout_secs = 300
 
 while currentGeneration < maxGeneration:
     print 'Starting Generation', currentGeneration
@@ -88,6 +86,13 @@ while currentGeneration < maxGeneration:
             fitnessPath = os.path.join(resultsDir,fitnessFile)
             if os.path.exists(fitnessPath):
                 individualIds.remove(individualId)
+        if os.path.exists(os.path.join(resultsDir,'master_alive')):
+            os.remove(os.path.join(resultsDir,'master_alive'))
+            lastHeardFromMaster = time.time()
+        if time.time() - lastHeardFromMaster >= timeout_secs:
+            sys.stderr.write('Havent heard from master... quitting\n')
+            sys.stderr.flush()
+            sys.exit(0)
         time.sleep(5)
 
     # Create next generation
@@ -113,14 +118,6 @@ while currentGeneration < maxGeneration:
     os.system(cmd)
     os.system("date >> " + os.path.join(resultsDir,"nohup.out"))
     os.system("echo Generation Production Done. >> " + os.path.join(resultsDir,"nohup.out"))
-
-    # subprocess.check_call(["./" + executable,
-    #                        "-I", dataFile,
-    #                        "-R", str(seed),
-    #                        "-O", tmpNextGen,
-    #                        "-P", tmpCurrGen,
-    #                        "-F", fitnessRoot,
-    #                        "-G", rom])
 
     # Move the temp next gen file to the actual one.
     # This is necessary to keep workers from trying to read the
