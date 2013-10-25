@@ -18,7 +18,7 @@ namespace HCUBE
     }
 
     void AtariNoGeomExperiment::initializeExperiment(string _rom_file) {
-        initializeALE(rom_file, true);
+        initializeALE(_rom_file, true);
         initializeTopology();
     }
 
