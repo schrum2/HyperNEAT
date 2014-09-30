@@ -22,6 +22,8 @@ namespace HCUBE
 
         int outputLayerIndx; // The index of the substrate layer at which the output nodes are located
 
+        double epsilon; // Epsilon greedy action selection
+
     public: // TODO: Make this protected 
         NEAT::LayeredSubstrate<float> substrate;
 
@@ -62,6 +64,9 @@ namespace HCUBE
     
         // Selects an action based on the output layer of the network
         virtual Action selectAction(NEAT::LayeredSubstrate<float>* substrate, int outputLayerIndx);
+
+        // Selects a random action
+        virtual Action selectRandomAction();
 
         // Creates a gaussian blur around an object
         static double gauss2D(double x, double y, double A,

@@ -13,8 +13,12 @@ namespace HCUBE
 {
     AtariNoGeomExperiment::AtariNoGeomExperiment(string _experimentName,int _threadID):
         Experiment(_experimentName,_threadID), visProc(NULL), rom_file(""),
-        numActions(0), numObjClasses(0), display_active(false)
+        numActions(0), numObjClasses(0), display_active(false), epsilon(0)
     {
+        if (NEAT::Globals::getSingleton()->hasParameterValue("epsilon")) {
+            epsilon = NEAT::Globals::getSingleton()->getParameterValue("epsilon");
+        } 
+        cout << "Using epsilon: " << epsilon << endl;
     }
 
     void AtariNoGeomExperiment::initializeExperiment(string _rom_file) {
@@ -136,8 +140,12 @@ namespace HCUBE
             //printLayerInfo();
 
             // Choose which action to take
-            Action action = selectAction(*visProc);
-            ale.act(action);
+            if (NEAT::Globals::getSingleton()->getRandom().getRandomDouble() < epsilon) {
+                ale.act(selectRandomAction());
+            } else {
+                Action action = selectAction(*visProc);
+                ale.act(action);
+            }
         }
         cout << "Game ended in " << ale.frame << " frames with score " << ale.game_score << endl;
  
@@ -197,6 +205,11 @@ namespace HCUBE
         int action_indx = NEAT::Globals::getSingleton()->getRandom().getRandomInt(max_inds.size());
         //int action_indx = choice(&max_inds);
         return ale.legal_actions[max_inds[action_indx]];
+    }
+
+    Action AtariNoGeomExperiment::selectRandomAction() {
+        int action_indx = NEAT::Globals::getSingleton()->getRandom().getRandomInt(ale.legal_actions.size());
+        return ale.legal_actions[action_indx];
     }
 
     double AtariNoGeomExperiment::gauss2D(double x, double y, double A, double mu_x, double mu_y,

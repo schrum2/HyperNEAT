@@ -13,8 +13,12 @@ namespace HCUBE
 {
     AtariExperiment::AtariExperiment(string _experimentName,int _threadID):
         Experiment(_experimentName,_threadID), substrate_width(8), substrate_height(10), visProc(NULL),
-        rom_file(""), numActions(0), numObjClasses(0), display_active(false), outputLayerIndx(-1)
+        rom_file(""), numActions(0), numObjClasses(0), display_active(false), outputLayerIndx(-1), epsilon(0)
     {
+        if (NEAT::Globals::getSingleton()->hasParameterValue("epsilon")) {
+            epsilon = NEAT::Globals::getSingleton()->getParameterValue("epsilon");
+        }
+        cout << "Using epsilon: " << epsilon << endl;
     }
 
     void AtariExperiment::initializeExperiment(string rom_file) {
@@ -166,8 +170,12 @@ namespace HCUBE
             //printLayerInfo(substrate);
 
             // Choose which action to take
-            Action action = selectAction(substrate, outputLayerIndx);
-            ale.act(action);
+            if (NEAT::Globals::getSingleton()->getRandom().getRandomDouble() < epsilon) {
+                ale.act(selectRandomAction());
+            } else {
+                Action action = selectAction(substrate, outputLayerIndx);
+                ale.act(action);
+            }
         }
         cout << "Game ended in " << ale.frame << " frames with score " << ale.game_score << endl;
  
@@ -259,6 +267,11 @@ namespace HCUBE
         }
         int action_indx = NEAT::Globals::getSingleton()->getRandom().getRandomInt(max_inds.size());
         return ale.legal_actions[max_inds[action_indx]];
+    }
+
+    Action AtariExperiment::selectRandomAction() {
+        int action_indx = NEAT::Globals::getSingleton()->getRandom().getRandomInt(ale.legal_actions.size());
+        return ale.legal_actions[action_indx];
     }
 
     double AtariExperiment::gauss2D(double x, double y, double A, double mu_x, double mu_y,

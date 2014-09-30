@@ -22,6 +22,8 @@ namespace HCUBE
         int numActions;
         int numObjClasses;
 
+        double epsilon; // Epsilon greedy action selection
+
     public:
         NEAT::FastNetwork<double> substrate;
         map<Node,string> nameLookup; // Name lookup table
@@ -50,6 +52,9 @@ namespace HCUBE
         // Takes the centroids of the objects locations and paints them onto the substrate
         virtual void paintSubstrate(VisualProcessor& visProc, Prototype& proto, int substrateIndx);
     
+        // Selects a random action
+        virtual Action selectRandomAction();
+
         // Selects an action based on the output layer of the network
         virtual Action selectAction(VisualProcessor& visProc);
 
