@@ -36,12 +36,6 @@ int HyperNEAT_main(int argc,char **argv) {
     {
 
         globals = Globals::init(commandLineParser.GetArgument("-I",0));
-        if (commandLineParser.HasSwitch("-R")) {
-            unsigned int seed = stringTo<unsigned int>(commandLineParser.GetArgument("-R",0));
-            globals->setParameterValue("RandomSeed",double(seed));
-            globals->initRandom();
-        }
-
         int experimentType = int(globals->getParameterValue("ExperimentType") + 0.001);
 
         cout << "[HyperNEAT core] Loading Experiment: " << experimentType << endl;
@@ -51,6 +45,12 @@ int HyperNEAT_main(int argc,char **argv) {
         string populationFile = commandLineParser.GetArgument("-P",0);
         experimentRun.createPopulation(populationFile);
         cout << "[HyperNEAT core] Population Created\n";
+
+        if (commandLineParser.HasSwitch("-R")) {
+            double seed = stringTo<double>(commandLineParser.GetArgument("-R",0));
+            globals->setParameterValue("RandomSeed",seed);
+            globals->initRandom();
+        }
 
         unsigned int individualId = stringTo<unsigned int>(commandLineParser.GetArgument("-N",0));
         cout << "[HyperNEAT core] Evaluating individual: " << individualId << endl;

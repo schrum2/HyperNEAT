@@ -42,12 +42,6 @@ int HyperNEAT_main(int argc,char **argv) {
 
     Globals *globals = Globals::init(commandLineParser.GetArgument("-I",0));
 
-    if (commandLineParser.HasSwitch("-R")) {
-        unsigned int seed = stringTo<unsigned int>(commandLineParser.GetArgument("-R",0));
-        globals->setParameterValue("RandomSeed",double(seed));
-        globals->initRandom();
-    }
-
     // Setup the experiment
     int experimentType = int(globals->getParameterValue("ExperimentType") + 0.001);
     HCUBE::ExperimentRun experimentRun;
@@ -89,6 +83,11 @@ int HyperNEAT_main(int argc,char **argv) {
             exp->initializeExperiment(rom_file.c_str());
         }
         experimentRun.createPopulation();
+    }
+    if (commandLineParser.HasSwitch("-R")) {
+      double seed = stringTo<double>(commandLineParser.GetArgument("-R",0));
+      globals->setParameterValue("RandomSeed",seed);
+      globals->initRandom();
     }
     experimentRun.startCondor();
 
