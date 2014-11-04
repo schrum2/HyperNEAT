@@ -22,6 +22,8 @@ namespace HCUBE
         int numActions;
         int numObjClasses;
 
+        Action last_action;
+
         double epsilon; // Epsilon greedy action selection
 
     public:

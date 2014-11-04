@@ -13,7 +13,8 @@ namespace HCUBE
 {
     AtariNoGeomExperiment::AtariNoGeomExperiment(string _experimentName,int _threadID):
         Experiment(_experimentName,_threadID), visProc(NULL), rom_file(""),
-        numActions(0), numObjClasses(0), display_active(false), epsilon(0)
+        numActions(0), numObjClasses(0), display_active(false), epsilon(0),
+        last_action(Action(0))
     {
         if (NEAT::Globals::getSingleton()->hasParameterValue("epsilon")) {
             epsilon = NEAT::Globals::getSingleton()->getParameterValue("epsilon");
@@ -141,10 +142,12 @@ namespace HCUBE
 
             // Choose which action to take
             if (NEAT::Globals::getSingleton()->getRandom().getRandomDouble() < epsilon) {
-                ale.act(selectRandomAction());
+                // ale.act(selectRandomAction());
+              ale.act(last_action);
             } else {
                 Action action = selectAction(*visProc);
                 ale.act(action);
+                last_action = action;
             }
         }
         cout << "Game ended in " << ale.frame << " frames with score " << ale.game_score << endl;
