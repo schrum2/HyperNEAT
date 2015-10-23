@@ -1,4 +1,1 @@
 
-[submodule "ale"]
-	path = ale
-	url = git@github.com:mhauskn/Arcade-Learning-Environment.git
