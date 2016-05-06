@@ -6,10 +6,10 @@ srcdir      ?= .
 # Set this to 1 to enable SDL and display_screen
 USE_SDL     := 1
 DEFINES     := -DRLGENV_NOMAINLOOP
-LDFLAGS     := -L/u/mhauskn/local/lib
+LDFLAGS     := -L/u/mhauskn/.local/lib
 INCLUDES    := -Isrc/control -Isrc/os_dependent -I/usr/include 
 LIBS_SDL    := -lSDL -lSDL_gfx -lSDL_image 
-LIBS        := -lboost_thread-mt -lboost_serialization -lboost_system -lboost_filesystem
+LIBS        := -lboost_thread -lboost_serialization -lboost_system -lboost_filesystem
 OBJS	    :=
 PROF        :=
 MODULES     :=

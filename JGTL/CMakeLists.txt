@@ -176,6 +176,10 @@ ADD_EXECUTABLE(
 	tests/TreeTests.cpp
 )
 
+target_link_libraries(TreeTests boost_system)
+target_link_libraries(VariantTests boost_system)
+
+
 SET_TARGET_PROPERTIES(TreeTests PROPERTIES DEBUG_POSTFIX _d)
 
 

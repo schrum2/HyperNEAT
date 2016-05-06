@@ -338,7 +338,7 @@ LINK_DIRECTORIES(
 	)
 
 LINK_DIRECTORIES(
-	/u/mhauskn/local/lib
+	/u/mhauskn/.local/lib
 	/usr/lib
 )
 
@@ -552,15 +552,14 @@ TARGET_LINK_LIBRARIES(
 	zlib
 	board
 	ale
-	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_RELEASE}
-	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_RELEASE}
-	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_RELEASE}
-	${BOOST_LIB_PREFIX_NAME}boost_iostreams-${BOOST_LIB_EXT_NAME_RELEASE}
+	${BOOST_LIB_PREFIX_NAME}boost_thread
+	${BOOST_LIB_PREFIX_NAME}boost_filesystem
+	${BOOST_LIB_PREFIX_NAME}boost_system
+	${BOOST_LIB_PREFIX_NAME}boost_iostreams
 
 	SDL
 	SDL_gfx
 	SDL_image
-	boost_thread-mt
 	boost_serialization
 	ncurses
 )
@@ -576,15 +575,14 @@ TARGET_LINK_LIBRARIES(
 	zlib
 	board
 	ale
-	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_RELEASE}
-	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_RELEASE}
-	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_RELEASE}
-	${BOOST_LIB_PREFIX_NAME}boost_iostreams-${BOOST_LIB_EXT_NAME_RELEASE}
+	${BOOST_LIB_PREFIX_NAME}boost_thread
+	${BOOST_LIB_PREFIX_NAME}boost_filesystem
+	${BOOST_LIB_PREFIX_NAME}boost_system
+	${BOOST_LIB_PREFIX_NAME}boost_iostreams
 
 	SDL
 	SDL_gfx
 	SDL_image
-	boost_thread-mt
 	boost_serialization
 	ncurses
 )
@@ -600,15 +598,14 @@ TARGET_LINK_LIBRARIES(
 	zlib
 	board
 	ale
-	${BOOST_LIB_PREFIX_NAME}boost_thread-${BOOST_LIB_EXT_NAME_RELEASE}
-	${BOOST_LIB_PREFIX_NAME}boost_filesystem-${BOOST_LIB_EXT_NAME_RELEASE}
-	${BOOST_LIB_PREFIX_NAME}boost_system-${BOOST_LIB_EXT_NAME_RELEASE}
-	${BOOST_LIB_PREFIX_NAME}boost_iostreams-${BOOST_LIB_EXT_NAME_RELEASE}
+	${BOOST_LIB_PREFIX_NAME}boost_thread
+	${BOOST_LIB_PREFIX_NAME}boost_filesystem
+	${BOOST_LIB_PREFIX_NAME}boost_system
+	${BOOST_LIB_PREFIX_NAME}boost_iostreams
 
 	SDL
 	SDL_gfx
 	SDL_image
-	boost_thread-mt
 	boost_serialization
 	ncurses
 )
