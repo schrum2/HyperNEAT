@@ -36,4 +36,4 @@ done
 echo "Experiments Finished!"
 date
 
-#echo "Atari experiments for $ROMPATH finished. Have a wonderful day!" | mail -s "[master.py - $ROMPATH] Experiment Finished!" mhauskn@cs.utexas.edu
+echo "Atari experiments for $ROMPATH finished. Have a wonderful day!" | mail -s "[master.py - $ROMPATH] Experiment Finished!" schrum2@cs.utexas.edu
