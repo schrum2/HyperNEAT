@@ -42,7 +42,7 @@ def getPIDStatus(pid, condor_q):
 
 # Gets the output of the condor_q command
 def condor_q():
-    out = subprocess.Popen(["condor_q","mhauskn"],stdout=subprocess.PIPE).communicate()[0]
+    out = subprocess.Popen(["condor_q","schrum2"],stdout=subprocess.PIPE).communicate()[0]
     if not out or out.find('Failed to fetch ads') >= 0:
         return None
     return out
@@ -154,6 +154,7 @@ def startNormalGenerator(generatorNum, executable, resultsDir, dataFile,
     print 'Cannot find pid', procID, ' in the condor_q:', condor_q()
     return -1
 
+## schrum2: This generator also mentions mhauskn, but I don't want to use CMA-ES, so I should be fine
 def startCMAESGenerator(generatorNum, executable, resultsDir, dataFile,
                    numIndividuals, numGenerations, seed, rom):
     cOutFile = os.path.join(resultsDir,"generator" + str(generatorNum) + ".out")

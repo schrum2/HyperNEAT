@@ -139,7 +139,7 @@ while util.getCurrentGen(resultsDir,doingCMAES) < maxGeneration:
         # Stop the master if too many workers have died
         if deadWorkers >= deadWorkerLimit:
             readBody = subprocess.Popen(["echo", resultsDir], stdout=subprocess.PIPE)
-            subprocess.check_call(["mail", "-s", '[master.py - '+resultsDir+'] too many workers dead', 'mhauskn@cs.utexas.edu'], stdin=readBody.stdout, stdout=subprocess.PIPE)
+            subprocess.check_call(["mail", "-s", '[master.py - '+resultsDir+'] too many workers dead', 'schrum2@cs.utexas.edu'], stdin=readBody.stdout, stdout=subprocess.PIPE)
             print 'Over',deadWorkerLimit,'dead workers. When will the violence end?'
             sys.stdout.flush()
             sys.exit(0)
