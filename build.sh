@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Schrum: Matthew made it easy on me by allowing me to link to his library
+export CPLUS_INCLUDE_PATH=/u/mhauskn/.local/include:$CPLUS_INCLUDE_PATH
+
 # WARNING: This is not a makefile! It is provided only to give a sense of the commands
 # necessary to build this whole project. 
 
