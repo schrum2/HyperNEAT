@@ -62,13 +62,14 @@ int HyperNEAT_main(int argc,char **argv) {
 
 	// Schrum: The AtariPixelExperiment with HyperNEAT
 	if (experimentType == 35) {
+	    //cout << "evaluate: MY CODE" << endl;
             shared_ptr<AtariPixelExperiment> exp = static_pointer_cast<AtariPixelExperiment>(e);
             int numProcessingLayers = int(globals->getParameterValue("ProcessingLayers") + 0.001);
 	    // Schrum: Want to allow for more flexability in substrate organization
 	    exp->setProcessingLayers(numProcessingLayers);	
-	}
-
-        if (experimentType == 30 || experimentType == 35 || experimentType == 36) {
+            cout << "[HyperNEAT core] Number of processing layers is: " << numProcessingLayers << endl;
+            exp->initializeExperiment(rom_file.c_str());
+	} else if (experimentType == 30 || experimentType == 36) {
             shared_ptr<AtariExperiment> exp = static_pointer_cast<AtariExperiment>(e);
             exp->initializeExperiment(rom_file.c_str());
         } else if (experimentType == 31 || experimentType == 39 || experimentType == 40) {

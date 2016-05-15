@@ -6,6 +6,7 @@
 #endif
 
 #include "Experiments/HCUBE_AtariExperiment.h"
+#include "Experiments/HCUBE_AtariPixelExperiment.h" // Schrum: Needed to set number of processing layers
 #include "Experiments/HCUBE_AtariNoGeomExperiment.h"
 #include "Experiments/HCUBE_AtariFTNeatExperiment.h"
 #include "Experiments/HCUBE_AtariIntrinsicExperiment.h"
@@ -51,7 +52,17 @@ int HyperNEAT_main(int argc,char **argv) {
         cout << "[HyperNEAT core] Visualizing individual: " << individualId << endl;
         string rom_file = commandLineParser.GetArgument("-G",0);
         shared_ptr<Experiment> e = experimentRun.getExperiment();
-        if (experimentType == 30 || experimentType == 35 || experimentType == 36) {
+
+	// Schrum: Allow variable number of processing layers
+	if (experimentType == 35) {
+	    // cout << "visualize: MY CODE" << endl;
+            shared_ptr<AtariPixelExperiment> exp = static_pointer_cast<AtariPixelExperiment>(e);
+            int numProcessingLayers = int(globals->getParameterValue("ProcessingLayers") + 0.001);
+	    // Schrum: Want to allow for more flexability in substrate organization
+	    exp->setProcessingLayers(numProcessingLayers);	
+            cout << "[HyperNEAT core] Number of processing layers is: " << numProcessingLayers << endl;
+            exp->initializeExperiment(rom_file.c_str());
+	} else if (experimentType == 30 || experimentType == 36) {
             shared_ptr<AtariExperiment> exp = static_pointer_cast<AtariExperiment>(e);
             exp->setDisplayScreen(true);
             exp->initializeExperiment(rom_file.c_str());

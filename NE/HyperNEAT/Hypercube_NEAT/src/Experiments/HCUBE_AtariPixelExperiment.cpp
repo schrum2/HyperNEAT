@@ -84,6 +84,7 @@ namespace HCUBE
             layerInfo.layerNames.push_back("Input" + boost::lexical_cast<std::string>(i));
         }
 
+	// cout << "Mine: Experiment class, processing layers: " << numProcessingLayers << endl;
         // Processing levels
 	// Schrum: I enabled more than one processing layer
         for (int i=0; i<numProcessingLayers; i++) {
@@ -103,7 +104,7 @@ namespace HCUBE
 	    // Schrum: connect to all processing layers
 	    for (int j=0; j<numProcessingLayers; j++) {
             	layerInfo.layerAdjacencyList.push_back(std::pair<string,string>(
-                                                       "Input"      + boost::lexical_cast<std::string>(i),
+                                                       "Input" + boost::lexical_cast<std::string>(i),
                                                        "Processing" + boost::lexical_cast<std::string>(j)) );
 	    }
         }

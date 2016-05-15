@@ -11,6 +11,7 @@
 #include "Experiments/HCUBE_AtariFTNeatPixelExperiment.h"
 #include "Experiments/HCUBE_AtariIntrinsicExperiment.h"
 #include "Experiments/HCUBE_AtariCMAExperiment.h"
+#include "Experiments/HCUBE_AtariPixelExperiment.h" // Schrum: Needed to set number of processing layers
 #include "HCUBE_ExperimentRun.h"
 
 #ifndef HCUBE_NOGUI
@@ -60,8 +61,18 @@ int HyperNEAT_main(int argc,char **argv) {
         experimentRun.createPopulationFromCondorRun(populationFile, fitnessFunctionPrefix, evaluationFile, rom_file);
     } else {
         cout << "[HyperNEAT core] Population for first generation created" << endl;
-        shared_ptr<Experiment> e = experimentRun.getExperiment();        
-        if (experimentType == 30 || experimentType == 35 || experimentType == 36) {
+        shared_ptr<Experiment> e = experimentRun.getExperiment();       
+
+	// Schrum: set up variable number of processing layers
+	if (experimentType == 35) {
+	    // cout << "setup: MY CODE" << endl;
+            shared_ptr<AtariPixelExperiment> exp = static_pointer_cast<AtariPixelExperiment>(e);
+            int numProcessingLayers = int(globals->getParameterValue("ProcessingLayers") + 0.001);
+	    // Schrum: Want to allow for more flexability in substrate organization
+	    exp->setProcessingLayers(numProcessingLayers);	
+            cout << "[HyperNEAT core] Number of processing layers is: " << numProcessingLayers << endl;
+            exp->initializeExperiment(rom_file.c_str());
+	} else if (experimentType == 30 || experimentType == 36) {
             shared_ptr<AtariExperiment> exp = static_pointer_cast<AtariExperiment>(e);
             exp->initializeExperiment(rom_file.c_str());
         } else if (experimentType == 31 || experimentType == 39 || experimentType == 40) {
