@@ -10,6 +10,8 @@ using namespace NEAT;
 
 namespace HCUBE
 {
+    // Each of the 256 possible colors are reduced to one of 8 colors.
+    // This array defines the mapping.
     uInt32 AtariPixelExperiment::eightBitPallete [256] = {
         0, 0, 1, 0, 2, 0, 3, 0, 
         4, 0, 5, 0, 6, 0, 7, 0, 
@@ -60,6 +62,11 @@ namespace HCUBE
         initializeTopology();
     }
 
+    // Schrum: Added to allow for more generality
+    void AtariPixelExperiment::setProcessingLayers(int num) {
+	numProcessingLayers = num;
+    }
+
     void AtariPixelExperiment::initializeTopology() {
         // Clear old layerinfo if present
         layerInfo.layerNames.clear();
@@ -77,11 +84,14 @@ namespace HCUBE
             layerInfo.layerNames.push_back("Input" + boost::lexical_cast<std::string>(i));
         }
 
-        // Processing level
-        layerInfo.layerSizes.push_back(Vector2<int>(substrate_width,substrate_height));
-        layerInfo.layerIsInput.push_back(false);
-        layerInfo.layerLocations.push_back(Vector3<float>(0,4,0));
-        layerInfo.layerNames.push_back("Processing");
+        // Processing levels
+	// Schrum: I enabled more than one processing layer
+        for (int i=0; i<numProcessingLayers; i++) {
+            layerInfo.layerSizes.push_back(Vector2<int>(substrate_width,substrate_height));
+            layerInfo.layerIsInput.push_back(false);
+            layerInfo.layerLocations.push_back(Vector3<float>(4*i,4,0));
+            layerInfo.layerNames.push_back("Processing" + boost::lexical_cast<std::string>(i));
+	}
 
         // Output layer
         layerInfo.layerSizes.push_back(Vector2<int>(numActions,1));
@@ -90,11 +100,18 @@ namespace HCUBE
         layerInfo.layerNames.push_back("Output");
 
         for (int i=0; i<numColors; ++i) {
-            layerInfo.layerAdjacencyList.push_back(std::pair<string,string>(
-                                                       "Input" + boost::lexical_cast<std::string>(i),
-                                                       "Processing"));
+	    // Schrum: connect to all processing layers
+	    for (int j=0; j<numProcessingLayers; j++) {
+            	layerInfo.layerAdjacencyList.push_back(std::pair<string,string>(
+                                                       "Input"      + boost::lexical_cast<std::string>(i),
+                                                       "Processing" + boost::lexical_cast<std::string>(j)) );
+	    }
         }
-        layerInfo.layerAdjacencyList.push_back(std::pair<string,string>("Processing","Output"));
+
+	// Schrum: All processing layers connect to output
+	for (int i=0; i<numProcessingLayers; i++) {
+            layerInfo.layerAdjacencyList.push_back(std::pair<string,string>("Processing" + boost::lexical_cast<std::string>(i),"Output"));
+	}
 
         layerInfo.normalize = true;
         layerInfo.useOldOutputNames = false;
@@ -117,13 +134,20 @@ namespace HCUBE
 
         // Output Nodes
         for (int i=0; i<numColors; ++i) {
-            genes.push_back(GeneticNodeGene("Output_Input" + boost::lexical_cast<std::string>(i) +
-                                            "_Processing",
-                                            "NetworkOutputNode",1,false,
-                                            ACTIVATION_FUNCTION_SIGMOID));
+	    // Schrum: output for each pairing of input and processing layers
+	    for (int j=0; j<numProcessingLayers; j++) {
+            	genes.push_back(GeneticNodeGene("Output_Input" + boost::lexical_cast<std::string>(i) +
+                                                "_Processing"  + boost::lexical_cast<std::string>(j),
+                                                "NetworkOutputNode",1,false,
+                                                ACTIVATION_FUNCTION_SIGMOID));
+	    }
         }
-        genes.push_back(GeneticNodeGene("Output_Processing_Output","NetworkOutputNode",1,false,
-                                        ACTIVATION_FUNCTION_SIGMOID));
+
+	// Schrum: link each processing layer to the output layer
+	for (int j=0; j<numProcessingLayers; j++) {
+            genes.push_back(GeneticNodeGene("Output_Processing" + boost::lexical_cast<std::string>(j) + "_Output","NetworkOutputNode",1,false,
+                                            ACTIVATION_FUNCTION_SIGMOID));
+	}
 
         for (int a=0; a<populationSize; a++) {
             shared_ptr<GeneticIndividual> individual(new GeneticIndividual(genes,true,1.0));

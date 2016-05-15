@@ -33,3 +33,4 @@ SignedActivation 1.0
 ExtraActivationUpdates 9.0
 OnlyGaussianHiddenNodes 0.0
 ExperimentType 35.0
+ProcessingLayers 1.0

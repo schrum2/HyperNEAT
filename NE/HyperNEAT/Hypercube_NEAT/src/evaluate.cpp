@@ -12,6 +12,7 @@
 #include "Experiments/HCUBE_AtariFTNeatPixelExperiment.h"
 #include "Experiments/HCUBE_AtariIntrinsicExperiment.h"
 #include "Experiments/HCUBE_AtariCMAExperiment.h"
+#include "Experiments/HCUBE_AtariPixelExperiment.h" // Schrum: Added
 
 #ifndef HCUBE_NOGUI
 namespace HCUBE
@@ -58,6 +59,15 @@ int HyperNEAT_main(int argc,char **argv) {
         // Cast the experiment into the correct subclass and initialize with rom file
         string rom_file = commandLineParser.GetArgument("-G",0);
         shared_ptr<Experiment> e = experimentRun.getExperiment();
+
+	// Schrum: The AtariPixelExperiment with HyperNEAT
+	if (experimentType == 35) {
+            shared_ptr<AtariPixelExperiment> exp = static_pointer_cast<AtariPixelExperiment>(e);
+            int numProcessingLayers = int(globals->getParameterValue("ProcessingLayers") + 0.001);
+	    // Schrum: Want to allow for more flexability in substrate organization
+	    exp->setProcessingLayers(numProcessingLayers);	
+	}
+
         if (experimentType == 30 || experimentType == 35 || experimentType == 36) {
             shared_ptr<AtariExperiment> exp = static_pointer_cast<AtariExperiment>(e);
             exp->initializeExperiment(rom_file.c_str());
