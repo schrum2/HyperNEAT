@@ -12,6 +12,7 @@
 #include "Experiments/HCUBE_AtariIntrinsicExperiment.h"
 #include "Experiments/HCUBE_AtariCMAExperiment.h"
 #include "Experiments/HCUBE_AtariPixelExperiment.h" // Schrum: Needed to set number of processing layers
+#include "Experiments/HCUBE_AtariPixelPreferenceModulesExperiment.h" // Schrum: Added
 #include "HCUBE_ExperimentRun.h"
 
 #ifndef HCUBE_NOGUI
@@ -63,8 +64,16 @@ int HyperNEAT_main(int argc,char **argv) {
         cout << "[HyperNEAT core] Population for first generation created" << endl;
         shared_ptr<Experiment> e = experimentRun.getExperiment();       
 
-	// Schrum: set up variable number of processing layers
-	if (experimentType == 35) {
+	if (experimentType == 42) { // Schrum: AtariPixelPreferenceModulesExperiment: multimodal
+            shared_ptr<AtariPixelPreferenceModulesExperiment> exp = static_pointer_cast<AtariPixelPreferenceModulesExperiment>(e);
+            int numProcessingLayers = int(globals->getParameterValue("ProcessingLayers") + 0.001);
+	    exp->setProcessingLayers(numProcessingLayers);	
+            cout << "[HyperNEAT core] Number of processing layers is: " << numProcessingLayers << endl;
+            int numOutputModules = int(globals->getParameterValue("OutputModules") + 0.001);
+	    exp->setOutputModules(numOutputModules);	
+            cout << "[HyperNEAT core] Number of output modules is: " << numOutputModules << endl;
+            exp->initializeExperiment(rom_file.c_str());
+	} else if (experimentType == 35) { // Schrum: The AtariPixelExperiment with HyperNEAT
 	    // cout << "setup: MY CODE" << endl;
             shared_ptr<AtariPixelExperiment> exp = static_pointer_cast<AtariPixelExperiment>(e);
             int numProcessingLayers = int(globals->getParameterValue("ProcessingLayers") + 0.001);
