@@ -119,7 +119,8 @@ namespace HCUBE
         layerInfo.layerValidSizes = layerInfo.layerSizes;
 
         substrate.setLayerInfo(layerInfo);
-        outputLayerIndx = numColors + 1;
+	// Schrum: layers 0 through (numColors - 1) are for input, and numColors through (numColors + numProcessingLayers - 1) are processing
+        outputLayerIndx = numColors + numProcessingLayers;
     }
 
     NEAT::GeneticPopulation* AtariPixelExperiment::createInitialPopulation(int populationSize) {
