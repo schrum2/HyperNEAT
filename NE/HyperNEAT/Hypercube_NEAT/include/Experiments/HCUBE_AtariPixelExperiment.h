@@ -22,13 +22,16 @@ namespace HCUBE
 
 	// Schrum: Needed to set the processing layers
 	void setProcessingLayers(int num);
+	// Schrum: Needed to set the processing levels
+	void setProcessingLevels(int num);
     protected:
         // The number of different colors in the color representation
         const static int numColors = 8;
 
         static uInt32 eightBitPallete[256];
 
-	int numProcessingLayers; // Schrum: Allows for different number of processing layers
+	int numProcessingLayers; // Schrum: this actually defines the number of processing substrates per level
+	int numProcessingLevels; // Schrum: this is the depth/number of levels worth of processing layers
     };
 }
 

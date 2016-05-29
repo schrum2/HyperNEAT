@@ -34,3 +34,4 @@ ExtraActivationUpdates 9.0
 OnlyGaussianHiddenNodes 0.0
 ExperimentType 35.0
 ProcessingLayers 3.0
+ProcessingLevels 1.0

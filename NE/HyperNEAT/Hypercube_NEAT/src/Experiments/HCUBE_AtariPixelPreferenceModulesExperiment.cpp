@@ -12,70 +12,9 @@ using namespace NEAT;
 
 namespace HCUBE
 {
-    // Each of the 256 possible colors are reduced to one of 8 colors.
-    // This array defines the mapping.
-    /*
-     * Schrum: not changed
-    uInt32 AtariPixelPreferenceModulesExperiment::eightBitPallete [256] = {
-        0, 0, 1, 0, 2, 0, 3, 0, 
-        4, 0, 5, 0, 6, 0, 7, 0, 
-        0, 0, 1, 0, 2, 0, 3, 0, 
-        4, 0, 5, 0, 6, 0, 7, 0, 
-        0, 0, 1, 0, 2, 0, 3, 0, 
-        4, 0, 5, 0, 6, 0, 7, 0, 
-        0, 0, 1, 0, 2, 0, 3, 0, 
-        4, 0, 5, 0, 6, 0, 7, 0, 
-        0, 0, 1, 0, 2, 0, 3, 0, 
-        4, 0, 5, 0, 6, 0, 7, 0, 
-        0, 0, 1, 0, 2, 0, 3, 0, 
-        4, 0, 5, 0, 6, 0, 7, 0, 
-        0, 0, 1, 0, 2, 0, 3, 0, 
-        4, 0, 5, 0, 6, 0, 7, 0, 
-        0, 0, 1, 0, 2, 0, 3, 0, 
-        4, 0, 5, 0, 6, 0, 7, 0, 
-        0, 0, 1, 0, 2, 0, 3, 0, 
-        4, 0, 5, 0, 6, 0, 7, 0, 
-        0, 0, 1, 0, 2, 0, 3, 0, 
-        4, 0, 5, 0, 6, 0, 7, 0, 
-        0, 0, 1, 0, 2, 0, 3, 0, 
-        4, 0, 5, 0, 6, 0, 7, 0, 
-        0, 0, 1, 0, 2, 0, 3, 0, 
-        4, 0, 5, 0, 6, 0, 7, 0, 
-        0, 0, 1, 0, 2, 0, 3, 0, 
-        4, 0, 5, 0, 6, 0, 7, 0, 
-        0, 0, 1, 0, 2, 0, 3, 0, 
-        4, 0, 5, 0, 6, 0, 7, 0, 
-        0, 0, 1, 0, 2, 0, 3, 0, 
-        4, 0, 5, 0, 6, 0, 7, 0, 
-        0, 0, 1, 0, 2, 0, 3, 0, 
-        4, 0, 5, 0, 6, 0, 7, 0
-    };
-    */
-
     AtariPixelPreferenceModulesExperiment::AtariPixelPreferenceModulesExperiment(string _experimentName,int _threadID):
         AtariPixelExperiment(_experimentName,_threadID)
     {}
-
-    /**
-     * Schrum: Not overridden
-     * The initializeTopology() call will call the version in this file, right?
-    void AtariPixelPreferenceModulesExperiment::initializeExperiment(string rom_file) {
-        initializeALE(rom_file, false); // No screen processing necessary
-
-        // Set the dimensions of our substrate to be that of the screen
-        substrate_width = ale.screen_width / 10;
-        substrate_height = ale.screen_height / 10;
-
-        initializeTopology();
-    }
-    */
-
-    /*
-     * Schrum: Not overridden
-    void AtariPixelPreferenceModulesExperiment::setProcessingLayers(int num) {
-	numProcessingLayers = num;
-    }
-    */
 
     // Schrum: Added to be able to set the number of modules
     void AtariPixelPreferenceModulesExperiment::setOutputModules(int num) {
@@ -99,14 +38,15 @@ namespace HCUBE
             layerInfo.layerNames.push_back("Input" + boost::lexical_cast<std::string>(i));
         }
 
-	// cout << "Mine: Experiment class, processing layers: " << numProcessingLayers << endl;
-        // Processing levels
-	// Schrum: I enabled more than one processing layer
-        for (int i=0; i<numProcessingLayers; i++) {
-            layerInfo.layerSizes.push_back(Vector2<int>(substrate_width,substrate_height));
-            layerInfo.layerIsInput.push_back(false);
-            layerInfo.layerLocations.push_back(Vector3<float>(4*i,4,0));
-            layerInfo.layerNames.push_back("Processing" + boost::lexical_cast<std::string>(i));
+        // Schrum: multiple processing levels
+	for (int j=0; j<numProcessingLevels; j++) {
+	    // Schrum: I enabled more than one processing substrate per layer
+            for (int i=0; i<numProcessingLayers; i++) {
+                layerInfo.layerSizes.push_back(Vector2<int>(substrate_width,substrate_height));
+                layerInfo.layerIsInput.push_back(false);
+                layerInfo.layerLocations.push_back(Vector3<float>(4*i,4+(4*j),0));
+                layerInfo.layerNames.push_back("Processing" + boost::lexical_cast<std::string>(j) + "-" + boost::lexical_cast<std::string>(i));
+	    }
 	}
 
         // Output layer
@@ -116,12 +56,12 @@ namespace HCUBE
 	    // Policy substrate
             layerInfo.layerSizes.push_back(Vector2<int>(numActions,1));
             layerInfo.layerIsInput.push_back(false);
-            layerInfo.layerLocations.push_back(Vector3<float>(4*i,8,0));
+            layerInfo.layerLocations.push_back(Vector3<float>(4*i,4+(4*numProcessingLevels),0));
             layerInfo.layerNames.push_back("Output" + boost::lexical_cast<std::string>(i));
 	    // Preference substrate
             layerInfo.layerSizes.push_back(Vector2<int>(1,1)); // Single preference neuron
             layerInfo.layerIsInput.push_back(false);
-            layerInfo.layerLocations.push_back(Vector3<float>((4*i) + 2,8,0));
+            layerInfo.layerLocations.push_back(Vector3<float>((4*i) + 2,4+(4*numProcessingLevels),0));
             layerInfo.layerNames.push_back("Preference" + boost::lexical_cast<std::string>(i));
         }
 
@@ -130,16 +70,27 @@ namespace HCUBE
 	    for (int j=0; j<numProcessingLayers; j++) {
             	layerInfo.layerAdjacencyList.push_back(std::pair<string,string>(
                                                        "Input" + boost::lexical_cast<std::string>(i),
-                                                       "Processing" + boost::lexical_cast<std::string>(j)) );
+                                                       "Processing0-" + boost::lexical_cast<std::string>(j)) );
 	    }
         }
+
+	// Schrum: Connect intermediate processing layers
+	for (int i=0; i < (numProcessingLevels - 1); i++) {
+	    for (int j=0; j<numProcessingLayers; j++) {
+		for (int k=0; k<numProcessingLayers; k++) {
+		    layerInfo.layerAdjacencyList.push_back(std::pair<string,string>(
+                                                           "Processing" + boost::lexical_cast<std::string>(i)   + "-" + boost::lexical_cast<std::string>(j),
+                                                           "Processing" + boost::lexical_cast<std::string>(i+1) + "-" + boost::lexical_cast<std::string>(k)) );
+		}
+	    }
+	}
 
 	// Schrum: All processing layers connect to all outputs and preference neurons
 	for (int i=0; i<numProcessingLayers; i++) {
 	    for (int j=0; j<numOutputModules; j++) {
-                layerInfo.layerAdjacencyList.push_back(std::pair<string,string>("Processing" + boost::lexical_cast<std::string>(i),
+                layerInfo.layerAdjacencyList.push_back(std::pair<string,string>("Processing" + (numProcessingLevels - 1) + "-" + boost::lexical_cast<std::string>(i),
 										"Output" + boost::lexical_cast<std::string>(j)));
-                layerInfo.layerAdjacencyList.push_back(std::pair<string,string>("Processing" + boost::lexical_cast<std::string>(i),
+                layerInfo.layerAdjacencyList.push_back(std::pair<string,string>("Processing" + (numProcessingLevels - 1) + "-" + boost::lexical_cast<std::string>(i),
 										"Preference" + boost::lexical_cast<std::string>(j)));
 	    }
 	}
@@ -149,9 +100,10 @@ namespace HCUBE
         layerInfo.layerValidSizes = layerInfo.layerSizes;
 
         substrate.setLayerInfo(layerInfo);
-	// Schrum: layers 0 through (numColors - 1) are for input, and numColors through (numColors + numProcessingLayers - 1) are processing
+	// Schrum: layers 0 through (numColors - 1) are for input, and
+	//         there are (numProcessingLevels * numProcessingLayers) processing substrates
 	// Schrum: This is merely the index of the first of several output substrates
-        outputLayerIndx = numColors + numProcessingLayers;
+        outputLayerIndx = numColors + (numProcessingLevels * numProcessingLayers);
     }
 
     // Schrum: override so that we can check preference neurons and pick an output from the right substrate
@@ -192,20 +144,34 @@ namespace HCUBE
         for (int i=0; i<numColors; ++i) {
 	    // Schrum: output for each pairing of input and processing layers
 	    for (int j=0; j<numProcessingLayers; j++) {
-            	genes.push_back(GeneticNodeGene("Output_Input" + boost::lexical_cast<std::string>(i) +
-                                                "_Processing"  + boost::lexical_cast<std::string>(j),
+            	genes.push_back(GeneticNodeGene("Output_Input"   + boost::lexical_cast<std::string>(i) +
+                                                "_Processing0-"  + boost::lexical_cast<std::string>(j),
                                                 "NetworkOutputNode",1,false,
                                                 ACTIVATION_FUNCTION_SIGMOID));
 	    }
         }
 
+	// Schrum: connect intermediate processing levels
+	for (int i=0; i < (numProcessingLevels - 1); i++) {
+	    for (int j=0; j<numProcessingLayers; j++) {
+		for (int k=0; k<numProcessingLayers; k++) {
+            	    genes.push_back(GeneticNodeGene("Output_Processing" + boost::lexical_cast<std::string>(i)  + "-" + boost::lexical_cast<std::string>(j) +
+                                                          "_Processing" + boost::lexical_cast<std::string>(i+1)+ "-" + boost::lexical_cast<std::string>(k),
+                                                    "NetworkOutputNode",1,false,
+                                                    ACTIVATION_FUNCTION_SIGMOID));
+		}
+	    }
+	}
+
 	// Schrum: link each processing layer to each output layer and preference neuron
 	for (int j=0; j<numProcessingLayers; j++) {
 	    for (int k=0; k<numOutputModules; k++) {
-                genes.push_back(GeneticNodeGene("Output_Processing" + boost::lexical_cast<std::string>(j) + "_Output" + boost::lexical_cast<std::string>(k),
+                genes.push_back(GeneticNodeGene("Output_Processing" + (numProcessingLevels - 1) + "-" + boost::lexical_cast<std::string>(j) + 
+						"_Output" + boost::lexical_cast<std::string>(k),
 						"NetworkOutputNode",1,false,
                                                 ACTIVATION_FUNCTION_SIGMOID));
-                genes.push_back(GeneticNodeGene("Output_Processing" + boost::lexical_cast<std::string>(j) + "_Preference" + boost::lexical_cast<std::string>(k),
+                genes.push_back(GeneticNodeGene("Output_Processing" + (numProcessingLevels - 1) + "-" + boost::lexical_cast<std::string>(j) + 
+						"_Preference" + boost::lexical_cast<std::string>(k),
 						"NetworkOutputNode",1,false,
                                                 ACTIVATION_FUNCTION_SIGMOID));
 	    }
@@ -222,21 +188,4 @@ namespace HCUBE
         cout << "Finished creating population\n";
         return population;
     }
-
-    /*
-     * Schrum: Not overridden 
-    void AtariPixelPreferenceModulesExperiment::setSubstrateValues(NEAT::LayeredSubstrate<float>* substrate) {
-        for (int y=0; y<ale.screen_height; y++) {
-            for (int x=0; x<ale.screen_width; x++) {
-                int substrate_y = min(int((y / float(ale.screen_height)) * substrate_width), substrate_height-1);
-                int substrate_x = min(int((x / float(ale.screen_width)) * substrate_width), substrate_width-1);
-                uInt32 eightBitVal = eightBitPallete[ale.screen_matrix[y][x]];
-                assert(eightBitVal < numColors);
-                assert(substrate_x < substrate_width);
-                assert(substrate_y < substrate_height);
-                substrate->setValue((Node(substrate_x, substrate_y, eightBitVal)), 1.0);
-            }
-        }
-    }
-    */
 }

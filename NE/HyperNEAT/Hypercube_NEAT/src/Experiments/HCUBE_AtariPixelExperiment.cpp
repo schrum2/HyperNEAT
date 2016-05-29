@@ -67,6 +67,11 @@ namespace HCUBE
 	numProcessingLayers = num;
     }
 
+    // Schrum: Added to allow for more generality
+    void AtariPixelExperiment::setProcessingLevels(int num) {
+	numProcessingLevels = num;
+    }
+
     void AtariPixelExperiment::initializeTopology() {
         // Clear old layerinfo if present
         layerInfo.layerNames.clear();
@@ -84,20 +89,21 @@ namespace HCUBE
             layerInfo.layerNames.push_back("Input" + boost::lexical_cast<std::string>(i));
         }
 
-	// cout << "Mine: Experiment class, processing layers: " << numProcessingLayers << endl;
-        // Processing levels
-	// Schrum: I enabled more than one processing layer
-        for (int i=0; i<numProcessingLayers; i++) {
-            layerInfo.layerSizes.push_back(Vector2<int>(substrate_width,substrate_height));
-            layerInfo.layerIsInput.push_back(false);
-            layerInfo.layerLocations.push_back(Vector3<float>(4*i,4,0));
-            layerInfo.layerNames.push_back("Processing" + boost::lexical_cast<std::string>(i));
+        // Schrum: multiple processing levels
+	for (int j=0; j<numProcessingLevels; j++) {
+	    // Schrum: I enabled more than one processing substrate per layer
+            for (int i=0; i<numProcessingLayers; i++) {
+                layerInfo.layerSizes.push_back(Vector2<int>(substrate_width,substrate_height));
+                layerInfo.layerIsInput.push_back(false);
+                layerInfo.layerLocations.push_back(Vector3<float>(4*i,4+(4*j),0));
+                layerInfo.layerNames.push_back("Processing" + boost::lexical_cast<std::string>(j) + "-" + boost::lexical_cast<std::string>(i));
+	    }
 	}
 
         // Output layer
         layerInfo.layerSizes.push_back(Vector2<int>(numActions,1));
         layerInfo.layerIsInput.push_back(false);
-        layerInfo.layerLocations.push_back(Vector3<float>(0,8,0));
+        layerInfo.layerLocations.push_back(Vector3<float>(0,4+(4*numProcessingLevels),0));
         layerInfo.layerNames.push_back("Output");
 
         for (int i=0; i<numColors; ++i) {
@@ -105,13 +111,26 @@ namespace HCUBE
 	    for (int j=0; j<numProcessingLayers; j++) {
             	layerInfo.layerAdjacencyList.push_back(std::pair<string,string>(
                                                        "Input" + boost::lexical_cast<std::string>(i),
-                                                       "Processing" + boost::lexical_cast<std::string>(j)) );
+                                                       "Processing0-" + boost::lexical_cast<std::string>(j)) );
 	    }
         }
 
+	// Schrum: Connect intermediate processing layers
+	for (int i=0; i < (numProcessingLevels - 1); i++) {
+	    for (int j=0; j<numProcessingLayers; j++) {
+		for (int k=0; k<numProcessingLayers; k++) {
+		    layerInfo.layerAdjacencyList.push_back(std::pair<string,string>(
+                                                           "Processing" + boost::lexical_cast<std::string>(i)   + "-" + boost::lexical_cast<std::string>(j),
+                                                           "Processing" + boost::lexical_cast<std::string>(i+1) + "-" + boost::lexical_cast<std::string>(k)) );
+		}
+	    }
+	}
+
 	// Schrum: All processing layers connect to output
 	for (int i=0; i<numProcessingLayers; i++) {
-            layerInfo.layerAdjacencyList.push_back(std::pair<string,string>("Processing" + boost::lexical_cast<std::string>(i),"Output"));
+            layerInfo.layerAdjacencyList.push_back(std::pair<string,string>(
+							"Processing" + (numProcessingLevels - 1) + "-" + boost::lexical_cast<std::string>(i),
+							"Output"));
 	}
 
         layerInfo.normalize = true;
@@ -119,8 +138,9 @@ namespace HCUBE
         layerInfo.layerValidSizes = layerInfo.layerSizes;
 
         substrate.setLayerInfo(layerInfo);
-	// Schrum: layers 0 through (numColors - 1) are for input, and numColors through (numColors + numProcessingLayers - 1) are processing
-        outputLayerIndx = numColors + numProcessingLayers;
+	// Schrum: layers 0 through (numColors - 1) are for input, and
+	//         there are (numProcessingLevels * numProcessingLayers) processing substrates
+        outputLayerIndx = numColors + (numProcessingLevels * numProcessingLayers);
     }
 
     NEAT::GeneticPopulation* AtariPixelExperiment::createInitialPopulation(int populationSize) {
@@ -138,16 +158,29 @@ namespace HCUBE
         for (int i=0; i<numColors; ++i) {
 	    // Schrum: output for each pairing of input and processing layers
 	    for (int j=0; j<numProcessingLayers; j++) {
-            	genes.push_back(GeneticNodeGene("Output_Input" + boost::lexical_cast<std::string>(i) +
-                                                "_Processing"  + boost::lexical_cast<std::string>(j),
+            	genes.push_back(GeneticNodeGene("Output_Input"   + boost::lexical_cast<std::string>(i) +
+                                                "_Processing0-"  + boost::lexical_cast<std::string>(j),
                                                 "NetworkOutputNode",1,false,
                                                 ACTIVATION_FUNCTION_SIGMOID));
 	    }
         }
 
+	// Schrum: connect intermediate processing levels
+	for (int i=0; i < (numProcessingLevels - 1); i++) {
+	    for (int j=0; j<numProcessingLayers; j++) {
+		for (int k=0; k<numProcessingLayers; k++) {
+            	    genes.push_back(GeneticNodeGene("Output_Processing" + boost::lexical_cast<std::string>(i)  + "-" + boost::lexical_cast<std::string>(j) +
+                                                          "_Processing" + boost::lexical_cast<std::string>(i+1)+ "-" + boost::lexical_cast<std::string>(k),
+                                                    "NetworkOutputNode",1,false,
+                                                    ACTIVATION_FUNCTION_SIGMOID));
+		}
+	    }
+	}
+
 	// Schrum: link each processing layer to the output layer
 	for (int j=0; j<numProcessingLayers; j++) {
-            genes.push_back(GeneticNodeGene("Output_Processing" + boost::lexical_cast<std::string>(j) + "_Output","NetworkOutputNode",1,false,
+            genes.push_back(GeneticNodeGene("Output_Processing" + (numProcessingLevels - 1) + "-" + boost::lexical_cast<std::string>(j) + "_Output",
+					    "NetworkOutputNode",1,false,
                                             ACTIVATION_FUNCTION_SIGMOID));
 	}
 

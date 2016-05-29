@@ -18,22 +18,12 @@ namespace HCUBE
 
         virtual NEAT::GeneticPopulation* createInitialPopulation(int populationSize);
         
-	// Schrum: shouldn't need to change these
-        //virtual void initializeExperiment(string rom_name);
-	//virtual void setSubstrateValues(NEAT::LayeredSubstrate<float>* substrate);
-	//void setProcessingLayers(int num);
-
 	// Schrum: Has to be overridden to select from output modules
         virtual Action selectAction(NEAT::LayeredSubstrate<float>* substrate, int outputLayerIndx);
 
 	// Schrum: new to this experiment: how many output modules?
 	void setOutputModules(int num);
     protected:
-	// Schrum: This don't change, so I think I can leave them out
-        //const static int numColors = 8;
-        //static uInt32 eightBitPallete[256];
-	//int numProcessingLayers; 
-
 	int numOutputModules; // Schrum: more than one output module: multimodal 
     };
 }

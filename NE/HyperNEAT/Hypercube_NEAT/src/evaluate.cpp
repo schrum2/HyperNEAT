@@ -66,6 +66,9 @@ int HyperNEAT_main(int argc,char **argv) {
             int numProcessingLayers = int(globals->getParameterValue("ProcessingLayers") + 0.001);
 	    exp->setProcessingLayers(numProcessingLayers);	
             cout << "[HyperNEAT core] Number of processing layers is: " << numProcessingLayers << endl;
+            int numProcessingLevels = int(globals->getParameterValue("ProcessingLevels") + 0.001);
+	    exp->setProcessingLevels(numProcessingLevels);	
+            cout << "[HyperNEAT core] Number of processing levels is: " << numProcessingLevels << endl;
             int numOutputModules = int(globals->getParameterValue("OutputModules") + 0.001);
 	    exp->setOutputModules(numOutputModules);	
             cout << "[HyperNEAT core] Number of output modules is: " << numOutputModules << endl;
@@ -73,8 +76,11 @@ int HyperNEAT_main(int argc,char **argv) {
 	} else if (experimentType == 35) { // Schrum: The AtariPixelExperiment with HyperNEAT
 	    //cout << "evaluate: MY CODE" << endl;
             shared_ptr<AtariPixelExperiment> exp = static_pointer_cast<AtariPixelExperiment>(e);
-            int numProcessingLayers = int(globals->getParameterValue("ProcessingLayers") + 0.001);
+            int numProcessingLevels = int(globals->getParameterValue("ProcessingLevels") + 0.001);
+	    exp->setProcessingLevels(numProcessingLevels);	
+            cout << "[HyperNEAT core] Number of processing levels is: " << numProcessingLevels << endl;
 	    // Schrum: Want to allow for more flexability in substrate organization
+            int numProcessingLayers = int(globals->getParameterValue("ProcessingLayers") + 0.001);
 	    exp->setProcessingLayers(numProcessingLayers);	
             cout << "[HyperNEAT core] Number of processing layers is: " << numProcessingLayers << endl;
             exp->initializeExperiment(rom_file.c_str());
