@@ -88,9 +88,9 @@ namespace HCUBE
 	// Schrum: All processing layers connect to all outputs and preference neurons
 	for (int i=0; i<numProcessingLayers; i++) {
 	    for (int j=0; j<numOutputModules; j++) {
-                layerInfo.layerAdjacencyList.push_back(std::pair<string,string>("Processing" + (numProcessingLevels - 1) + "-" + boost::lexical_cast<std::string>(i),
-										"Output" + boost::lexical_cast<std::string>(j)));
-                layerInfo.layerAdjacencyList.push_back(std::pair<string,string>("Processing" + (numProcessingLevels - 1) + "-" + boost::lexical_cast<std::string>(i),
+                layerInfo.layerAdjacencyList.push_back(std::pair<string,string>("Processing" + boost::lexical_cast<std::string>(numProcessingLevels - 1) + "-" + boost::lexical_cast<std::string>(i),
+										"Output"     + boost::lexical_cast<std::string>(j)));
+                layerInfo.layerAdjacencyList.push_back(std::pair<string,string>("Processing" + boost::lexical_cast<std::string>(numProcessingLevels - 1) + "-" + boost::lexical_cast<std::string>(i),
 										"Preference" + boost::lexical_cast<std::string>(j)));
 	    }
 	}
@@ -166,12 +166,12 @@ namespace HCUBE
 	// Schrum: link each processing layer to each output layer and preference neuron
 	for (int j=0; j<numProcessingLayers; j++) {
 	    for (int k=0; k<numOutputModules; k++) {
-                genes.push_back(GeneticNodeGene("Output_Processing" + (numProcessingLevels - 1) + "-" + boost::lexical_cast<std::string>(j) + 
-						"_Output" + boost::lexical_cast<std::string>(k),
+                genes.push_back(GeneticNodeGene("Output_Processing" + boost::lexical_cast<std::string>(numProcessingLevels - 1) + "-" + boost::lexical_cast<std::string>(j) + 
+						"_Output"           + boost::lexical_cast<std::string>(k),
 						"NetworkOutputNode",1,false,
                                                 ACTIVATION_FUNCTION_SIGMOID));
-                genes.push_back(GeneticNodeGene("Output_Processing" + (numProcessingLevels - 1) + "-" + boost::lexical_cast<std::string>(j) + 
-						"_Preference" + boost::lexical_cast<std::string>(k),
+                genes.push_back(GeneticNodeGene("Output_Processing" + boost::lexical_cast<std::string>(numProcessingLevels - 1) + "-" + boost::lexical_cast<std::string>(j) + 
+						"_Preference"       + boost::lexical_cast<std::string>(k),
 						"NetworkOutputNode",1,false,
                                                 ACTIVATION_FUNCTION_SIGMOID));
 	    }

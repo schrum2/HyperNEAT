@@ -129,7 +129,7 @@ namespace HCUBE
 	// Schrum: All processing layers connect to output
 	for (int i=0; i<numProcessingLayers; i++) {
             layerInfo.layerAdjacencyList.push_back(std::pair<string,string>(
-							"Processing" + (numProcessingLevels - 1) + "-" + boost::lexical_cast<std::string>(i),
+							"Processing" + boost::lexical_cast<std::string>(numProcessingLevels - 1) + "-" + boost::lexical_cast<std::string>(i),
 							"Output"));
 	}
 
@@ -179,7 +179,7 @@ namespace HCUBE
 
 	// Schrum: link each processing layer to the output layer
 	for (int j=0; j<numProcessingLayers; j++) {
-            genes.push_back(GeneticNodeGene("Output_Processing" + (numProcessingLevels - 1) + "-" + boost::lexical_cast<std::string>(j) + "_Output",
+            genes.push_back(GeneticNodeGene("Output_Processing" + boost::lexical_cast<std::string>(numProcessingLevels - 1) + "-" + boost::lexical_cast<std::string>(j) + "_Output",
 					    "NetworkOutputNode",1,false,
                                             ACTIVATION_FUNCTION_SIGMOID));
 	}
