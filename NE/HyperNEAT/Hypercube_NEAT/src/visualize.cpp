@@ -65,6 +65,7 @@ int HyperNEAT_main(int argc,char **argv) {
             int numOutputModules = int(globals->getParameterValue("OutputModules") + 0.001);
 	    exp->setOutputModules(numOutputModules);	
             cout << "[HyperNEAT core] Number of output modules is: " << numOutputModules << endl;
+            exp->setDisplayScreen(true);
             exp->initializeExperiment(rom_file.c_str());
 	} else if (experimentType == 35) { // Schrum: The AtariPixelExperiment with HyperNEAT
 	    // cout << "visualize: MY CODE" << endl;
@@ -76,6 +77,7 @@ int HyperNEAT_main(int argc,char **argv) {
             int numProcessingLayers = int(globals->getParameterValue("ProcessingLayers") + 0.001);
 	    exp->setProcessingLayers(numProcessingLayers);	
             cout << "[HyperNEAT core] Number of processing layers is: " << numProcessingLayers << endl;
+            exp->setDisplayScreen(true);
             exp->initializeExperiment(rom_file.c_str());
 	} else if (experimentType == 30 || experimentType == 36) {
             shared_ptr<AtariExperiment> exp = static_pointer_cast<AtariExperiment>(e);
