@@ -125,6 +125,7 @@ while currentGeneration < maxGeneration:
     subprocess.check_call(["mv", tmpNextGen, nextGenFile])
 
     # Delete current generation file
+    # Schrum: Useful to comment the below sometimes for troubleshooting
     os.remove(tmpCurrGen)
 
     currentGeneration += 1

@@ -231,7 +231,17 @@ namespace HCUBE
             for (int y=0; y<layerSize.y; ++y) {
                 for (int x=0; x<layerSize.x; ++x) {
                     float val = substrate->getValue(Node(x,y,i));
-                    printf("%1.1f ",val);
+		    // Schrum: Added color coding for substrates (Linux ONLY!).
+		    // colors for different intensity and sign
+		    if(val < -0.75) printf("\e[1;33m"); // yellow
+		    else if(val < -0.5) printf("\e[1;31m"); // red
+		    else if(val < -0.01) printf("\e[1;35m"); // magenta
+		    else if(val > 0.75) printf("\e[1;36m"); // cyan
+		    else if(val > 0.5) printf("\e[1;32m"); // green
+		    else if(val > 0.01) printf("\e[1;34m"); // blue
+		    else printf("\e[1;30m"); // gray
+                    printf("%+1.1f ",val);
+                    printf("\e[0m"); // rest to normal colors
                     // if (val >= .5)
                     //     printf("O");
                     // else
